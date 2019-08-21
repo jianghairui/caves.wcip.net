@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="907b399f-be08-49e3-987f-0418edc31198" name="180.76.184.57" url="http://180.76.184.57">
+        <fileTransfer host="180.76.184.57" port="22" rootFolder="/mnt/mp.caves.vip" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

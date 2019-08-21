@@ -1,0 +1,44 @@
+[Time 2019-04-10 15:17:23]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-05-20 11:13:31]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-05-20 11:14:12]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-14 19:20:43]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-14 19:21:04]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-14 19:21:21]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-14 19:21:39]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-16 06:54:03]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-16 06:54:27]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-16 06:54:41]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
+[Time 2019-08-16 06:54:55]
+cmd:Pay/recharge_notify
+SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'vip_time' at row 1
+---END---
