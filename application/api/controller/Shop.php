@@ -54,7 +54,7 @@ class Shop extends Common {
     //商品详情
     public function goodsDetail() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']]
@@ -93,7 +93,7 @@ class Shop extends Common {
     public function cartAdd() {
         $val['goods_id'] = input('post.goods_id');
         $val['num'] = input('post.num');
-        $this->checkPost($val);
+        checkPost($val);
         $val['attr_id'] = input('post.attr_id',0);
         $val['use_attr'] = 0;
         $val['uid'] = $this->myinfo['uid'];
@@ -210,7 +210,7 @@ class Shop extends Common {
     //购物车+++
     public function cartInc() {
         $val['cart_id'] = input('post.cart_id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['cart_id']],
@@ -254,7 +254,7 @@ class Shop extends Common {
     //购物车---
     public function cartDec() {
         $val['cart_id'] = input('post.cart_id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['cart_id']],
@@ -292,7 +292,7 @@ class Shop extends Common {
     //删除购物车
     public function cartDel() {
         $val['cart_id'] = input('post.cart_id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['cart_id']],
@@ -315,7 +315,7 @@ class Shop extends Common {
         $data['receiver'] = input('post.receiver');
         $data['tel'] = input('post.tel');
         $data['address'] = input('post.address');
-        $this->checkPost($data);
+        checkPost($data);
         $data['attr_id'] = input('post.attr_id',0);
         $data['use_attr'] = 0;
         if(!if_int($data['num'])) {
@@ -393,7 +393,7 @@ class Shop extends Common {
         $val['receiver'] = input('post.receiver');
         $val['tel'] = input('post.tel');
         $val['address'] = input('post.address');
-        $this->checkPost($val);
+        checkPost($val);
         if(empty($cart_ids)) {
             return ajax('请选择要结算的商品',40);
         }

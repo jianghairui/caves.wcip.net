@@ -55,7 +55,7 @@ class Note extends Common {
         $val['content'] = input('post.content');
         $val['width'] = input('post.width',1);
         $val['height'] = input('post.height',1);
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         $image = input('post.pics',[]);
         if(is_array($image) && !empty($image)) {
@@ -72,7 +72,7 @@ class Note extends Common {
         }
         $image_array = [];
         foreach ($image as $v) {
-            $image_array[] = $this->rename_file($v);
+            $image_array[] = rename_file($v);
         }
         $val['pics'] = serialize($image_array);
         try {
@@ -123,7 +123,7 @@ class Note extends Common {
     //获取评论列表
     public function commentList() {
         $val['note_id'] = input('post.note_id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
             if(!$exist) {
@@ -144,7 +144,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function commentAdd() {
         $val['note_id'] = input('post.note_id');
         $val['content'] = input('post.content');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         $val['to_cid'] = input('post.to_cid');
 
@@ -184,7 +184,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     //判断是否点赞
     public function ifLike() {
         $val['note_id'] = input('post.note_id');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
@@ -209,7 +209,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     //点赞,取消
     public function iLike() {
         $val['note_id'] = input('post.note_id');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
@@ -236,7 +236,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     //判断是否收藏
     public function ifCollect() {
         $val['note_id'] = input('post.note_id');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
@@ -261,7 +261,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     //收藏/取消收藏
     public function iCollect() {
         $val['note_id'] = input('post.note_id');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
@@ -288,7 +288,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     //判断是否收藏
     public function ifFocus() {
         $val['to_uid'] = input('post.to_uid');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $exist = Db::table('mp_user')->where('id',$val['to_uid'])->find();
@@ -313,7 +313,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     //收藏/取消收藏
     public function iFocus() {
         $val['to_uid'] = input('post.to_uid');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $user_exist = Db::table('mp_user')->where('id',$val['to_uid'])->find();

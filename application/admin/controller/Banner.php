@@ -21,11 +21,11 @@ class Banner extends Common {
     public function slideadd() {
         if(Request::isAjax()) {
             $val['title'] = input('post.title');
-            $this->checkPost($val);
+            checkPost($val);
             $val['url'] = input('post.url');
 
             if(isset($_FILES['file'])) {
-                $info = $this->upload('file');
+                $info = upload('file');
                 if($info['error'] === 0) {
                     $val['pic'] = $info['data'];
                 }else {
@@ -68,7 +68,7 @@ class Banner extends Common {
         if(Request::isAjax()) {
             $val['title'] = input('post.title');
             $val['id'] = input('post.slideid');
-            $this->checkPost($val);
+            checkPost($val);
             $val['url'] = input('post.url');
 
             $exist = Db::table('mp_slideshow')->where('id',$val['id'])->find();
@@ -77,7 +77,7 @@ class Banner extends Common {
             }
 
             if(isset($_FILES['file'])) {
-                $info = $this->upload('file');
+                $info = upload('file');
                 if($info['error'] === 0) {
                     $val['pic'] = $info['data'];
                 }else {
@@ -101,7 +101,7 @@ class Banner extends Common {
     //删除轮播图
     public function slide_del() {
         $val['id'] = input('post.slideid');
-        $this->checkPost($val);
+        checkPost($val);
         $exist = Db::table('mp_slideshow')->where('id',$val['id'])->find();
         if(!$exist) {
             return ajax('非法操作',-1);
@@ -119,7 +119,7 @@ class Banner extends Common {
     public function sortSlide() {
         $val['id'] = input('post.id');
         $val['sort'] = input('post.sort');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             Db::table('mp_slideshow')->update($val);
         }catch (Exception $e) {
@@ -130,7 +130,7 @@ class Banner extends Common {
     //禁用轮播图
     public function slide_stop() {
         $val['id'] = input('post.slideid');
-        $this->checkPost($val);
+        checkPost($val);
         $exist = Db::table('mp_slideshow')->where('id',$val['id'])->find();
         if(!$exist) {
             return ajax('非法操作',-1);
@@ -146,7 +146,7 @@ class Banner extends Common {
     //启用轮播图
     public function slide_start() {
         $val['id'] = input('post.slideid');
-        $this->checkPost($val);
+        checkPost($val);
         $exist = Db::table('mp_slideshow')->where('id',$val['id'])->find();
         if(!$exist) {
             return ajax('非法操作',-1);

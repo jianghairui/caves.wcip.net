@@ -30,7 +30,7 @@ class My extends Common {
         $val['sex'] = input('post.sex');
         $val['age'] = input('post.age');
         $val['tel'] = input('post.tel');
-        $this->checkPost($val);
+        checkPost($val);
 
         $val['desc'] = input('post.desc','');
         $val['id'] = $this->myinfo['uid'];
@@ -41,7 +41,7 @@ class My extends Common {
                 if (substr($avatar,0,4) == 'http') {
                     $val['avatar'] = $avatar;
                 }else {
-                    $val['avatar'] = $this->rename_file($avatar,'static/uploads/role/');
+                    $val['avatar'] = rename_file($avatar,'static/uploads/role/');
                 }
             }else {
                 return ajax('',3);
@@ -63,14 +63,14 @@ class My extends Common {
     public function modMyRole() {
         $val['desc'] = input('post.desc','');
         $val['cover'] = input('post.cover','');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $role = Db::table('mp_role')->where('uid',$val['uid'])->find();
             if(!file_exists($val['cover'])) {
                 return ajax('',5);
             }
-            $val['cover'] = $this->rename_file($val['cover'],'static/uploads/role/');
+            $val['cover'] = rename_file($val['cover'],'static/uploads/role/');
             Db::table('mp_role')->where('uid',$val['uid'])->update($val);
         } catch (\Exception $e) {
             if ($val['cover'] != $role['cover']) {
@@ -113,7 +113,7 @@ class My extends Common {
     //获取我自己的笔记详情
     public function getMyNoteDetail() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         try {
             $where = [
@@ -141,7 +141,7 @@ class My extends Common {
         $val['content'] = input('post.content');
         $val['width'] = input('post.width',1);
         $val['height'] = input('post.height',1);
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         $image = input('post.pics',[]);
 
@@ -172,7 +172,7 @@ class My extends Common {
             }
             $image_array = [];
             foreach ($image as $v) {
-                $image_array[] = $this->rename_file($v);
+                $image_array[] = rename_file($v);
             }
             $val['pics'] = serialize($image_array);
             $val['status'] = 0;
@@ -234,7 +234,7 @@ class My extends Common {
         $val['vote_time'] = input('post.vote_time');
         $val['end_time'] = input('post.end_time');
         $val['uid'] = $this->myinfo['uid'];
-        $this->checkPost($val);
+        checkPost($val);
         $val['weixin'] = input('post.weixin');
         if(!preg_match('/0\d{2,3}-\d{7,8}/',$val['phone'])) {
             return ajax('无效的座机号',46);
@@ -250,7 +250,7 @@ class My extends Common {
                 if(!file_exists($image)) {
                     return ajax($image,5);
                 }
-                $val['cover'] = $this->rename_file($image,'static/uploads/req/');
+                $val['cover'] = rename_file($image,'static/uploads/req/');
             }else {
                 return ajax('请传入图片',3);
             }
@@ -323,7 +323,7 @@ class My extends Common {
     //获取需求详情
     public function reqDetail() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['r.show','=',1],
@@ -357,7 +357,7 @@ class My extends Common {
         $val['vote_time'] = input('post.vote_time');
         $val['end_time'] = input('post.end_time');
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         $val['weixin'] = input('post.weixin');
 
@@ -382,7 +382,7 @@ class My extends Common {
                 if(!file_exists($image)) {
                     return ajax($image,5);
                 }
-                $val['cover'] = $this->rename_file($image,'static/uploads/req/');
+                $val['cover'] = rename_file($image,'static/uploads/req/');
             }else {
                 return ajax('请传入图片',3);
             }
@@ -406,7 +406,7 @@ class My extends Common {
     public function uploadShowWorks() {
         $val['title'] = input('post.title');
         $val['desc'] = input('post.desc');
-        $this->checkPost($val);
+        checkPost($val);
         $val['uid'] = $this->myinfo['uid'];
         $val['type'] = 1;
         $val['create_time'] = time();
@@ -426,7 +426,7 @@ class My extends Common {
         try {
             $image_array = [];
             foreach ($image as $v) {
-                $image_array[] = $this->rename_file($v,'static/uploads/work/');
+                $image_array[] = rename_file($v,'static/uploads/work/');
             }
             $val['pics'] = serialize($image_array);
             Db::table('mp_design_works')->insert($val);
@@ -515,7 +515,7 @@ class My extends Common {
         $val['tel'] = input('post.tel');
         $val['code'] = input('post.code');
         $val['uid'] = $this->myinfo['uid'];
-        $this->checkPost($val);
+        checkPost($val);
         $val['desc'] = input('post.desc');
         $val['org'] = input('post.org','');
         $val['weixin'] = input('post.weixin');
@@ -572,7 +572,7 @@ class My extends Common {
                     return ajax('请传入作品', 14);
                 }
                 foreach ($works as $v) {
-                    $image_array[] = $this->rename_file($v);
+                    $image_array[] = rename_file($v);
                 }
             }else {
                 $license = input('post.license');
@@ -582,12 +582,12 @@ class My extends Common {
                 if(!$license) {
                     return ajax('请传入资质证书',19);
                 }
-                $val['license'] = $this->rename_file($license,'static/uploads/role/');
+                $val['license'] = rename_file($license,'static/uploads/role/');
             }
             $val['works'] = serialize($image_array);
-            $val['cover'] = $this->rename_file($cover,'static/uploads/role/');
-            $val['id_front'] = $this->rename_file($id_front,'static/uploads/role/');
-            $val['id_back'] = $this->rename_file($id_back,'static/uploads/role/');
+            $val['cover'] = rename_file($cover,'static/uploads/role/');
+            $val['id_front'] = rename_file($id_front,'static/uploads/role/');
+            $val['id_back'] = rename_file($id_back,'static/uploads/role/');
 
             $role_exist = Db::table('mp_role')->where('uid',$val['uid'])->find();
             unset($val['code']);
@@ -653,7 +653,7 @@ class My extends Common {
         $val['uid'] = $this->myinfo['uid'];
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['b.uid','=',$val['uid']]
@@ -676,7 +676,7 @@ class My extends Common {
     //申请角色发送手机短信
     public function sendSms() {
         $val['tel'] = input('post.tel');
-        $this->checkPost($val);
+        checkPost($val);
         $sms = new Sendsms();
         $tel = $val['tel'];
 
@@ -831,7 +831,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     //查看订单详情
     public function orderDetail() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['o.id','=',$val['id']],
             ['o.uid','=',$this->myinfo['uid']]
@@ -878,7 +878,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     public function refundApply() {
         $val['pay_order_sn'] = input('post.pay_order_sn');
         $val['reason'] = input('post.reason');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['pay_order_sn','=',$val['pay_order_sn']],
@@ -902,7 +902,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     //确认收货
     public function orderConfirm() {
         $val['pay_order_sn'] = input('post.pay_order_sn');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['pay_order_sn','=',$val['pay_order_sn']],
@@ -926,7 +926,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     //取消订单
     public function orderCancel() {
         $val['pay_order_sn'] = input('post.pay_order_sn');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['pay_order_sn','=',$val['pay_order_sn']],
@@ -978,7 +978,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $val['tel'] = input('post.tel');
         $val['username'] = input('post.username');
         $val['default'] = input('post.default',0);
-        $this->checkPost($val);
+        checkPost($val);
         if(!is_tel($val['tel'])) {
             return ajax('',6);
         }
@@ -999,7 +999,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
 
     public function addressDetail() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         $uid = $this->myinfo['uid'];
         $where = [
             ['id','=',$val['id']],
@@ -1027,7 +1027,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $val['tel'] = input('post.tel');
         $val['username'] = input('post.username');
         $val['default'] = input('post.default',0);
-        $this->checkPost($val);
+        checkPost($val);
         if(!is_tel($val['tel'])) {
             return ajax('',6);
         }

@@ -104,7 +104,7 @@ class Login extends Common {
         $val['gender'] = input('post.gender');
         $val['tel'] = input('post.tel');
         $val['email'] = input('post.email');
-        $this->checkPost($val);
+        checkPost($val);
         $val['password'] = input('post.password');
         $val['desc'] = input('post.desc');
         if($val['password']) {

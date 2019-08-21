@@ -48,17 +48,17 @@ class Test extends Controller {
             'desc'=> $desc,//企业付款描述信息
             'spbill_create_ip'=> '47.105.169.186',//Ip地址
         );
-        $data['sign'] = $this->getSign($data);
+        $data['sign'] = getSign($data);
 
         $url = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers'; //调用接口
-        $res = $this->curl_post_datas($url,$this->array2xml($data),true);
+        $res = $this->curl_post_datas($url,array2xml($data),true);
         halt($res);
     }
 
     public function notify() {
         //将返回的XML格式的参数转换成php数组格式
         $xml = file_get_contents('php://input');
-        $data = $this->xml2array($xml);
+        $data = xml2array($xml);
         if($data) {
             $this->log('notify',var_export($data,true));
             if($data['return_code'] == 'SUCCESS' && $data['result_code'] == 'SUCCESS') {
@@ -74,7 +74,7 @@ class Test extends Controller {
                     $this->asyn_sendPayNotifyTpl($data);
                 }catch (\Exception $e) {
                     $this->excep('wx/notify:2',$e->getMessage());
-                    exit($this->array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+                    exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
                 }
             }else if($data['return_code'] == 'SUCCESS' && $data['result_code'] != 'SUCCESS'){
                 try {
@@ -85,7 +85,7 @@ class Test extends Controller {
             }
 
         }
-        exit($this->array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+        exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
     }
 
     public function pay() {
@@ -125,9 +125,9 @@ class Test extends Controller {
                 'trade_type' => 'JSAPI',
                 'openid' => $openid
             ];
-            $arr['sign'] = $this->getSign($arr);
+            $arr['sign'] = getSign($arr);
             $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
-            $result = $this->curl_post_datas($url, $this->array2xml($arr));
+            $result = $this->curl_post_datas($url, array2xml($arr));
             /*--------------微信统一下单--------------*/
             if ($result['return_code'] == 'SUCCESS' && $result['result_code'] == 'SUCCESS') {
                 $result['timestamp'] = time();
@@ -136,7 +136,7 @@ class Test extends Controller {
                 $arr2['nonceStr'] = $arr['nonce_str'];
                 $arr2['signType'] = $arr['sign_type'];
                 $arr2['package'] = 'prepay_id=' . $result['prepay_id'];
-                $arr2['paySign'] = $this->getSign($arr2);
+                $arr2['paySign'] = getSign($arr2);
                 return view('weixin/pay',['prepay'=>$arr2]);
             } else {
                 exit('<script>alert("'.$result['return_msg'].'");document.addEventListener("WeixinJSBridgeReady", function(){ WeixinJSBridge.call("closeWindow"); }, false);</script>');
@@ -147,11 +147,11 @@ class Test extends Controller {
     public function testnotify() {
         //将返回的XML格式的参数转换成php数组格式
         $xml = file_get_contents('php://input');
-        $data = $this->xml2array($xml);
+        $data = xml2array($xml);
         if($data) {
             $this->log('wx/notify',var_export($data,true));
         }
-        exit($this->array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+        exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
     }
 
 
@@ -244,7 +244,7 @@ class Test extends Controller {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         $data = curl_exec($ch);
-        $arr = $this->xml2array($data);
+        $arr = xml2array($data);
         return $arr;
     }
 

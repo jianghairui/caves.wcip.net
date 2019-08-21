@@ -99,7 +99,7 @@ class Api extends Common
     public function getReqDetail()
     {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['r.status', '=', 1],
@@ -143,7 +143,7 @@ class Api extends Common
     {
         $val['work_id'] = input('post.work_id');
         $val['desc'] = input('post.desc');
-        $this->checkPost($val);
+        checkPost($val);
         $user = $this->getMyInfo();
         $val['uid'] = $user['id'];
         try {
@@ -189,7 +189,7 @@ class Api extends Common
     public function takePartIn()
     {
         $val['req_id'] = input('post.req_id');
-        $this->checkPost($val);
+        checkPost($val);
         $user = $this->getMyInfo();
         try {
             $where = [
@@ -234,7 +234,7 @@ class Api extends Common
         $val['req_id'] = input('post.req_id');
         $val['title'] = input('post.title');
         $val['desc'] = input('post.desc');
-        $this->checkPost($val);
+        checkPost($val);
         $user = $this->getMyInfo();
         $val['uid'] = $this->myinfo['uid'];
         $val['type'] = 2;
@@ -286,7 +286,7 @@ class Api extends Common
             }
             $image_array = [];
             foreach ($image as $v) {
-                $image_array[] = $this->rename_file($v, 'static/uploads/work/');
+                $image_array[] = rename_file($v, 'static/uploads/work/');
             }
             $val['pics'] = serialize($image_array);
             $where = [
@@ -317,7 +317,7 @@ class Api extends Common
         $val['req_id'] = input('post.req_id');
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['w.req_id', '=', $val['req_id']]
@@ -341,7 +341,7 @@ class Api extends Common
     public function worksDetail()
     {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $exist = Db::table('mp_design_works')->alias('w')
                 ->join("mp_user u", "w.uid=u.id", "left")
@@ -371,7 +371,7 @@ class Api extends Common
     public function biddingList()
     {
         $val['work_id'] = input('post.work_id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['b.work_id', '=', $val['work_id']]
@@ -389,7 +389,7 @@ class Api extends Common
     public function vote()
     {
         $val['work_id'] = input('post.work_id');
-        $this->checkPost($val);
+        checkPost($val);
         $user = $this->getMyInfo();
         try {
             $whereVote = [
@@ -466,7 +466,7 @@ class Api extends Common
         $val['uid'] = input('post.uid');
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['type', '=', 2],
@@ -491,7 +491,7 @@ class Api extends Common
         $val['uid'] = input('post.uid');
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['type', '=', 1],
@@ -513,7 +513,7 @@ class Api extends Common
 //设计师详情
     public function designerDetail() {
         $val['uid'] = input('post.uid');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $whereFocus = [
                 ['uid','=',$this->myinfo['uid']]
@@ -556,7 +556,7 @@ class Api extends Common
         $val['address'] = input('post.address');
         $val['uid'] = $this->myinfo['uid'];
 
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $exist = Db::table('mp_vip')->where('id', $val['vip_id'])->find();
             if (!$exist) {
@@ -579,7 +579,7 @@ class Api extends Common
         $val['role'] = input('post.role');
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $this->checkPost($val);
+        checkPost($val);
         if (!in_array($val['role'], [1, 2])) {
             return ajax($val['role'], -4);
         }
@@ -601,7 +601,7 @@ class Api extends Common
     public function orgDetail()
     {
         $val['uid'] = input('post.uid');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['uid', '=', $val['uid']],
             ['role', 'in', [1, 2]]
@@ -622,7 +622,7 @@ class Api extends Common
         $page = input('page', 1);
         $perpage = input('perpage', 10);
         $val['uid'] = input('post.uid');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['n.uid', '=', $val['uid']],
             ['n.del', '=', 0]
@@ -650,7 +650,7 @@ class Api extends Common
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         $val['uid'] = input('post.uid');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['r.status', '=', 1],
             ['r.show', '=', 1],
@@ -697,7 +697,7 @@ class Api extends Common
 //工厂详情
     public function factoryDetail() {
         $val['uid'] = input('post.uid');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['uid', '=', $val['uid']],
             ['role', '=', 4]
@@ -718,7 +718,7 @@ class Api extends Common
         $val['uid'] = input('post.uid');
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['b.uid','=',$val['uid']]
@@ -747,7 +747,7 @@ class Api extends Common
             if (count($_FILES) > 1) {
                 return ajax('最多上传一张图片', 9);
             }
-            $path = $this->upload(array_keys($_FILES)[0]);
+            $path = upload(array_keys($_FILES)[0]);
             return ajax(['path' => $path]);
         } else {
             return ajax('请上传图片', 3);
@@ -761,7 +761,7 @@ class Api extends Common
             if (count($_FILES) > 1) {
                 return ajax('最多上传一张图片', 9);
             }
-            $path = $this->upload(array_keys($_FILES)[0], 2048);
+            $path = upload(array_keys($_FILES)[0], 2048);
             return ajax(['path' => $path]);
         } else {
             return ajax('请上传图片', 3);

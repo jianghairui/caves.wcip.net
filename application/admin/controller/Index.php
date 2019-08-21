@@ -153,7 +153,7 @@ class Index extends Common
 
     public function reqRecommend() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']]
@@ -181,7 +181,7 @@ class Index extends Common
             if (count($_FILES) > 1) {
                 return ajax('最多上传一张图片', 9);
             }
-            $path = $this->ajaxUpload(array_keys($_FILES)[0]);
+            $path = ajaxUpload(array_keys($_FILES)[0]);
             return ajax(['path' => $path]);
         } else {
             return ajax('请上传图片', 3);
@@ -195,7 +195,7 @@ class Index extends Common
             if (count($_FILES) > 1) {
                 return ajax('最多上传一张图片', 9);
             }
-            $path = $this->ajaxUpload(array_keys($_FILES)[0], 2048);
+            $path = ajaxUpload(array_keys($_FILES)[0], 2048);
             return ajax(['path' => $path]);
         } else {
             return ajax('请上传图片', 3);

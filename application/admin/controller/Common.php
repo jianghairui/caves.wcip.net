@@ -75,24 +75,7 @@ class Common extends Controller {
             }
         }
     }
-    //后台上传图片
-    protected function upload($k) {
-        if($this->checkfile($k) !== true) {
-            return array('error'=>1,'msg'=>$this->checkfile($k));
-        }
 
-        $filename_array = explode('.',$_FILES[$k]['name']);
-        $ext = array_pop($filename_array);
-
-        $path =  'static/upload/' . date('Y-m-d');
-        is_dir($path) or mkdir($path,0755,true);
-        //转移临时文件
-        $newname = create_unique_number() . '.' . $ext;
-        move_uploaded_file($_FILES[$k]["tmp_name"], $path . "/" . $newname);
-        $filepath = $path . "/" . $newname;
-
-        return array('error'=>0,'data'=>$filepath);
-    }
     //检验格式大小
     private function checkfile($file) {
         $allowType = array(
@@ -119,17 +102,6 @@ class Common extends Controller {
         }
     }
 
-    protected function checkPost($postArray) {
-        if(empty($postArray)) {
-            throw new HttpResponseException(ajax($postArray,-3));
-        }
-        foreach ($postArray as $value) {
-            if (is_null($value) || $value === '') {
-                throw new HttpResponseException(ajax($postArray,-3));
-            }
-        }
-        return true;
-    }
 
     protected function getip() {
         $unknown = 'unknown';
@@ -156,129 +128,6 @@ class Common extends Controller {
         Db::table('mp_syslog')->insert($insert);
     }
 
-    protected function ajaxUpload($k,$maxsize=512) {
-        $allowType = array(
-            "image/gif",
-            "image/jpeg",
-            "image/jpg",
-            "image/png",
-            "image/pjpeg",
-            "image/bmp"
-        );
-        if($_FILES[$k]["type"] == '') {
-            throw new HttpResponseException(ajax('图片存在中文名或超过2M',20));
-        }
-        if(!in_array($_FILES[$k]["type"],$allowType)) {
-            throw new HttpResponseException(ajax('文件类型不符' . $_FILES[$k]["type"],21));
-        }
-        if($_FILES[$k]["size"] > $maxsize*1024) {
-            throw new HttpResponseException(ajax('图片大小不超过'.$maxsize.'Kb',22));
-        }
-        if ($_FILES[$k]["error"] > 0) {
-            throw new HttpResponseException(ajax("error: " . $_FILES[$k]["error"],-1));
-        }
-
-        $filename_array = explode('.',$_FILES[$k]['name']);
-        $ext = array_pop($filename_array);
-
-        $path =  'static/tmp/';
-        is_dir($path) or mkdir($path,0755,true);
-        //转移临时文件
-        $newname = create_unique_number() . '.' . $ext;
-        move_uploaded_file($_FILES[$k]["tmp_name"], $path . $newname);
-        $filepath = $path . $newname;
-        return $filepath;
-    }
-
-    protected function rename_file($tmp,$path = '') {
-        $filename = substr(strrchr($tmp,"/"),1);
-        $path = $path ? $path : 'static/upload/goods/';
-        $path.= date('Y-m-d') . '/';
-        is_dir($path) or mkdir($path,0755,true);
-        @rename($tmp, $path . $filename);
-        return $path . $filename;
-    }
-
-    //生成签名
-    protected function getSign($arr)
-    {
-        //去除数组中的空值
-        $arr = array_filter($arr);
-        //如果数组中有签名删除签名
-        if(isset($arr['sing']))
-        {
-            unset($arr['sing']);
-        }
-        //按照键名字典排序
-        ksort($arr);
-        //生成URL格式的字符串
-        $str = http_build_query($arr)."&key=" . $this->config['key'];
-        $str = $this->arrToUrl($str);
-        return  strtoupper(md5($str));
-    }
-    //URL解码为中文
-    protected function arrToUrl($str)
-    {
-        return urldecode($str);
-    }
-
-    protected function array2xml($arr) {
-        if(!is_array($arr) || count($arr) <= 0) {
-            return false;
-        }
-        $xml = "<xml>";
-        foreach ($arr as $key=>$val)
-        {
-            if (is_numeric($val)){
-                $xml.="<".$key.">".$val."</".$key.">";
-            }else{
-                $xml.="<".$key."><![CDATA[".$val."]]></".$key.">";
-            }
-        }
-        $xml.="</xml>";
-        return $xml;
-    }
-
-    protected function xml2array($xml)
-    {
-        //禁止引用外部xml实体
-        libxml_disable_entity_loader(true);
-        $values = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
-        return $values;
-    }
-
-    protected function curl_post_datas($url, $curlPost,$userCert = false)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        if($userCert == true){
-            //设置证书
-            //使用证书：cert 与 key 分别属于两个.pem文件
-            curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
-            curl_setopt($ch,CURLOPT_SSLCERT, $this->config['cert_path']);
-            curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
-            curl_setopt($ch,CURLOPT_SSLKEY, $this->config['key_path']);
-        }
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $curlPost);
-        curl_setopt($ch, 1, 2);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        $data = curl_exec($ch);
-        $arr = $this->xml2array($data);
-        return $arr;
-    }
-
-    protected function randomkeys($length) {
-        $returnStr='';
-        $pattern = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for($i = 0; $i < $length; $i ++) {
-            $returnStr .= $pattern {mt_rand ( 0, 61 )};
-        }
-        return $returnStr;
-    }
 
 
 }

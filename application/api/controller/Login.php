@@ -15,7 +15,7 @@ class Login extends Common {
     public function login()
     {
         $code = input('post.code');
-        $this->checkPost(['code'=>$code]);
+        checkPost(['code'=>$code]);
         $app = Factory::miniProgram($this->mp_config);
         $info = $app->auth->session($code);
         if(isset($info['errcode']) && $info['errcode'] !== 0) {
@@ -68,7 +68,7 @@ class Login extends Common {
     public function userAuth() {
         $iv = input('post.iv');
         $encryptData = input('post.encryptedData');
-        $this->checkPost([
+        checkPost([
             'iv' => $iv,
             'encryptedData' => $encryptData
         ]);
@@ -135,7 +135,7 @@ class Login extends Common {
 
         $iv = input('post.iv');
         $encryptData = input('post.encryptedData');
-        $this->checkPost([
+        checkPost([
             'iv' => $iv,
             'encryptedData' => $encryptData
         ]);

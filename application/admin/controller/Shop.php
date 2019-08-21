@@ -120,7 +120,7 @@ class Shop extends Common {
             $val['desc'] = input('post.desc');
             $val['status'] = input('post.status');
             $val['create_time'] = time();
-            $this->checkPost($val);
+            checkPost($val);
             $val['detail'] = input('post.detail');
             $val['use_attr'] = input('post.use_attr','');
             if($val['use_attr']) {
@@ -148,7 +148,7 @@ class Shop extends Common {
                     }
                 }
                 foreach ($image as $v) {
-                    $image_array[] = $this->rename_file($v);
+                    $image_array[] = rename_file($v,'upload/goods/');
                 }
             }else {
                 return ajax('请上传图片',-1);
@@ -206,7 +206,7 @@ class Shop extends Common {
             $val['status'] = input('post.status');
             $val['id'] = input('post.id');
             $val['create_time'] = time();
-            $this->checkPost($val);
+            checkPost($val);
             $val['detail'] = input('post.detail');
             $val['use_attr'] = input('post.use_attr',0);
             if($val['use_attr']) {
@@ -245,7 +245,7 @@ class Shop extends Common {
                         }
                     }
                     foreach ($image as $v) {
-                        $image_array[] = $this->rename_file($v);
+                        $image_array[] = rename_file($v,'upload/goods/');
                     }
                 }else {
                     return ajax('请上传图片',-1);
@@ -390,10 +390,10 @@ class Shop extends Common {
     public function cateAddPost() {
         $val['cate_name'] = input('post.cate_name');
         $val['pid'] = input('post.pid',0);
-        $this->checkPost($val);
+        checkPost($val);
 
         if(isset($_FILES['file'])) {
-            $info = $this->upload('file');
+            $info = upload('file');
             if($info['error'] === 0) {
                 $val['icon'] = $info['data'];
             }else {
@@ -428,14 +428,14 @@ class Shop extends Common {
         $val['cate_name'] = input('post.cate_name');
         $val['pid'] = input('post.pid',0);
         $val['id'] = input('post.id',0);
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $exist = Db::table('mp_goods_cate')->where('id',$val['id'])->find();
             if(!$exist) {
                 return ajax('非法参数',-1);
             }
             if(isset($_FILES['file'])) {
-                $info = $this->upload('file');
+                $info = upload('file');
                 if($info['error'] === 0) {
                     $val['icon'] = $info['data'];
                 }else {
@@ -601,7 +601,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $val['tracking_name'] = input('post.tracking_name');
         $val['tracking_num'] = input('post.tracking_num');
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']],
@@ -634,7 +634,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
 //退款
     public function orderRefund() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']],
@@ -662,9 +662,9 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                 'refund_account' => 'REFUND_SOURCE_UNSETTLED_FUNDS'
             ];
 
-            $arr['sign'] = $this->getSign($arr);
+            $arr['sign'] = getSign($arr);
             $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
-            $res = $this->curl_post_datas($url,$this->array2xml($arr),true);
+            $res = $this->curl_post_datas($url,array2xml($arr),true);
             if($res && $res['return_code'] == 'SUCCESS') {
                 if($res['result_code'] == 'SUCCESS') {
                     $update_data = [
@@ -691,7 +691,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     public function modAdress() {
         $val['address'] = input('post.address');
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']]
@@ -713,7 +713,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     public function modPrice() {
         $val['pay_price'] = input('post.pay_price');
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']]

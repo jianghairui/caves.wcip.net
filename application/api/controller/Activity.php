@@ -167,7 +167,7 @@ class Activity extends Common
     public function createCardCode()
     {
         $post['cid'] = input('post.cid');
-        $this->checkPost($post);
+        checkPost($post);
 
         $cid = $post['cid'];
 
@@ -212,7 +212,7 @@ class Activity extends Common
     public function getGiftCard()
     {
         $post['card_code'] = input('post.card_code');
-        $this->checkPost($post);
+        checkPost($post);
 
         try {
             $card = Db::table('mp_user_card')
@@ -275,7 +275,7 @@ class Activity extends Common
             'uid' => input('post.uid'),  // 这个是核销用户的uid
 
         ];
-        $this->checkPost($post);
+        checkPost($post);
         $post['remark'] = input('post.remark', '');
 
         try {

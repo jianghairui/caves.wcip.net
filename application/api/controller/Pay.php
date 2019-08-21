@@ -15,7 +15,7 @@ class Pay extends Common {
     //充值支付
     public function vipPay() {
         $val['order_sn'] = input('post.order_sn');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['order_sn','=',$val['order_sn']],
             ['status','=',0],
@@ -49,7 +49,7 @@ class Pay extends Common {
             $sign['nonceStr'] = $result['nonce_str'];
             $sign['signType'] = 'MD5';
             $sign['package'] = 'prepay_id=' . $result['prepay_id'];
-            $sign['paySign'] = $this->getSign($sign);
+            $sign['paySign'] = getSign($sign);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -60,7 +60,7 @@ class Pay extends Common {
     public function recharge_notify() {
         //将返回的XML格式的参数转换成php数组格式
         $xml = file_get_contents('php://input');
-        $data = $this->xml2array($xml);
+        $data = xml2array($xml);
         $this->paylog($this->cmd,var_export($data,true));
         if($data) {
             if($data['return_code'] == 'SUCCESS' && $data['result_code'] == 'SUCCESS') {
@@ -97,14 +97,14 @@ class Pay extends Common {
             }
 
         }
-        exit($this->array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+        exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
 
     }
 
     //订单支付
     public function orderPay() {
         $val['pay_order_sn'] = input('post.pay_order_sn');
-        $this->checkPost($val);
+        checkPost($val);
         $where = [
             ['pay_order_sn','=',$val['pay_order_sn']],
             ['status','=',0],
@@ -138,7 +138,7 @@ class Pay extends Common {
             $sign['nonceStr'] = $result['nonce_str'];
             $sign['signType'] = 'MD5';
             $sign['package'] = 'prepay_id=' . $result['prepay_id'];
-            $sign['paySign'] = $this->getSign($sign);
+            $sign['paySign'] = getSign($sign);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -149,7 +149,7 @@ class Pay extends Common {
     public function order_notify() {
 //将返回的XML格式的参数转换成php数组格式
         $xml = file_get_contents('php://input');
-        $data = $this->xml2array($xml);
+        $data = xml2array($xml);
         $this->paylog($this->cmd,var_export($data,true));
         if($data) {
             if($data['return_code'] == 'SUCCESS' && $data['result_code'] == 'SUCCESS') {
@@ -172,13 +172,10 @@ class Pay extends Common {
                 }
             }
         }
-        exit($this->array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+        exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
     }
 
 
-//    public function test() {
-//        echo $this->weburl . 'api/pay/order_notify';
-//    }
 
 
 

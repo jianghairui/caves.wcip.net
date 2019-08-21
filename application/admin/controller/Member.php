@@ -132,9 +132,9 @@ class Member extends Common {
         $val['price'] = input('post.price');
         $val['detail'] = input('post.detail');
         $val['days'] = input('post.days');
-        $this->checkPost($val);
+        checkPost($val);
         if(isset($_FILES['file'])) {
-            $info = $this->upload('file');
+            $info = upload('file');
             if($info['error'] === 0) {
                 $val['pic'] = $info['data'];
             }else {
@@ -173,9 +173,9 @@ class Member extends Common {
         $val['detail'] = input('post.detail');
         $val['days'] = input('post.days');
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         if(isset($_FILES['file'])) {
-            $info = $this->upload('file');
+            $info = upload('file');
             if($info['error'] === 0) {
                 $val['pic'] = $info['data'];
             }else {
@@ -206,7 +206,7 @@ class Member extends Common {
     //删除会员
     public function vipDel() {
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $exist = Db::table('mp_vip')->where('id',$val['id'])->find();
             if(!$exist) {
@@ -338,7 +338,7 @@ class Member extends Common {
         $val['tracking_name'] = input('post.tracking_name');
         $val['tracking_num'] = input('post.tracking_num');
         $val['id'] = input('post.id');
-        $this->checkPost($val);
+        checkPost($val);
         try {
             $where = [
                 ['id','=',$val['id']],
