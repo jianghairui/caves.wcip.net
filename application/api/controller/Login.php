@@ -25,42 +25,28 @@ class Login extends Common {
         $ret['session_key'] = $info['session_key'];
 
         try {
+            $token = md5($ret['openid'] . time());
             $exist = Db::table('mp_user')->where('openid',$ret['openid'])->find();
             if($exist) {
-                $uid = $exist['id'];
-                Db::table('mp_user')->where('openid',$ret['openid'])->update(['last_login_time'=>time()]);
+                Db::table('mp_user')->where('openid',$ret['openid'])->update([
+                    'last_login_time'=>time(),
+                    'token'=>$token,
+                    'session_key'=>$ret['session_key']
+                ]);
             }else {
                 $insert = [
-                    'create_time'=>time(),
-                    'last_login_time'=>time(),
-                    'openid'=>$ret['openid']
+                    'create_time' => time(),
+                    'last_login_time' => time(),
+                    'openid' => $ret['openid'],
+                    'session_key' => $ret['session_key'],
+                    'token' => $token
                 ];
                 Db::table('mp_user')->insert($insert);
-                $uid = Db::table('mp_user')->getLastInsID();
-            }
-            $third_session = exec('/usr/bin/head -n 80 /dev/urandom | tr -dc A-Za-z0-9 | head -c 168');
-            $token_exist = Db::table('mp_token')->where('uid',$uid)->find();
-            //把3rd_session存入mysql
-            if(!$token_exist) {
-                Db::table('mp_token')->insert([
-                    'token' => $third_session,
-                    'uid' => $uid,
-                    'value' => serialize($ret),
-                    'end_time' =>time() + 3600*24*7
-                ]);
-            }else {
-                Db::table('mp_token')->where('uid',$uid)->update([
-                    'token' => $third_session,
-                    'uid' => $uid,
-                    'value' => serialize($ret),
-                    'end_time' =>time() + 3600*24*7
-                ]);
             }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        $json['token'] = $third_session;
-        $json['uid'] = $uid;
+        $json['token'] = $token;
         return ajax($json);
     }
 

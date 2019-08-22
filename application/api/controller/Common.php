@@ -58,16 +58,17 @@ class Common extends Controller {
                 throw new HttpResponseException(ajax('token is empty',-5));
             }
             try {
-                $exist = Db::table('mp_token')->where([
-                    ['token','=',$token],
-                    ['end_time','>',time()]
+                $exist = Db::table('mp_user')->where([
+                    ['token','=',$token]
                 ])->find();
             }catch (\Exception $e) {
                 throw new HttpResponseException(ajax($e->getMessage(),-1));
             }
             if($exist) {
-                $this->myinfo = unserialize($exist['value']);
-                $this->myinfo['uid'] = $exist['uid'];
+                if(($exist['last_login_time'] + 3600*24*7) < time()) {
+                    throw new HttpResponseException(ajax('invalid token',-3));
+                }
+                $this->myinfo = $exist;
                 return true;
             }else {
                 throw new HttpResponseException(ajax('invalid token',-3));
