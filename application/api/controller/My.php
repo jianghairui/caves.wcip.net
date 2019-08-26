@@ -482,6 +482,8 @@ class My extends Common {
         }
         return ajax($list);
     }
+
+
     //获取申请审核状态
     public function applyStatus() {
         $uid = $this->myinfo['id'];

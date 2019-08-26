@@ -70,12 +70,14 @@ class Login extends Common {
         $user = $this->getMyInfo();
         $inviter_id = input('post.inviter_id');
         try {
+            //未授权过的新用户
             if(!$user['user_auth']) {
                 $data['nickname'] = $decryptedData['nickName'];
                 $data['avatar'] = $decryptedData['avatarUrl'];
                 $data['sex'] = $decryptedData['gender'];
                 $data['unionid'] = $decryptedData['unionId'];
                 $data['user_auth'] = 1;
+                //是否有邀请人ID
                 if($inviter_id) {
                     $money = 0.5;
                     $data['inviter_id'] = $inviter_id;
@@ -87,11 +89,16 @@ class Login extends Common {
                     ];
                     Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
                     Db::table('mp_invite')->insert($insert_data);
-                    Db::table('mp_user')->where('id',$inviter_id)->setInc('balance',$money);
+                    Db::table('mp_user')->where('id','=',$inviter_id)->setInc('balance',$money);
                 }else {
                     Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
                 }
-            }else {
+            }else {//已授权过的用户
+                $data['nickname'] = $decryptedData['nickName'];
+                $data['avatar'] = $decryptedData['avatarUrl'];
+                $data['sex'] = $decryptedData['gender'];
+                $data['unionid'] = $decryptedData['unionId'];
+                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
                 return ajax();
             }
         }catch (\Exception $e) {
@@ -118,7 +125,6 @@ class Login extends Common {
 
     //保存手机号
     public function getPhoneNumber() {
-
         $iv = input('post.iv');
         $encryptData = input('post.encryptedData');
         checkPost([
