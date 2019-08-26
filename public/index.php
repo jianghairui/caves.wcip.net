@@ -14,6 +14,7 @@ namespace think;
 define('APP_PATH',__DIR__);
 define('ROOT_PATH',dirname(__DIR__));
 // 加载基础文件
+
 require __DIR__ . '/../thinkphp/base.php';
 
 // 支持事先使用静态方法设置Request对象和Config对象
