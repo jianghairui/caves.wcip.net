@@ -9,7 +9,7 @@ namespace app\admin\controller;
 use think\Db;
 use think\facade\Request;
 
-class Shop extends Common {
+class Shop extends Base {
 //商品列表
     public function goodsList() {
         $param['search'] = input('param.search');

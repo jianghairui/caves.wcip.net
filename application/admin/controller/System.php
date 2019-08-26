@@ -8,7 +8,7 @@
 namespace app\admin\controller;
 
 use think\Db;
-class System extends Common {
+class System extends Base {
 
     public function setting() {
         $info = Db::table('mp_setting')->find();

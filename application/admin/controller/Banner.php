@@ -10,7 +10,7 @@ namespace app\admin\controller;
 use think\Exception;
 use think\Db;
 use think\facade\Request;
-class Banner extends Common {
+class Banner extends Base {
     //轮播图列表
     public function slideshow() {
         $list = Db::table('mp_slideshow')->order(['sort'=>'ASC'])->select();

@@ -5,7 +5,7 @@ use think\Db;
 use think\Exception;
 use EasyWeChat\Factory;
 
-class Index extends Common
+class Index extends Base
 {
     //首页
     public function index() {

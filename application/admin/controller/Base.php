@@ -11,7 +11,7 @@ use think\Db;
 use think\Controller;
 use think\exception\HttpResponseException;
 
-class Common extends Controller {
+class Base extends Controller {
 
     protected $config = [];
     protected $weburl = '';

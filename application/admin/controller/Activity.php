@@ -7,7 +7,7 @@
  */
 namespace app\admin\controller;
 
-class Activity extends Common {
+class Activity extends Base {
 
     public function activityList() {
         return $this->fetch();

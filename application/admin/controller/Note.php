@@ -7,7 +7,7 @@
  */
 namespace  app\admin\controller;
 use think\Db;
-class Note extends Common {
+class Note extends Base {
 
     public function noteList() {
 
