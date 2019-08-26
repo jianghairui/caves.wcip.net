@@ -42,7 +42,7 @@ class Activity extends Common
 
     public function getQrcode()
     {
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
 //        $uid = 1999;
         $app = Factory::miniProgram($this->mp_config);
         $response = $app->app_code->getUnlimit($uid, [
@@ -63,7 +63,7 @@ class Activity extends Common
     {
         try {
             $where = [
-                ['i.inviter_id', '=', $this->myinfo['uid']]
+                ['i.inviter_id', '=', $this->myinfo['id']]
             ];
             $list = Db::table('mp_user')->alias('u')
                 ->join("mp_invite i", "u.id=i.to_uid", "left")
@@ -84,19 +84,19 @@ class Activity extends Common
     {
         try {
             $list = Db::table('mp_card')->alias('c')
-                ->join('mp_user_card uc', 'uc.cid = c.id AND uc.uid = ' . $this->myinfo['uid'], 'left')
+                ->join('mp_user_card uc', 'uc.cid = c.id AND uc.uid = ' . $this->myinfo['id'], 'left')
                 ->group('c.id')
                 ->field('c.id, c.title, c.pic, c.pic_back, count(uc.id) as card_amount')
                 ->select();
 
             // 剩余抽奖次数
             $lucky_draw_times = Db::table('mp_user')
-                ->where([['id', '=', $this->myinfo['uid']]])
+                ->where([['id', '=', $this->myinfo['id']]])
                 ->value('lucky_draw_times');
 
             // 获取用户身份
             $my = Db::table('mp_user')
-                ->where([['id', '=', $this->myinfo['uid']]])
+                ->where([['id', '=', $this->myinfo['id']]])
                 ->find();
             if ($my['auth'] != 2) {
                 $role = 0;
@@ -120,7 +120,7 @@ class Activity extends Common
     {
         try {
             $lucky_draw_times = Db::table('mp_user')
-                ->where([['id', '=', $this->myinfo['uid']]])
+                ->where([['id', '=', $this->myinfo['id']]])
                 ->value('lucky_draw_times');
 
             if (!$lucky_draw_times) {
@@ -131,22 +131,22 @@ class Activity extends Common
                 Db::startTrans();
                 $data = [
                     'cid' => $cid,
-                    'uid' => $this->myinfo['uid'],
+                    'uid' => $this->myinfo['id'],
                     'create_time' => time()
                 ];
                 Db::table('mp_user_card')->insert($data);
 
                 Db::table('mp_user')
-                    ->where([['id', '=', $this->myinfo['uid']]])
+                    ->where([['id', '=', $this->myinfo['id']]])
                     ->setDec('lucky_draw_times', 1);
 
                 if ($cid == 5) {
                     // 查看是否得到过现金奖励，未获得过则获得现金奖励
-                    $temp_get_gift = $this->check_gift($this->myinfo['uid'], 1);
+                    $temp_get_gift = $this->check_gift($this->myinfo['id'], 1);
                     $get_gift = $temp_get_gift ? $temp_get_gift : 0;
                 } else {
                     // 查看是否获得过文创礼品，没有获得过文创礼品查看是否得到全部8张卡片，如果集齐则获得文创礼品
-                    $temp_get_gift = $this->check_gift($this->myinfo['uid'], 2);
+                    $temp_get_gift = $this->check_gift($this->myinfo['id'], 2);
                     $get_gift = $temp_get_gift ? $temp_get_gift : 0;
                 }
                 Db::commit();
@@ -178,7 +178,7 @@ class Activity extends Common
 
         try {
             $w = [
-                ['uid', '=', $this->myinfo['uid']],
+                ['uid', '=', $this->myinfo['id']],
                 ['cid', '=', $cid]
             ];
             $card_count = Db::table('mp_user_card')
@@ -193,7 +193,7 @@ class Activity extends Common
                 ->where($w)
                 ->find();
 
-            $card_code = md5($this->myinfo['uid'] . rand(1, 1000000000));
+            $card_code = md5($this->myinfo['id'] . rand(1, 1000000000));
             $data = [
                 'card_code' => $card_code
             ];
@@ -221,7 +221,7 @@ class Activity extends Common
 
             if (!$card) {
                 return ajax('卡片不存在或已被领取', 49);
-            } else if ($card['uid'] == $this->myinfo['uid']) {
+            } else if ($card['uid'] == $this->myinfo['id']) {
                 return ajax('不能领取自己的卡片', 49);
             }
 
@@ -239,7 +239,7 @@ class Activity extends Common
 
             Db::startTrans();
             $data = [
-                'uid' => $this->myinfo['uid'],
+                'uid' => $this->myinfo['id'],
                 'card_code' => ''
             ];
             Db::table('mp_user_card')
@@ -248,11 +248,11 @@ class Activity extends Common
 
             if ($card['cid'] == 5) {
                 // 查看是否得到过现金奖励，未获得过则获得现金奖励
-                $temp_get_gift = $this->check_gift($this->myinfo['uid'], 1);
+                $temp_get_gift = $this->check_gift($this->myinfo['id'], 1);
                 $get_gift = $temp_get_gift ? $temp_get_gift : 0;
             } else {
                 // 查看是否获得过文创礼品，没有获得过文创礼品查看是否得到全部8张卡片，如果集齐则获得文创礼品
-                $temp_get_gift = $this->check_gift($this->myinfo['uid'], 2);
+                $temp_get_gift = $this->check_gift($this->myinfo['id'], 2);
                 $get_gift = $temp_get_gift ? $temp_get_gift : 0;
             }
             Db::commit();
@@ -290,7 +290,7 @@ class Activity extends Common
             }
 
             $my = Db::table('mp_user')
-                ->where([['id', '=', $this->myinfo['uid']]])
+                ->where([['id', '=', $this->myinfo['id']]])
                 ->find();
 
             if (!($my['auth'] == 2 && $my['role'] == 1)) {
@@ -298,7 +298,7 @@ class Activity extends Common
             }
 
             $data = [
-                'm_uid' => $this->myinfo['uid'],
+                'm_uid' => $this->myinfo['id'],
                 'remark' => $post['remark'],
                 'verify_time' => time(),
                 'status' => 1
@@ -319,7 +319,7 @@ class Activity extends Common
         try {
             $cul_gift = Db::table('mp_card_cul_gift')->alias('ccg')
                 ->join('mp_user u', 'u.id = ccg.m_uid', 'left')
-                ->where([['ccg.uid', '=', $this->myinfo['uid']]])
+                ->where([['ccg.uid', '=', $this->myinfo['id']]])
                 ->field('ccg.id, ccg.uid, ccg.m_uid, ccg.remark, ccg.create_time, ccg.verify_time, ccg.qrcode, ccg.status, u.nickname')
                 ->find();
 
@@ -352,7 +352,7 @@ class Activity extends Common
     {
         try {
             $cul_gift = Db::table('mp_card_cul_gift')
-                ->where([['uid', '=', $this->myinfo['uid']]])
+                ->where([['uid', '=', $this->myinfo['id']]])
                 ->find();
 
             if (!$cul_gift) {

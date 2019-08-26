@@ -217,7 +217,7 @@ class Api extends Common
             $where = [
                 ['req_id', '=', $val['req_id']],
                 ['type', '=', 2],
-                ['uid', '=', $this->myinfo['uid']]
+                ['uid', '=', $this->myinfo['id']]
             ];
             $workExist = Db::table('mp_design_works')->where($where)->find();
             if ($workExist) {
@@ -236,7 +236,7 @@ class Api extends Common
         $val['desc'] = input('post.desc');
         checkPost($val);
         $user = $this->getMyInfo();
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $val['type'] = 2;
         $val['create_time'] = time();
         $image = input('post.pics', []);
@@ -256,7 +256,7 @@ class Api extends Common
             $where = [
                 ['req_id', '=', $val['req_id']],
                 ['type', '=', 2],
-                ['uid', '=', $this->myinfo['uid']]
+                ['uid', '=', $this->myinfo['id']]
             ];
             $workExist = Db::table('mp_design_works')->where($where)->find();
             if ($workExist) {
@@ -292,7 +292,7 @@ class Api extends Common
             $where = [
                 ['req_id', '=', $val['req_id']],
                 ['type', '=', 2],
-                ['uid', '=', $this->myinfo['uid']]
+                ['uid', '=', $this->myinfo['id']]
             ];
             $workExist = Db::table('mp_design_works')->where($where)->find();
             if ($workExist) {
@@ -354,7 +354,7 @@ class Api extends Common
             }
             $bidding_exist = Db::table('mp_bidding')->where([
                 ['work_id', '=', $val['id']],
-                ['uid', '=', $this->myinfo['uid']]
+                ['uid', '=', $this->myinfo['id']]
             ])->find();
             if ($bidding_exist) {
                 $exist['bidding'] = true;
@@ -394,7 +394,7 @@ class Api extends Common
         try {
             $whereVote = [
                 ['work_id', '=', $val['work_id']],
-                ['uid', '=', $this->myinfo['uid']]
+                ['uid', '=', $this->myinfo['id']]
             ];
             $vote_exist = Db::table('mp_vote')->where($whereVote)->find();
             if ($vote_exist) {
@@ -421,7 +421,7 @@ class Api extends Common
             Db::table('mp_design_works')->where($where)->setInc('vote', 1);
             $insert_data = [
                 'work_id' => $val['work_id'],
-                'uid' => $this->myinfo['uid'],
+                'uid' => $this->myinfo['id'],
                 'vip' => $user['vip'],
                 'req_id' => $workExist['req_id'],
                 'create_time' => time()
@@ -441,7 +441,7 @@ class Api extends Common
                 ['role', '=', 3]
             ];
             $whereFocus = [
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $myFocus = Db::table('mp_focus')->where($whereFocus)->column('to_uid');
             $list = Db::table('mp_user')
@@ -516,7 +516,7 @@ class Api extends Common
         checkPost($val);
         try {
             $whereFocus = [
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $myFocus = Db::table('mp_focus')->where($whereFocus)->column('to_uid');
             $info = Db::table('mp_user')->alias('u')
@@ -554,7 +554,7 @@ class Api extends Common
         $val['name'] = input('post.name');
         $val['tel'] = input('post.tel');
         $val['address'] = input('post.address');
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
 
         checkPost($val);
         try {

@@ -12,7 +12,7 @@ class My extends Common {
     //获取个人信息
     public function mydetail() {
         $map = [
-            ['id','=',$this->myinfo['uid']]
+            ['id','=',$this->myinfo['id']]
         ];
         try {
             $info = Db::table('mp_user')
@@ -33,7 +33,7 @@ class My extends Common {
         checkPost($val);
 
         $val['desc'] = input('post.desc','');
-        $val['id'] = $this->myinfo['uid'];
+        $val['id'] = $this->myinfo['id'];
         $user = $this->getMyInfo();
         try {
             $avatar = input('post.avatar');
@@ -64,7 +64,7 @@ class My extends Common {
         $val['desc'] = input('post.desc','');
         $val['cover'] = input('post.cover','');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $role = Db::table('mp_role')->where('uid',$val['uid'])->find();
             if(!file_exists($val['cover'])) {
@@ -90,7 +90,7 @@ class My extends Common {
         $page = input('page',1);
         $perpage = input('perpage',10);
         $where = [
-            ['n.uid','=',$this->myinfo['uid']],
+            ['n.uid','=',$this->myinfo['id']],
             ['n.del','=',0]
         ];
         try {
@@ -114,7 +114,7 @@ class My extends Common {
     public function getMyNoteDetail() {
         $val['id'] = input('post.id');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $where = [
                 ['id','=',$val['id']],
@@ -142,12 +142,12 @@ class My extends Common {
         $val['width'] = input('post.width',1);
         $val['height'] = input('post.height',1);
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $image = input('post.pics',[]);
 
         $where = [
             ['id','=',$val['id']],
-            ['uid','=',$this->myinfo['uid']]
+            ['uid','=',$this->myinfo['id']]
         ];
         try {
             $exist = Db::table('mp_note')->where($where)->find();
@@ -197,7 +197,7 @@ class My extends Common {
         $page = input('page',1);
         $perpage = input('perpage',10);
         $where = [
-            ['c.uid','=',$this->myinfo['uid']]
+            ['c.uid','=',$this->myinfo['id']]
         ];
         try {
             $ret['count'] = Db::table('mp_collect')->alias('c')
@@ -233,7 +233,7 @@ class My extends Common {
         $val['deadline'] = input('post.deadline');
         $val['vote_time'] = input('post.vote_time');
         $val['end_time'] = input('post.end_time');
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         checkPost($val);
         $val['weixin'] = input('post.weixin');
         if(!preg_match('/0\d{2,3}-\d{7,8}/',$val['phone'])) {
@@ -272,7 +272,7 @@ class My extends Common {
     public function myReqList() {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $where = [];
         try {
             $user = $this->getMyInfo();
@@ -358,7 +358,7 @@ class My extends Common {
         $val['end_time'] = input('post.end_time');
         $val['id'] = input('post.id');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $val['weixin'] = input('post.weixin');
 
         $user = $this->getMyInfo();
@@ -407,7 +407,7 @@ class My extends Common {
         $val['title'] = input('post.title');
         $val['desc'] = input('post.desc');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $val['type'] = 1;
         $val['create_time'] = time();
         $image = input('post.pics',[]);
@@ -445,7 +445,7 @@ class My extends Common {
         try {
             $where = [
                 ['type','=',1],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $list = Db::table('mp_design_works')
                 ->where($where)
@@ -467,7 +467,7 @@ class My extends Common {
         try {
             $where = [
                 ['type','=',2],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $list = Db::table('mp_design_works')
                 ->where($where)
@@ -484,7 +484,7 @@ class My extends Common {
     }
     //获取申请审核状态
     public function applyStatus() {
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         try {
             $auth = Db::table('mp_user')->where('id',$uid)->field('auth')->find();
         }catch (\Exception $e) {
@@ -494,7 +494,7 @@ class My extends Common {
     }
     //获取申请信息
     public function applyInfo() {
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         try {
             $info = Db::table('mp_role')->where('uid',$uid)->find();
         }catch (\Exception $e) {
@@ -514,7 +514,7 @@ class My extends Common {
         $val['identity'] = input('post.identity');
         $val['tel'] = input('post.tel');
         $val['code'] = input('post.code');
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         checkPost($val);
         $val['desc'] = input('post.desc');
         $val['org'] = input('post.org','');
@@ -650,7 +650,7 @@ class My extends Common {
     }
     //我的竞标列表
     public function myBiddingList() {
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         checkPost($val);
@@ -719,7 +719,7 @@ class My extends Common {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
         $status = input('post.status','');
-        $where = "uid=".$this->myinfo['uid'];
+        $where = "uid=".$this->myinfo['id'];
         $where .= " AND `status` IN ('0','1','2','3') AND `del`=0 AND `refund_apply`=0";
         $order = " ORDER BY `id` DESC";
         $orderby = " ORDER BY `d`.`id` DESC";
@@ -776,7 +776,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         if(!in_array($type,[1,2,3])) {
             return ajax($type,-4);
         }
-        $where = "uid=".$this->myinfo['uid'];
+        $where = "uid=".$this->myinfo['id'];
         $order = " ORDER BY `id` DESC";
         $orderby = " ORDER BY `d`.`id` DESC";
         if($type == 1) {
@@ -834,7 +834,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         checkPost($val);
         $where = [
             ['o.id','=',$val['id']],
-            ['o.uid','=',$this->myinfo['uid']]
+            ['o.uid','=',$this->myinfo['id']]
         ];
         try {
             $list = Db::table('mp_order')->alias('o')
@@ -882,7 +882,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         try {
             $where = [
                 ['pay_order_sn','=',$val['pay_order_sn']],
-                ['uid','=',$this->myinfo['uid']],
+                ['uid','=',$this->myinfo['id']],
                 ['status','in',[1,2,3]]
             ];
             $exist = Db::table('mp_order')->alias('o')->where($where)->find();
@@ -906,7 +906,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         try {
             $where = [
                 ['pay_order_sn','=',$val['pay_order_sn']],
-                ['uid','=',$this->myinfo['uid']],
+                ['uid','=',$this->myinfo['id']],
                 ['status','=',2]
             ];
             $exist = Db::table('mp_order')->alias('o')->where($where)->find();
@@ -930,7 +930,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         try {
             $where = [
                 ['pay_order_sn','=',$val['pay_order_sn']],
-                ['uid','=',$this->myinfo['uid']],
+                ['uid','=',$this->myinfo['id']],
                 ['status','=',0],
                 ['del','=',0]
             ];
@@ -956,7 +956,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     }
 
     public function addressList() {
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         try {
             $where = [
                 ['uid','=',$uid]
@@ -969,7 +969,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     }
 
     public function addressAdd() {
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $val['provincename'] = input('post.provincename');
         $val['cityname'] = input('post.cityname');
         $val['countyname'] = input('post.countyname');
@@ -1000,7 +1000,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     public function addressDetail() {
         $val['id'] = input('post.id');
         checkPost($val);
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         $where = [
             ['id','=',$val['id']],
             ['uid','=',$uid]
@@ -1018,7 +1018,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
 
     public function addressMod() {
         $val['id'] = input('post.id');
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         $val['provincename'] = input('post.provincename');
         $val['cityname'] = input('post.cityname');
         $val['countyname'] = input('post.countyname');

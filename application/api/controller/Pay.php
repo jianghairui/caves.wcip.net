@@ -8,7 +8,6 @@
 namespace app\api\controller;
 use EasyWeChat\Factory;
 use think\Db;
-use think\Exception;
 
 class Pay extends Common {
 
@@ -19,7 +18,7 @@ class Pay extends Common {
         $where = [
             ['order_sn','=',$val['order_sn']],
             ['status','=',0],
-            ['uid','=',$this->myinfo['uid']]
+            ['uid','=',$this->myinfo['id']]
         ];
 
         $app = Factory::payment($this->mp_config);
@@ -108,7 +107,7 @@ class Pay extends Common {
         $where = [
             ['pay_order_sn','=',$val['pay_order_sn']],
             ['status','=',0],
-            ['uid','=',$this->myinfo['uid']]
+            ['uid','=',$this->myinfo['id']]
         ];
         $app = Factory::payment($this->mp_config);
         try {

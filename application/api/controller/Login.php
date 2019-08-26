@@ -81,15 +81,15 @@ class Login extends Common {
                     $data['inviter_id'] = $inviter_id;
                     $insert_data = [
                         'inviter_id' => $inviter_id,
-                        'to_uid' => $this->myinfo['uid'],
+                        'to_uid' => $this->myinfo['id'],
                         'money' => $money,
                         'create_time' => time()
                     ];
-                    Db::table('mp_user')->where('id','=',$this->myinfo['uid'])->update($data);
+                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
                     Db::table('mp_invite')->insert($insert_data);
                     Db::table('mp_user')->where('id',$inviter_id)->setInc('balance',$money);
                 }else {
-                    Db::table('mp_user')->where('id','=',$this->myinfo['uid'])->update($data);
+                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
                 }
             }else {
                 return ajax();
@@ -103,7 +103,7 @@ class Login extends Common {
 
     //检测用户是否授权
     public function checkUserAuth() {
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         try {
             $userauth = Db::table('mp_user')->where('id',$uid)->value('user_auth');
             if($userauth == 1) {

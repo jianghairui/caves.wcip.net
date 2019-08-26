@@ -80,7 +80,7 @@ class Common extends Controller {
     //获取我的个人信息
     protected function getMyInfo() {
         $where = [
-            ['id','=',$this->myinfo['uid']]
+            ['id','=',$this->myinfo['id']]
         ];
         try {
             $info = Db::table('mp_user')->where($where)->find();

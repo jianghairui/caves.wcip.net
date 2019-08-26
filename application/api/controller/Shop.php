@@ -96,7 +96,7 @@ class Shop extends Common {
         checkPost($val);
         $val['attr_id'] = input('post.attr_id',0);
         $val['use_attr'] = 0;
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         if(!if_int($val['num'])) {
             return ajax($val['num'],-4);
         }
@@ -110,7 +110,7 @@ class Shop extends Common {
             }
             $map = [
                 ['goods_id','=',$val['goods_id']],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             //是否使用规格
             if($val['attr_id']) {
@@ -176,7 +176,7 @@ class Shop extends Common {
     public function cartList() {
         try {
             $where = [
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $list = Db::table('mp_cart')->alias('c')
                 ->join("mp_goods g","c.goods_id=g.id","left")
@@ -214,7 +214,7 @@ class Shop extends Common {
         try {
             $where = [
                 ['id','=',$val['cart_id']],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $cart_exist = Db::table('mp_cart')->where($where)->find();
             if(!$cart_exist) {
@@ -258,7 +258,7 @@ class Shop extends Common {
         try {
             $where = [
                 ['id','=',$val['cart_id']],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $cart_exist = Db::table('mp_cart')->where($where)->find();
             if(!$cart_exist) {
@@ -296,7 +296,7 @@ class Shop extends Common {
         try {
             $where = [
                 ['id','=',$val['cart_id']],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $exist = Db::table('mp_cart')->where($where)->find();
             if(!$exist) {
@@ -352,7 +352,7 @@ class Shop extends Common {
             }else {
                 $unit_price = $goods_exist['price'];
             }
-            $insert_data['uid'] = $this->myinfo['uid'];
+            $insert_data['uid'] = $this->myinfo['id'];
             $insert_data['pay_order_sn'] = create_unique_number('');
             $insert_data['total_price'] = $unit_price * $data['num'] + $goods_exist['carriage'];
             $insert_data['pay_price'] = $insert_data['total_price'];
@@ -404,7 +404,7 @@ class Shop extends Common {
             $time = time();
             $where = [
                 ['c.id','in',$cart_ids],
-                ['c.uid','=',$this->myinfo['uid']]
+                ['c.uid','=',$this->myinfo['id']]
             ];
             $cart_list = Db::table('mp_cart')->alias('c')
                 ->join("mp_goods g","c.goods_id=g.id","left")
@@ -463,13 +463,13 @@ class Shop extends Common {
             if(!empty($card_delete_ids)) {
                 $whereDelete = [
                     ['id','in',$card_delete_ids],
-                    ['uid','=',$this->myinfo['uid']]
+                    ['uid','=',$this->myinfo['id']]
                 ];
                 Db::table('mp_cart')->where($whereDelete)->delete();
                 return ajax('部分商品库存不足,请重新结算',47);
             }
 
-            $insert_data['uid'] = $this->myinfo['uid'];
+            $insert_data['uid'] = $this->myinfo['id'];
             $insert_data['pay_order_sn'] = $pay_order_sn;
             $insert_data['total_price'] = $total_price;
             $insert_data['pay_price'] = $total_price;
@@ -497,7 +497,7 @@ class Shop extends Common {
             }
             $whereDelete = [
                 ['id','in',$cart_ids],
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             Db::table('mp_cart')->where($whereDelete)->delete();
         } catch (\Exception $e) {
@@ -508,7 +508,7 @@ class Shop extends Common {
     }
 
     public function getDefaultAddress() {
-        $uid = $this->myinfo['uid'];
+        $uid = $this->myinfo['id'];
         $where = [
             ['default','=',1],
             ['uid','=',$uid]

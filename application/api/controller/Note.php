@@ -31,7 +31,7 @@ class Note extends Common {
                 ->order(['n.create_time'=>'DESC'])
                 ->limit(($page-1)*$perpage,$perpage)->select();
             $map = [
-                ['uid','=',$this->myinfo['uid']]
+                ['uid','=',$this->myinfo['id']]
             ];
             $like_ids = Db::table('mp_like')->where($map)->column('note_id');
         }catch (\Exception $e) {
@@ -56,7 +56,7 @@ class Note extends Common {
         $val['width'] = input('post.width',1);
         $val['height'] = input('post.height',1);
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $image = input('post.pics',[]);
         if(is_array($image) && !empty($image)) {
             if(count($image) > 9) {
@@ -145,7 +145,7 @@ WHERE c.note_id=?",[$val['note_id']]);
         $val['note_id'] = input('post.note_id');
         $val['content'] = input('post.content');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         $val['to_cid'] = input('post.to_cid');
 
         try {
@@ -185,7 +185,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function ifLike() {
         $val['note_id'] = input('post.note_id');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
             if(!$exist) {
@@ -210,7 +210,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function iLike() {
         $val['note_id'] = input('post.note_id');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
             if(!$exist) {
@@ -237,7 +237,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function ifCollect() {
         $val['note_id'] = input('post.note_id');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
             if(!$exist) {
@@ -262,7 +262,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function iCollect() {
         $val['note_id'] = input('post.note_id');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
             if(!$exist) {
@@ -289,7 +289,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function ifFocus() {
         $val['to_uid'] = input('post.to_uid');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $exist = Db::table('mp_user')->where('id',$val['to_uid'])->find();
             if(!$exist) {
@@ -314,7 +314,7 @@ WHERE c.note_id=?",[$val['note_id']]);
     public function iFocus() {
         $val['to_uid'] = input('post.to_uid');
         checkPost($val);
-        $val['uid'] = $this->myinfo['uid'];
+        $val['uid'] = $this->myinfo['id'];
         try {
             $user_exist = Db::table('mp_user')->where('id',$val['to_uid'])->find();
             if(!$user_exist) {
