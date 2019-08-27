@@ -7,7 +7,6 @@
  */
 namespace app\admin\controller;
 use think\Db;
-require_once ROOT_PATH . '/extend/qiniu/autoload.php';
 use Qiniu\Auth;
 use Qiniu\Config;
 use Qiniu\Storage\BucketManager;
@@ -46,6 +45,19 @@ class Qiniu extends Base {
 
     public function index() {
         return $this->fetch();
+    }
+
+
+    public function test() {
+        $val['file_path'] = input('post.file_path','');
+        try {
+            if($val['file_path']) {
+                $val['file_path'] = $this->moveFile($val['file_path']);
+            }
+        } catch(\Exception $e) {
+
+        }
+//            $this->rs_delete($order_exist['file_path']);
     }
 
 

@@ -11,6 +11,10 @@ use think\Db;
 use think\Controller;
 use think\exception\HttpResponseException;
 
+require_once ROOT_PATH . '/extend/qiniu/autoload.php';
+use Qiniu\Config;
+use Qiniu\Storage\BucketManager;
+
 class Base extends Controller {
 
     protected $config = [];
@@ -76,33 +80,6 @@ class Base extends Controller {
         }
     }
 
-    //检验格式大小
-    private function checkfile($file) {
-        $allowType = array(
-            "image/gif",
-            "image/jpeg",
-            "image/jpg",
-            "image/png",
-            "image/pjpeg",
-            "image/bmp"
-        );
-        if($_FILES[$file]["type"] == '') {
-            return '图片存在中文名或超过2M';
-        }
-        if(!in_array($_FILES[$file]["type"],$allowType)) {
-            return '图片格式无效';
-        }
-        if($_FILES[$file]["size"] > 1024*512) {
-            return '图片大小不超过300Kb';
-        }
-        if ($_FILES[$file]["error"] > 0) {
-            return "error: " . $_FILES[$file]["error"];
-        }else {
-            return true;
-        }
-    }
-
-
     protected function getip() {
         $unknown = 'unknown';
         if ( isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR'] && strcasecmp($_SERVER['HTTP_X_FORWARDED_FOR'], $unknown) ) {
@@ -126,6 +103,46 @@ class Base extends Controller {
         $insert['ip'] = $this->getip();
         $insert['type'] = $type;
         Db::table('mp_syslog')->insert($insert);
+    }
+
+
+    //七牛云移动文件
+    protected function moveFile($file_path) {
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+
+        $key = str_replace('http://' . config('qiniu_domain') . '/','',$file_path);
+//判断key是否存在
+        list($fileInfo, $err) = $bucketManager->stat(config('qiniu_bucket'), $key);
+        if ($err) {
+            throw new \Exception('七牛code:' . $err->code() .' , '. $err->message());
+        }
+
+        $srcBucket = config('qiniu_bucket');
+        $destBucket = config('qiniu_bucket');
+        $srcKey = $key;
+        $destKey = 'upload/' . explode('/',$key)[1];
+        if($srcKey == $destKey) {
+            return 'http://' . config('qiniu_domain') . '/' . $destKey;
+        }
+
+        $err = $bucketManager->move($srcBucket, $srcKey, $destBucket, $destKey, true);
+        if($err) {
+            throw new \Exception($err->message());
+        }else {
+            return 'http://' . config('qiniu_domain') . '/' . $destKey;
+        }
+
+    }
+
+//七牛云删除文件
+    protected function rs_delete($file_path) {
+        $key = str_replace('http://' . config('qiniu_domain') . '/','',$file_path);
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+        $bucketManager->delete(config('qiniu_bucket'), $key);
     }
 
 

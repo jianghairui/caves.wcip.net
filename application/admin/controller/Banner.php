@@ -13,7 +13,11 @@ use think\facade\Request;
 class Banner extends Base {
     //轮播图列表
     public function slideshow() {
-        $list = Db::table('mp_slideshow')->order(['sort'=>'ASC'])->select();
+        try {
+            $list = Db::table('mp_slideshow')->order(['sort'=>'ASC'])->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
         $this->assign('list',$list);
         return $this->fetch();
     }
