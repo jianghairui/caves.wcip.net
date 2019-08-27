@@ -105,40 +105,65 @@ class Base extends Controller {
         Db::table('mp_syslog')->insert($insert);
     }
 
+    public function qiniuLog($cmd,$str) {
+        $file= ROOT_PATH . '/qiniu_error.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+    //七牛云判断文件是否存在
+    public function qiniuFileExist($key) {
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+        list($fileInfo, $err) = $bucketManager->stat(config('qiniu_bucket'), $key);
+        if ($err) {
+            return [
+                'code' => 1,
+                'msg' => 'qiniu_code:' . $err->code() .' , '. $err->message()
+            ];
+        }
+        return true;
+    }
 
     //七牛云移动文件
-    protected function moveFile($file_path) {
+    protected function moveFile($srcKey,$destpath='upload/public/') {
         $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
         $config = new Config();
         $bucketManager = new BucketManager($auth, $config);
 
-        $key = str_replace('http://' . config('qiniu_domain') . '/','',$file_path);
-//判断key是否存在
-        list($fileInfo, $err) = $bucketManager->stat(config('qiniu_bucket'), $key);
-        if ($err) {
-            throw new \Exception('七牛code:' . $err->code() .' , '. $err->message());
-        }
-
         $srcBucket = config('qiniu_bucket');
         $destBucket = config('qiniu_bucket');
-        $srcKey = $key;
-        $destKey = 'upload/' . explode('/',$key)[1];
+        $arr = explode('/',$srcKey);
+        $destKey = $destpath . end($arr);
+        //如果一样不需要挪动
         if($srcKey == $destKey) {
-            return 'http://' . config('qiniu_domain') . '/' . $destKey;
+            return [
+                'code' => 0,
+                'path' => $destKey
+            ];
         }
-
         $err = $bucketManager->move($srcBucket, $srcKey, $destBucket, $destKey, true);
         if($err) {
-            throw new \Exception($err->message());
+            return [
+                'code' => 1,
+                'msg' => 'qiniu_code:' . $err->code() .' , '. $err->message()
+            ];
         }else {
-            return 'http://' . config('qiniu_domain') . '/' . $destKey;
+            return [
+                'code' => 0,
+                'path' => $destKey
+            ];
         }
 
     }
 
-//七牛云删除文件
-    protected function rs_delete($file_path) {
-        $key = str_replace('http://' . config('qiniu_domain') . '/','',$file_path);
+    //七牛云删除文件
+    protected function rs_delete($key) {
         $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
         $config = new Config();
         $bucketManager = new BucketManager($auth, $config);

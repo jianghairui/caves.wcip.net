@@ -7,17 +7,18 @@
         <form class="Huiform" method="post" action="" target="_self" id="formAjax">
             <input type="text" placeholder="图片描述" name="title" value="" class="input-text" style="width:200px">
             <input type="text" placeholder="链接地址" name="url" value="" class="input-text" style="width:200px">
+            <input type="hidden" name="pic" id="pic" value="">
             <span class="btn-upload form-group">
-                <input class="input-text" type="text" id="uploadfile" readonly style="width:100px">
+                <input class="input-text uploadfile" type="text" id="uploadfile" readonly style="width:100px">
                 <a href="javascript:;" class="btn btn-primary uploadfile">
                     <i class="Hui-iconfont">&#xe642;</i> 上传图片(不超过512K)
                 </a>
-                <input type="file" id="file" multiple name="file" class="input-file">
 			</span>
             <button type="submit" class="btn btn-success" id="" name="">
                 <i class="Hui-iconfont">&#xe600;</i> 添加
             </button>
         </form>
+        <input type="file" id="qiniu-file" name="qiniu-file" class="input-file" style="display: none">
     </div>
     <div class="mt-20">
         <table class="table table-border table-bordered table-bg table-sort">
@@ -38,7 +39,7 @@
                 <td>{$li.id}</td>
                 <td><input type="text" class="input-text text-c sort" value="{$li.sort}"></td>
                 <td>
-                    <div id="cover" class="thumbnail" style="background-image: url('/{$li.pic}')"></div>
+                    <div id="cover" class="thumbnail" style="background-image: url('<?php echo config('qiniu_weburl');?>{$li.pic}')"></div>
                 </td>
                 <td class="text-c">{$li.title}</td>
                 <td class="text-l">{$li.url}</td>
@@ -53,7 +54,7 @@
                         <i class="Hui-iconfont">&#xe603;</i>
                     </a>
                     {/if}
-                    <a style="text-decoration:none" class="ml-5" onClick="slide_edit('轮播图编辑','{:url("Banner/slidemod",array("id"=>$li["id"]))}')" href="javascript:;" title="编辑">
+                    <a style="text-decoration:none" class="ml-5" onClick="slide_edit('轮播图编辑','{:url("Banner/slideDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="编辑">
                         <i class="Hui-iconfont">&#xe6df;</i>
                     </a>
                     <a style="text-decoration:none" class="ml-5" onClick="slide_del(this,'{$li.id}')" href="javascript:;" title="删除">
@@ -75,10 +76,11 @@
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
 <script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
 <script type="text/javascript" src="/lib/checkfile.js"></script>
+<script type="text/javascript" src="/lib/qiniu.min.js"></script>
 <script type="text/javascript">
 
     $(function () {
-        var isclick = true
+        var isclick = true;
 
         $("#formAjax").validate({
             rules:{
@@ -99,15 +101,16 @@
                     return false
                 }
                 if(isclick === true) {
-                    isclick = false
+                    isclick = false;
                     $(form).ajaxSubmit({
                         type: 'post',
-                        url: "{:url('Banner/slideadd')}" ,
+                        url: "{:url('Banner/slideAdd')}" ,
                         success: function(data){
-                            console.log(data)
+                            console.log(data);
                             if(data.code == 1) {
-                                layer.msg('添加成功!',{icon:1,time:1000});
-                                setTimeout("window.location.reload()", 1000)
+                                layer.msg('添加成功!',{icon:1,time:1000},function () {
+                                    window.location.reload();
+                                });
                             }else {
                                 layer.msg(data.data,{icon:2,time:1000});
                                 isclick = true
@@ -124,22 +127,72 @@
         });
 
         $(".uploadfile").click(function () {
-            $("#file").click();
-        })
+            $("#qiniu-file").click();
+        });
 
-        $("#file").change(function(e){
-            var img = e.target.files[0];
-            if (typeof(img) == "undefined") {
-                var src = ''
+        $(document).on("change","#qiniu-file",function(){
+            var obj = $("#qiniu-file");
+            var fileName = obj.val();//上传的本地文件绝对路径
+            $("#uploadfile").val(fileName);
+            if(fileName === '') {
+                return;
             }else {
-                if(checkfile('file') !== true) {
-                    $("#file").val('');
-                    $("#uploadfile").val('');
-                    return false;
-                }
-                var src = window.URL.createObjectURL(img);
-                $("#uploadfile").val(img.name)
+                console.log(fileName,' file.value');
             }
+
+            var suffix = fileName.substring(fileName.lastIndexOf("."),fileName.length);//后缀名
+            var suffix_str = suffix.toUpperCase();
+            if(suffix_str!=".BMP"&&suffix_str!=".JPG"&&suffix_str!=".JPEG"&&suffix_str!=".PNG"&&suffix_str!=".GIF"){
+                alert("请上传图片（格式BMP、JPG、JPEG、PNG、GIF等）!");
+                return;
+            }
+            var file = obj.get(0).files[0];	                                           //上传的文件
+            if(file.size > 512*1024) {
+                layer.alert('上传文件大小不超过512Kb');
+                return;
+            }
+            //七牛云上传
+            $.ajax({
+                type:'post',
+                url: "{:url('Qiniu/getUpToken')}",
+                data:{"suffix":suffix},
+                dataType:'json',
+                success: function(result){
+                    if(result.code == 1){
+                        var observer = {                         //设置上传过程的监听函数
+                            next(res){                        //上传中(result参数带有total字段的 object，包含loaded、total、percent三个属性)
+                                Math.floor(res.total.percent);//查看进度[loaded:已上传大小(字节);total:本次上传总大小;percent:当前上传进度(0-100)]
+                                console.log(Math.floor(res.total.percent));
+                            },
+                            error(err){                          //失败后
+                                alert(err.message);
+                            },
+                            complete(res){                       //成功后
+                                // console.log(res,'---upload success');
+                                layer.alert('上传成功',{icon:6});
+                                $("#pic").val(result.data.filename)
+                            }
+                        };
+                        var putExtra = {
+                            fname: "",                          //原文件名
+                            params: {},                         //用来放置自定义变量
+                            mimeType: null                      //限制上传文件类型
+                        };
+                        var config = {
+                            region:qiniu.region.z1,             //存储区域(z0:代表华东;z2:代表华南,不写默认自动识别)
+                            concurrentRequestLimit:3            //分片上传的并发请求量
+                        };
+                        var observable = qiniu.upload(file,result.data.filename,result.data.token,putExtra,config);
+                        var subscription = observable.subscribe(observer);          // 上传开始
+                        // 取消上传
+                        // subscription.unsubscribe();
+                    }else{
+                        alert(result.data);                  //获取凭证失败
+                    }
+                },error:function(){                             //服务器响应失败处理函数
+                    layer.alert("服务器繁忙");
+                }
+            });
         });
 
         $(".sort").bind('input propertychange', function() {
@@ -165,6 +218,8 @@
         });
 
     });
+
+
     /*图片-编辑*/
     function slide_edit(title,url){
         var index = layer.open({
@@ -179,10 +234,10 @@
     function slide_del(obj,id){
         layer.confirm('确认要删除吗？',function(index){
             $.ajax({
-                url: "{:url('Banner/slide_del')}",
+                url: "{:url('Banner/slideDel')}",
                 type: 'POST',
                 dataType: 'json',
-                data:{slideid:id},
+                data:{id:id},
                 success: function(data){
                     console.log(data)
                     if(data.code == 1) {

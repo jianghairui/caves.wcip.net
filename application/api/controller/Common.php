@@ -6,10 +6,14 @@
  * Time: 21:36
  */
 namespace app\api\controller;
+require_once ROOT_PATH . '/extend/qiniu/autoload.php';
 use think\Controller;
 use think\Db;
-use think\exception\HttpException;
 use think\exception\HttpResponseException;
+
+use Qiniu\Config;
+use Qiniu\Storage\BucketManager;
+
 class Common extends Controller {
 
     protected $cmd = '';
@@ -108,6 +112,46 @@ class Common extends Controller {
         }else{
             echo '创建失败';
         }
+    }
+
+
+    //七牛云移动文件
+    protected function moveFile($file_path) {
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+
+        $key = str_replace('http://' . config('qiniu_domain') . '/','',$file_path);
+//判断key是否存在
+        list($fileInfo, $err) = $bucketManager->stat(config('qiniu_bucket'), $key);
+        if ($err) {
+            throw new \Exception('七牛code:' . $err->code() .' , '. $err->message());
+        }
+
+        $srcBucket = config('qiniu_bucket');
+        $destBucket = config('qiniu_bucket');
+        $srcKey = $key;
+        $destKey = 'upload/' . explode('/',$key)[1];
+        if($srcKey == $destKey) {
+            return 'http://' . config('qiniu_domain') . '/' . $destKey;
+        }
+
+        $err = $bucketManager->move($srcBucket, $srcKey, $destBucket, $destKey, true);
+        if($err) {
+            throw new \Exception($err->message());
+        }else {
+            return 'http://' . config('qiniu_domain') . '/' . $destKey;
+        }
+
+    }
+
+//七牛云删除文件
+    protected function rs_delete($file_path) {
+        $key = str_replace('http://' . config('qiniu_domain') . '/','',$file_path);
+        $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
+        $config = new Config();
+        $bucketManager = new BucketManager($auth, $config);
+        $bucketManager->delete(config('qiniu_bucket'), $key);
     }
 
 
