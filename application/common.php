@@ -63,8 +63,8 @@ function is_currency($str) {
 }
 
 function is_lonlat($lon='',$lat='') {
-    $lon_rule = '/^-?((0|1?[0-7]?[0-9]?)(([.][0-9]{1,6})?)|180(([.][0]{1,6})?))$/';
-    $lat_rule = '/^-?((0|[1-8]?[0-9]?)(([.][0-9]{1,6})?)|90(([.][0]{1,6})?))$/';
+    $lon_rule = '/^-?((\d|[1-9]\d|1[0-7]\d)(\.\d{1,6})?|180)$/';
+    $lat_rule = '/^-?((\d|[1-8]\d)(\.\d{1,6})?|90)$/';
     if(preg_match($lon_rule,$lon) && preg_match($lat_rule,$lat)) {
         return true;
     }
