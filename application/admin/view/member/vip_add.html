@@ -23,7 +23,7 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>价格：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input type="text" name="price" class="input-text" oninput="this.value=/^\d{1,8}(\.\d{0,2})?$/.test(this.value) ? this.value : this.value.substring(0,this.value.length-1)" placeholder=""/>
+                <input type="text" name="price" class="input-text" onkeyup="onlyNumber(this)" placeholder=""/>
             </div>
         </div>
         <div class="row cl">

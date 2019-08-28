@@ -50,12 +50,16 @@ class Qiniu extends Base {
 
 
     public function test() {
-        $val['file_path'] = 'upload/156687319828250400391.psd';
+        $val['file_path'] = 'upload/slide/156690018059831600333.JPG';
 
         $qiniu_exist = $this->qiniuFileExist($val['file_path']);
-        if($qiniu_exist !== true) {
-            return ajax($qiniu_exist['msg'],-1);
-        }
+
+        halt($qiniu_exist);
+
+//        if($qiniu_exist !== true) {
+//            return ajax($qiniu_exist['msg'],-1);
+//        }
+
 
         $qiniu_move = $this->moveFile($val['file_path']);
         if($qiniu_move['code'] == 0) {

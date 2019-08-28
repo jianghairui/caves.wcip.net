@@ -39,7 +39,7 @@
                 <td>{$li.id}</td>
                 <td>
                     <?php $image = unserialize($li['pics'])[0];?>
-                    <div style="width: 80px;height: 80px;background-image: url('/{$image}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
+                    <div style="width: 100px;height: 100px;background-image: url('<?php echo config('qiniu_weburl');?>{$image}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
                 </td>
                 <td>{$li.name}</td>
                 <td>{$li.price}</td>
@@ -113,13 +113,14 @@
     });
 
     /*添加商品*/
-    function add_info(title,url){
+    function add_info(title,url) {
         var index = layer.open({
             type: 2,
             title: title,
-            content: url
+            content: url,
+            area:['100%','100%']
         });
-        layer.full(index);
+        // layer.full(index);
     }
 
     /*下架*/

@@ -41,7 +41,7 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>是否认证：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input type="text" class="input-text" value="{$info.auth}" placeholder="" name="auth" readonly>
+                <input type="text" class="input-text" value="{$info.role_check}" placeholder="" name="role_check" readonly>
             </div>
         </div>
         <div class="row cl">
@@ -144,7 +144,7 @@
         </div>
         <div class="row cl">
             <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
-                {if $info['auth'] == 1}
+                {if $info['role_check'] == 1}
                 <button onClick="check_pass('{$info.id}');" class="btn btn-success radius" type="button">&nbsp;&nbsp;通过&nbsp;&nbsp;</button>
                 <button onClick="check_reject('{$info.id}');" class="btn btn-danger radius" type="button">&nbsp;&nbsp;拒绝&nbsp;&nbsp;</button>
                 {/if}

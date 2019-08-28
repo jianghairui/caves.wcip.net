@@ -47,13 +47,13 @@ class Index extends Base
         }
         try {
             $count = Db::table('mp_req')->alias('r')
-                ->join('mp_role ro','r.uid=ro.uid','left')
+                ->join('mp_user_role ro','r.uid=ro.uid','left')
                 ->where($where)->count();
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
             $list = Db::table('mp_req')->alias('r')
-                ->join('mp_role ro','r.uid=ro.uid','left')
+                ->join('mp_user_role ro','r.uid=ro.uid','left')
                 ->field('r.*,ro.org')
                 ->order(['r.id'=>'DESC'])
                 ->where($where)->order(['r.id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
@@ -153,7 +153,7 @@ class Index extends Base
 
     public function reqRecommend() {
         $val['id'] = input('post.id');
-        checkPost($val);
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']]

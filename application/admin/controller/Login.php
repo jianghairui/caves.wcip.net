@@ -104,7 +104,7 @@ class Login extends Base {
         $val['gender'] = input('post.gender');
         $val['tel'] = input('post.tel');
         $val['email'] = input('post.email');
-        checkPost($val);
+        checkInput($val);
         $val['password'] = input('post.password');
         $val['desc'] = input('post.desc');
         if($val['password']) {

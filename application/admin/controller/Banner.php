@@ -109,7 +109,7 @@ class Banner extends Base {
     //删除轮播图
     public function slideDel() {
         $val['id'] = input('post.id');
-        checkPost($val);
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']]
@@ -129,7 +129,7 @@ class Banner extends Base {
     public function sortSlide() {
         $val['id'] = input('post.id');
         $val['sort'] = input('post.sort');
-        checkPost($val);
+        checkInput($val);
         try {
             Db::table('mp_slideshow')->update($val);
         }catch (Exception $e) {
@@ -140,7 +140,7 @@ class Banner extends Base {
     //禁用轮播图
     public function slide_stop() {
         $val['id'] = input('post.slideid');
-        checkPost($val);
+        checkInput($val);
         $where = [
             ['id','=',$val['id']]
         ];
@@ -158,7 +158,7 @@ class Banner extends Base {
     //启用轮播图
     public function slide_start() {
         $val['id'] = input('post.slideid');
-        checkPost($val);
+        checkInput($val);
         $where = [
             ['id','=',$val['id']]
         ];

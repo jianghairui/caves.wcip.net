@@ -98,7 +98,7 @@ class Activity extends Common
             $my = Db::table('mp_user')
                 ->where([['id', '=', $this->myinfo['id']]])
                 ->find();
-            if ($my['auth'] != 2) {
+            if ($my['role_check'] != 2) {
                 $role = 0;
             } else {
                 $role = $my['role'];
@@ -293,7 +293,7 @@ class Activity extends Common
                 ->where([['id', '=', $this->myinfo['id']]])
                 ->find();
 
-            if (!($my['auth'] == 2 && $my['role'] == 1)) {
+            if (!($my['role_check'] == 2 && $my['role'] == 1)) {
                 return ajax('只有认证博物馆才能核销文创礼品', 49);
             }
 

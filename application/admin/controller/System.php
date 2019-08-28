@@ -24,7 +24,7 @@ class System extends Base {
         $val['carriage'] = input('post.carriage');
         $val['credit'] = input('post.credit');
         $val['min_credit'] = input('post.min_credit');
-        checkPost($val);
+        checkInput($val);
         $val['allow_ip'] = input('post.allow_ip');
         $val['contact'] = input('post.contact');
 

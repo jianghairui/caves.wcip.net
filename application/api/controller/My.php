@@ -66,12 +66,12 @@ class My extends Common {
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
         try {
-            $role = Db::table('mp_role')->where('uid',$val['uid'])->find();
+            $role = Db::table('mp_user_role')->where('uid',$val['uid'])->find();
             if(!file_exists($val['cover'])) {
                 return ajax('',5);
             }
             $val['cover'] = rename_file($val['cover'],'static/uploads/role/');
-            Db::table('mp_role')->where('uid',$val['uid'])->update($val);
+            Db::table('mp_user_role')->where('uid',$val['uid'])->update($val);
         } catch (\Exception $e) {
             if ($val['cover'] != $role['cover']) {
                 @unlink($val['cover']);
@@ -241,7 +241,7 @@ class My extends Common {
         }
         try {
             $user = Db::table('mp_user')->where('id',$val['uid'])->find();
-            if(!in_array($user['role'],[1,2]) || $user['auth'] != 2) {
+            if(!in_array($user['role'],[1,2]) || $user['role_check'] != 2) {
                 return ajax('当前角色状态无法发布需求',24);
             }
 
@@ -276,7 +276,7 @@ class My extends Common {
         $where = [];
         try {
             $user = $this->getMyInfo();
-            if($user['auth'] != 2) {
+            if($user['role_check'] != 2) {
                 return ajax([]);
             }
             if(in_array($user['role'],[1,2])) {
@@ -362,7 +362,7 @@ class My extends Common {
         $val['weixin'] = input('post.weixin');
 
         $user = $this->getMyInfo();
-        if(!in_array($user['role'],[1,2]) || $user['auth'] != 2) {
+        if(!in_array($user['role'],[1,2]) || $user['role_check'] != 2) {
             return ajax('当前角色状态无法发布需求',24);
         }
         try {
@@ -488,7 +488,7 @@ class My extends Common {
     public function applyStatus() {
         $uid = $this->myinfo['id'];
         try {
-            $auth = Db::table('mp_user')->where('id',$uid)->field('auth')->find();
+            $auth = Db::table('mp_user')->where('id',$uid)->field('role_check')->find();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -498,7 +498,7 @@ class My extends Common {
     public function applyInfo() {
         $uid = $this->myinfo['id'];
         try {
-            $info = Db::table('mp_role')->where('uid',$uid)->find();
+            $info = Db::table('mp_user_role')->where('uid',$uid)->find();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -591,17 +591,17 @@ class My extends Common {
             $val['id_front'] = rename_file($id_front,'static/uploads/role/');
             $val['id_back'] = rename_file($id_back,'static/uploads/role/');
 
-            $role_exist = Db::table('mp_role')->where('uid',$val['uid'])->find();
+            $role_exist = Db::table('mp_user_role')->where('uid',$val['uid'])->find();
             unset($val['code']);
             if($role_exist) {
                 $old_works = unserialize($role_exist['works']);
-                Db::table('mp_role')->where('uid',$val['uid'])->update($val);
+                Db::table('mp_user_role')->where('uid',$val['uid'])->update($val);
             }else {
-                Db::table('mp_role')->insert($val);
+                Db::table('mp_user_role')->insert($val);
             }
             Db::table('mp_user')->where('id',$val['uid'])->update([
                 'role' => $val['role'],
-                'auth' => 1,
+                'role_check' => 1,
                 'org' => $val['org']
             ]);
         }catch (\Exception $e) {//异常删图
@@ -663,7 +663,7 @@ class My extends Common {
             $list = Db::table('mp_bidding')->alias('b')
                 ->join("mp_design_works w","b.work_id=w.id","left")
                 ->join("mp_req r","b.req_id=r.id","left")
-                ->join("mp_role ro","r.uid=ro.uid","left")
+                ->join("mp_user_role ro","r.uid=ro.uid","left")
                 ->field("b.work_id,b.req_id,b.create_time,w.title as work_title,w.pics,r.title as req_title,ro.org")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->where($where)->select();

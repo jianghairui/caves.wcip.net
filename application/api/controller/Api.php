@@ -164,7 +164,7 @@ class Api extends Common
             if ($user['role'] != 4) {
                 return ajax('只有工厂可以参加竞标', 35);
             }
-            if ($user['auth'] != 2) {
+            if ($user['role_check'] != 2) {
                 return ajax('角色未认证', 29);
             }
             $where_req = [
@@ -211,7 +211,7 @@ class Api extends Common
             if ($user['role'] != 3) {
                 return ajax('只有设计师可以参加', 28);
             }
-            if ($user['auth'] != 2) {
+            if ($user['role_check'] != 2) {
                 return ajax('角色未认证', 29);
             }
             $where = [
@@ -281,7 +281,7 @@ class Api extends Common
             if ($user['role'] != 3) {
                 return ajax('只有设计师可以参加', 28);
             }
-            if ($user['auth'] != 2) {
+            if ($user['role_check'] != 2) {
                 return ajax('角色还未认证', 29);
             }
             $image_array = [];
@@ -345,7 +345,7 @@ class Api extends Common
         try {
             $exist = Db::table('mp_design_works')->alias('w')
                 ->join("mp_user u", "w.uid=u.id", "left")
-                ->join("mp_role r", "w.uid=r.uid", "left")
+                ->join("mp_user_role r", "w.uid=r.uid", "left")
                 ->where('w.id', $val['id'])
                 ->field("w.id,w.title,w.desc,w.pics,w.type,u.avatar,u.nickname,r.name")
                 ->find();
@@ -520,7 +520,7 @@ class Api extends Common
             ];
             $myFocus = Db::table('mp_focus')->where($whereFocus)->column('to_uid');
             $info = Db::table('mp_user')->alias('u')
-                ->join("mp_role r","u.id=r.uid","left")
+                ->join("mp_user_role r","u.id=r.uid","left")
                 ->where('u.id', $val['uid'])
                 ->field("u.id,u.nickname,u.avatar,u.sex,u.focus,u.age,r.desc")
                 ->find();
@@ -587,7 +587,7 @@ class Api extends Common
             $where = [
                 ['role', '=', $val['role']]
             ];
-            $list = Db::table('mp_role')
+            $list = Db::table('mp_user_role')
                 ->where($where)
                 ->field("uid,cover,role,org,name,desc")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
@@ -607,7 +607,7 @@ class Api extends Common
             ['role', 'in', [1, 2]]
         ];
         try {
-            $info = Db::table('mp_role')->where($where)->field("uid,cover,role,org,name,desc")->find();
+            $info = Db::table('mp_user_role')->where($where)->field("uid,cover,role,org,name,desc")->find();
             if (!$info) {
                 return ajax($val['uid'], -4);
             }
@@ -683,7 +683,7 @@ class Api extends Common
             $where = [
                 ['role', '=', 4]
             ];
-            $list = Db::table('mp_role')
+            $list = Db::table('mp_user_role')
                 ->where($where)
                 ->field("uid,cover,role,org,name,desc")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
@@ -703,7 +703,7 @@ class Api extends Common
             ['role', '=', 4]
         ];
         try {
-            $info = Db::table('mp_role')->where($where)->field("uid,cover,role,org,desc")->find();
+            $info = Db::table('mp_user_role')->where($where)->field("uid,cover,role,org,desc")->find();
             if (!$info) {
                 return ajax($val['uid'], -4);
             }
@@ -726,7 +726,7 @@ class Api extends Common
             $list = Db::table('mp_bidding')->alias('b')
                 ->join("mp_design_works w","b.work_id=w.id","left")
                 ->join("mp_req r","b.req_id=r.id","left")
-                ->join("mp_role ro","r.uid=ro.uid","left")
+                ->join("mp_user_role ro","r.uid=ro.uid","left")
                 ->field("b.work_id,b.req_id,b.create_time,w.title as work_title,w.pics,r.title as req_title,ro.org")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->where($where)->select();

@@ -29,7 +29,9 @@ class Shop extends Base {
         try {
             $list = Db::table('mp_goods')
                 ->where($where)
-                ->limit(($curr_page - 1)*$perpage,$perpage)->select();
+                ->limit(($curr_page - 1)*$perpage,$perpage)
+                ->order(['id'=>'DESC'])
+                ->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
@@ -98,210 +100,240 @@ class Shop extends Base {
         $this->assign('attr_list',$attr_list);
         $this->assign('child',$child);
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 //添加商品POST
     public function goodsAddPost() {
-        if(Request::isAjax()) {
-            $val['pcate_id'] = input('post.pcate_id');
-            $val['cate_id'] = input('post.cate_id');
-            $val['name'] = input('post.name');
-            $val['origin_price'] = input('post.origin_price');
-            $val['price'] = input('post.price');
-            $val['stock'] = input('post.stock');
-            $val['sort'] = input('post.sort');
-            $val['hot'] = input('post.hot');
-            $val['sales'] = input('post.sales');
-            $val['status'] = input('post.status');
-            $val['unit'] = input('post.unit');
-            $val['carriage'] = input('post.carriage');
-            $val['reduction'] = input('post.reduction');
-            $val['service'] = input('post.service');
-            $val['desc'] = input('post.desc');
-            $val['status'] = input('post.status');
-            $val['create_time'] = time();
-            checkPost($val);
-            $val['detail'] = input('post.detail');
-            $val['use_attr'] = input('post.use_attr','');
-            if($val['use_attr']) {
-                $attr1 = input('post.attr1',[]);
-                $attr2 = input('post.attr2',[]);
-                $attr3 = input('post.attr3',[]);
+        $val['pcate_id'] = input('post.pcate_id');
+        $val['cate_id'] = input('post.cate_id');
+        $val['name'] = input('post.name');
+        $val['origin_price'] = input('post.origin_price');
+        $val['price'] = input('post.price');
+        $val['stock'] = input('post.stock');
+        $val['sort'] = input('post.sort');
+        $val['hot'] = input('post.hot');
+        $val['sales'] = input('post.sales');
+        $val['status'] = input('post.status');
+        $val['unit'] = input('post.unit');
+        $val['carriage'] = input('post.carriage');
+//        $val['reduction'] = input('post.reduction');
+        $val['service'] = input('post.service');
+        $val['desc'] = input('post.desc');
+        $val['status'] = input('post.status');
+        $val['create_time'] = time();
+        checkInput($val);
+        $val['detail'] = input('post.detail');
+        $val['use_attr'] = input('post.use_attr','');
+        if($val['use_attr']) {
+            $attr1 = input('post.attr1',[]);
+            $attr2 = input('post.attr2',[]);
+            $attr3 = input('post.attr3',[]);
 
-                $val['attr'] = input('post.attr','');
-                if(!$val['attr'] || empty($attr1)) {
-                    return ajax('至少添加一个规格',-1);
-                }
-                if(count($attr1) !== count($attr2) || count($attr1) !== count($attr3)) {
-                    return ajax('操作异常',-1);
+            $val['attr'] = input('post.attr','');
+            if(!$val['attr'] || empty($attr1)) {
+                return ajax('至少添加一个规格',-1);
+            }
+            if(count($attr1) !== count($attr2) || count($attr1) !== count($attr3)) {
+                return ajax('属性规格异常',-1);
+            }
+            foreach ($attr1 as $v) {
+                if(!$v) {
+                    return ajax('属性规格值不能为空',-1);
                 }
             }
-            $image = input('post.pic_url',[]);
+            foreach ($attr2 as $v) {
+                if(!is_currency($v)) {
+                    return ajax('属性金额格式不合法',-1);
+                }
+            }
+            foreach ($attr3 as $v) {
+                if(!is_int($v)) {
+                    return ajax('规格库存必须为数字',-1);
+                }
+            }
+        }
+        $image = input('post.pic_url',[]);
+
+        try {
             $image_array = [];
+            $limit = 9;
             if(is_array($image) && !empty($image)) {
-                if(count($image) > 5) {
-                    return ajax('最多上传5张图片',-1);
+                if(count($image) > $limit) {
+                    return ajax('最多上传'.$limit.'张图片',-1);
                 }
                 foreach ($image as $v) {
-                    if(!file_exists($v)) {
-                        return ajax('无效的图片路径',-1);
+                    $qiniu_exist = $this->qiniuFileExist($v);
+                    if($qiniu_exist !== true) {
+                        return ajax('图片已失效请重新上传',-1);
                     }
                 }
-                foreach ($image as $v) {
-                    $image_array[] = rename_file($v,'upload/goods/');
-                }
             }else {
-                return ajax('请上传图片',-1);
+                return ajax('请上传商品图片',-1);
+            }
+            foreach ($image as $v) {
+                $qiniu_move = $this->moveFile($v,'upload/goods/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-2);
+                }
             }
             $val['pics'] = serialize($image_array);
-            $imginfo = @getimagesize($image_array[0]);
-            if($imginfo) {
-                $val['width'] = $imginfo[0];
-                $val['height'] = $imginfo[1];
-            }else {
-                $val['width'] = 1;
-                $val['height'] = 1;
-            }
-            try {
-                $new_id = Db::table('mp_goods')->insertGetId($val);
-                if($val['use_attr']) {
-                    $attr_insert = [];
-                    foreach ($attr1 as $k=>$v) {
-                        $data['goods_id'] = $new_id;
-                        $data['value'] = $attr1[$k];
-                        $data['price'] = $attr2[$k];
-                        $data['stock'] = $attr3[$k];
-                        $data['create_time'] = time();
-                        $attr_insert[] = $data;
-                    }
-                    Db::table('mp_goods_attr')->insertAll($attr_insert);
+
+            $new_id = Db::table('mp_goods')->insertGetId($val);
+            if($val['use_attr']) {
+                $attr_insert = [];
+                foreach ($attr1 as $k=>$v) {
+                    $data['goods_id'] = $new_id;
+                    $data['value'] = $attr1[$k];
+                    $data['price'] = $attr2[$k];
+                    $data['stock'] = $attr3[$k];
+                    $data['create_time'] = time();
+                    $attr_insert[] = $data;
                 }
-            }catch (\Exception $e) {
-                foreach ($image_array as $v) {
-                    @unlink($v);
-                }
-                return ajax($e->getMessage(),-1);
+                Db::table('mp_goods_attr')->insertAll($attr_insert);
             }
-            return ajax([],1);
+        }catch (\Exception $e) {
+            foreach ($image_array as $v) {
+                $this->rs_delete($v);
+            }
+            return ajax($e->getMessage(),-1);
         }
+        return ajax([],1);
     }
 //修改商品POST
     public function goodsModPost() {
-        if(Request::isAjax()) {
-            $val['pcate_id'] = input('post.pcate_id');
-            $val['cate_id'] = input('post.cate_id');
-            $val['name'] = input('post.name');
-            $val['origin_price'] = input('post.origin_price');
-            $val['price'] = input('post.price');
-            $val['stock'] = input('post.stock');
-            $val['sort'] = input('post.sort');
-            $val['hot'] = input('post.hot');
-            $val['sales'] = input('post.sales');
-            $val['status'] = input('post.status');
-            $val['unit'] = input('post.unit');
-            $val['carriage'] = input('post.carriage');
-            $val['reduction'] = input('post.reduction');
-            $val['service'] = input('post.service');
-            $val['desc'] = input('post.desc');
-            $val['status'] = input('post.status');
-            $val['id'] = input('post.id');
-            $val['create_time'] = time();
-            checkPost($val);
-            $val['detail'] = input('post.detail');
-            $val['use_attr'] = input('post.use_attr',0);
-            if($val['use_attr']) {
-                $attr0 = input('post.attr0',[]);
-                $attr1 = input('post.attr1',[]);
-                $attr2 = input('post.attr2',[]);
-                $attr3 = input('post.attr3',[]);
+        $val['pcate_id'] = input('post.pcate_id');
+        $val['cate_id'] = input('post.cate_id');
+        $val['name'] = input('post.name');
+        $val['origin_price'] = input('post.origin_price');
+        $val['price'] = input('post.price');
+        $val['stock'] = input('post.stock');
+        $val['sort'] = input('post.sort');
+        $val['hot'] = input('post.hot');
+        $val['sales'] = input('post.sales');
+        $val['status'] = input('post.status');
+        $val['unit'] = input('post.unit');
+        $val['carriage'] = input('post.carriage');
+//            $val['reduction'] = input('post.reduction');
+        $val['service'] = input('post.service');
+        $val['desc'] = input('post.desc');
+        $val['status'] = input('post.status');
+        $val['id'] = input('post.id');
+        $val['create_time'] = time();
+        checkInput($val);
+        $val['detail'] = input('post.detail');
+        $val['use_attr'] = input('post.use_attr','');
+        if($val['use_attr']) {
+            $attr0 = input('post.attr0',[]);
+            $attr1 = input('post.attr1',[]);
+            $attr2 = input('post.attr2',[]);
+            $attr3 = input('post.attr3',[]);
 
-                $val['attr'] = input('post.attr','');
-                if(!$val['attr'] || empty($attr1)) {
-                    return ajax('至少添加一个规格',-1);
-                }
-                if(count($attr1) !== count($attr2) || count($attr1) !== count($attr3) || count($attr1) !== count($attr0)) {
-                    return ajax('操作异常',-1);
+            $val['attr'] = input('post.attr','');
+            if(!$val['attr'] || empty($attr1)) {
+                return ajax('至少添加一个规格',-1);
+            }
+            if(count($attr1) !== count($attr2) || count($attr1) !== count($attr3)) {
+                return ajax('属性规格异常',-1);
+            }
+            foreach ($attr1 as $v) {
+                if(!$v) {
+                    return ajax('属性规格值不能为空',-1);
                 }
             }
-            $image = input('post.pic_url',[]);
-            try {
-                $map = [
-                    ['id','=',$val['id']],
-                    ['del','=',0]
-                ];
-                $exist = Db::table('mp_goods')->where($map)->find();
-                if(!$exist) {
-                    return ajax('非法参数',-1);
-                }
-                $old_pics = unserialize($exist['pics']);
-                $image_array = [];
-                if(is_array($image) && !empty($image)) {
-                    if(count($image) > 5) {
-                        return ajax('最多上传5张图片',-1);
-                    }
-                    foreach ($image as $v) {
-                        if(!file_exists($v)) {
-                            return ajax('无效的图片路径',-1);
-                        }
-                    }
-                    foreach ($image as $v) {
-                        $image_array[] = rename_file($v,'upload/goods/');
-                    }
-                }else {
-                    return ajax('请上传图片',-1);
-                }
-                $val['pics'] = serialize($image_array);
-                $imginfo = @getimagesize($image_array[0]);
-                if($imginfo) {
-                    $val['width'] = $imginfo[0];
-                    $val['height'] = $imginfo[1];
-                }else {
-                    $val['width'] = 1;
-                    $val['height'] = 1;
-                }
-                Db::table('mp_goods')->where($map)->update($val);
-                if($val['use_attr']) {
-                    $attr_ids = Db::table('mp_goods_attr')->where('goods_id',$val['id'])->column('id');
-                    $attr_insert = [];
-                    foreach ($attr1 as $k=>$v) {
-                        $data['goods_id'] = $val['id'];
-                        $data['value'] = $attr1[$k];
-                        $data['price'] = $attr2[$k];
-                        $data['stock'] = $attr3[$k];
-                        if($attr0[$k] == '') {
-                            $data['create_time'] = time();
-                            $attr_insert[] = $data;
-                        }else {
-                            Db::table('mp_goods_attr')->where('id','=',$attr0[$k])->update($data);
-                        }
-
-                    }
-                    Db::table('mp_goods_attr')->insertAll($attr_insert);
-                    $whereDelete = [];
-                    foreach ($attr_ids as $v) {
-                        if(!in_array($v,$attr0)) {
-                            $whereDelete[] = $v;
-                        }
-                    }
-                    if(!empty($whereDelete)) {
-                        Db::table('mp_goods_attr')->where('id','in',$whereDelete)->update(['del'=>1]);
-                    }
-                }
-            }catch (\Exception $e) {
-                foreach ($image_array as $v) {
-                    if(!in_array($v,$old_pics)) {
-                        @unlink($v);
-                    }
-                }
-                return ajax($e->getMessage(),-1);
-            }
-            foreach ($old_pics as $v) {
-                if(!in_array($v,$image_array)) {
-                    @unlink($v);
+            foreach ($attr2 as $v) {
+                if(!is_currency($v)) {
+                    return ajax('属性金额格式不合法',-1);
                 }
             }
-            return ajax([],1);
+            foreach ($attr3 as $v) {
+                if(!is_int($v)) {
+                    return ajax('规格库存必须为数字',-1);
+                }
+            }
         }
+        $image = input('post.pic_url',[]);
+
+        try {
+            $map = [
+                ['id','=',$val['id']],
+                ['del','=',0]
+            ];
+            $exist = Db::table('mp_goods')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法参数',-1);
+            }
+            $old_pics = unserialize($exist['pics']);
+
+            $image_array = [];
+            $limit = 9;
+            if(is_array($image) && !empty($image)) {
+                if(count($image) > $limit) {
+                    return ajax('最多上传'.$limit.'张图片',-1);
+                }
+                foreach ($image as $v) {
+                    $qiniu_exist = $this->qiniuFileExist($v);
+                    if($qiniu_exist !== true) {
+                        return ajax('图片已失效请重新上传',-1);
+                    }
+                }
+            }else {
+                return ajax('请上传商品图片',-1);
+            }
+            foreach ($image as $v) {
+                $qiniu_move = $this->moveFile($v,'upload/goods/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-2);
+                }
+            }
+            $val['pics'] = serialize($image_array);
+
+            Db::table('mp_goods')->where($map)->update($val);
+            if($val['use_attr']) {
+                $attr_ids = Db::table('mp_goods_attr')->where('goods_id',$val['id'])->column('id');
+                $attr_insert = [];
+                foreach ($attr1 as $k=>$v) {
+                    $data['goods_id'] = $val['id'];
+                    $data['value'] = $attr1[$k];
+                    $data['price'] = $attr2[$k];
+                    $data['stock'] = $attr3[$k];
+                    if($attr0[$k] == '') {
+                        $data['create_time'] = time();
+                        $attr_insert[] = $data;
+                    }else {
+                        Db::table('mp_goods_attr')->where('id','=',$attr0[$k])->update($data);
+                    }
+
+                }
+                Db::table('mp_goods_attr')->insertAll($attr_insert);
+                $whereDelete = [];
+                foreach ($attr_ids as $v) {
+                    if(!in_array($v,$attr0)) {
+                        $whereDelete[] = $v;
+                    }
+                }
+                if(!empty($whereDelete)) {
+                    Db::table('mp_goods_attr')->where('id','in',$whereDelete)->update(['del'=>1]);
+                }
+            }
+        }catch (\Exception $e) {
+            foreach ($image_array as $v) {
+                if(!in_array($v,$old_pics)) {
+                    $this->rs_delete($v);
+                }
+            }
+            return ajax($e->getMessage(),-1);
+        }
+        foreach ($old_pics as $v) {
+            if(!in_array($v,$image_array)) {
+                $this->rs_delete($v);
+            }
+        }
+        return ajax([],1);
     }
 //下架
     public function goodsHide() {
@@ -390,7 +422,7 @@ class Shop extends Base {
     public function cateAddPost() {
         $val['cate_name'] = input('post.cate_name');
         $val['pid'] = input('post.pid',0);
-        checkPost($val);
+        checkInput($val);
 
         if(isset($_FILES['file'])) {
             $info = upload('file');
@@ -428,7 +460,7 @@ class Shop extends Base {
         $val['cate_name'] = input('post.cate_name');
         $val['pid'] = input('post.pid',0);
         $val['id'] = input('post.id',0);
-        checkPost($val);
+        checkInput($val);
         try {
             $exist = Db::table('mp_goods_cate')->where('id',$val['id'])->find();
             if(!$exist) {
@@ -601,7 +633,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $val['tracking_name'] = input('post.tracking_name');
         $val['tracking_num'] = input('post.tracking_num');
         $val['id'] = input('post.id');
-        checkPost($val);
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']],
@@ -634,7 +666,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
 //退款
     public function orderRefund() {
         $val['id'] = input('post.id');
-        checkPost($val);
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']],
@@ -691,7 +723,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     public function modAdress() {
         $val['address'] = input('post.address');
         $val['id'] = input('post.id');
-        checkPost($val);
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']]
@@ -713,7 +745,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
     public function modPrice() {
         $val['pay_price'] = input('post.pay_price');
         $val['id'] = input('post.id');
-        checkPost($val);
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']]

@@ -59,3 +59,24 @@ function checkfile(fileId,maxsize=512){
     }
     return false;
 }
+
+function onlyNumber(obj){
+    //先把非数字的都替换掉，除了数字和.    
+    obj.value = obj.value.replace(/[^\d\.]/g,'');
+
+    //第一位不能是数字0      
+    obj.value = obj.value.replace(/^0\d[0-9]*/g,'');
+
+    //必须保证第一个为数字而不是.       
+    obj.value = obj.value.replace(/^\./g,'');
+
+    //小数点后面最多两位       
+    obj.value = obj.value.replace(/(\.\d{2})\d*/g,"$1");
+
+    //小数点前面最多八位       
+    obj.value = obj.value.replace(/(\d{8})\d*/g,"$1");
+
+    //保证没有连续的.   保证.只出现一次，而不能出现两次以上      
+    obj.value = obj.value.replace('.','$#$').replace(/\./g,'').replace('$#$','.');
+
+}
