@@ -74,20 +74,22 @@ class Shop extends Base {
     public function goodsDetail() {
         $id = input('param.id');
         try {
-            $where = [
+            $wherecate = [
                 ['pid','=',0],
-                ['del','=',0],
-                ['status','=',1]
+                ['del','=',0]
             ];
             $info = Db::table('mp_goods')->where('id','=',$id)->find();
-            $list = Db::table('mp_goods_cate')->where($where)->select();
+            if(!$info) {
+                die('非法参数');
+            }
 
-            $where = [
+            $list = Db::table('mp_goods_cate')->where($wherecate)->select();
+
+            $wherepcate = [
                 ['pid','=',$info['pcate_id']],
-                ['del','=',0],
-                ['status','=',1]
+                ['del','=',0]
             ];
-            $child = Db::table('mp_goods_cate')->where($where)->select();
+            $child = Db::table('mp_goods_cate')->where($wherepcate)->select();
             $where_attr = [
                 ['goods_id','=',$id],
                 ['del','=',0]
@@ -148,7 +150,7 @@ class Shop extends Base {
                 }
             }
             foreach ($attr3 as $v) {
-                if(!is_int($v)) {
+                if(!if_int($v)) {
                     return ajax('规格库存必须为数字',-1);
                 }
             }
@@ -249,8 +251,8 @@ class Shop extends Base {
                 }
             }
             foreach ($attr3 as $v) {
-                if(!is_int($v)) {
-                    return ajax('规格库存必须为数字',-1);
+                if(!if_int($v)) {
+                    return ajax('规格库存必须为数字'.$v,-1);
                 }
             }
         }
