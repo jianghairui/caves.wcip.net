@@ -1,5 +1,5 @@
 <style>
-    .thumbnail{ width:200px;height: 200px;background-size: cover;background-position: center;position: relative}
+    .thumbnail{ width:300px;}
 </style>
 <article class="page-container">
     <form class="form form-horizontal" id="form-article-add">
@@ -27,12 +27,12 @@
         {/if}
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">
-                <span id="btn-star" class="btn btn-primary btn-uploadstar radius ml-10">分类图标</span>
+                <span id="btn-star" class="btn btn-primary uploadfile radius ml-10">分类图标</span>
             </label>
             <div class="formControls col-xs-8 col-sm-9">
                 <div class="uploader-thum-container">
                     <div id="fileList" class="uploader-list">
-                        <div id="cover" class="thumbnail" style="background-image: url('/{$info.icon}');"><div class="file-panel"></div></div>
+                        <img class="thumbnail" src="{$qiniu_weburl}{$info.icon}" alt="">
                     </div>
                 </div>
             </div>
@@ -50,9 +50,11 @@
                 <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;取消&nbsp;&nbsp;</button>
             </div>
         </div>
-        <input type="file" name="file" id="file" style="display: none;">
+        <input type="hidden" name="icon" id="icon" value="{$info.icon}">
         <input type="hidden" name="id" value="{$info.id}">
     </form>
+    <input type="file" name="qiniu-file" id="qiniu-file" style="display: none;">
+
 </article>
 
 
@@ -60,7 +62,7 @@
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/messages_zh.js"></script>
-<script type="text/javascript" src="/lib/checkfile.js"></script>
+<script type="text/javascript" src="/lib/qiniu.min.js"></script>
 
 <script type="text/javascript">
     $(function(){
@@ -114,26 +116,76 @@
         });
 
 
-        $("#btn-star").click(function(){
-            $("#file").click();
+        $(".uploadfile").click(function () {
+            $("#qiniu-file").click();
         });
 
-        $("#file").change(function(e){
-            var img = e.target.files[0];
-            if (typeof(img) == "undefined") {
-                var src = '';
-                $("#fileList").html('');
+        $(document).on("change","#qiniu-file",function(){
+            var obj = $("#qiniu-file");
+            var fileName = obj.val();//上传的本地文件绝对路径
+            $("#uploadfile").val(fileName);
+            if(fileName === '') {
+                return;
             }else {
-                if(checkfile('file') !== true) {
-                    $("#file").val('');
-                    $("#fileList").html('');
-                    return false;
-                }
-                var src = window.URL.createObjectURL(img);
-                $("#fileList").html('<div id="cover" class="thumbnail" style="background-image: url('+src+');"><div class="file-panel"></div></div>');
+                console.log(fileName,' file.value');
             }
 
+            var suffix = fileName.substring(fileName.lastIndexOf("."),fileName.length);//后缀名
+            var suffix_str = suffix.toUpperCase();
+            if(suffix_str!=".BMP"&&suffix_str!=".JPG"&&suffix_str!=".JPEG"&&suffix_str!=".PNG"&&suffix_str!=".GIF"){
+                alert("请上传图片（格式BMP、JPG、JPEG、PNG、GIF等）!");
+                return;
+            }
+            var file = obj.get(0).files[0];	                                           //上传的文件
+            if(file.size > 128*1024) {
+                layer.alert('上传文件大小不超过128Kb');
+                return;
+            }
+            //七牛云上传
+            $.ajax({
+                type:'post',
+                url: "{:url('Qiniu/getUpToken')}",
+                data:{"suffix":suffix},
+                dataType:'json',
+                success: function(result){
+                    if(result.code == 1){
+                        var observer = {                         //设置上传过程的监听函数
+                            next(res){                        //上传中(result参数带有total字段的 object，包含loaded、total、percent三个属性)
+                                Math.floor(res.total.percent);//查看进度[loaded:已上传大小(字节);total:本次上传总大小;percent:当前上传进度(0-100)]
+                                console.log(Math.floor(res.total.percent));
+                            },
+                            error(err){                          //失败后
+                                alert(err.message);
+                            },
+                            complete(res){                       //成功后
+                                // console.log(res,'---upload success');
+                                layer.alert('上传成功',{icon:6});
+                                $("#icon").val(result.data.filename);
+                                $("#fileList").html('<img class="thumbnail" src="' + result.data.weburl + result.data.filename + '" />')
+                            }
+                        };
+                        var putExtra = {
+                            fname: "",                          //原文件名
+                            params: {},                         //用来放置自定义变量
+                            mimeType: null                      //限制上传文件类型
+                        };
+                        var config = {
+                            region:qiniu.region.z1,             //存储区域(z0:代表华东;z2:代表华南,不写默认自动识别)
+                            concurrentRequestLimit:3            //分片上传的并发请求量
+                        };
+                        var observable = qiniu.upload(file,result.data.filename,result.data.token,putExtra,config);
+                        var subscription = observable.subscribe(observer);          // 上传开始
+                        // 取消上传
+                        // subscription.unsubscribe();
+                    }else{
+                        alert(result.data);                  //获取凭证失败
+                    }
+                },error:function(){                             //服务器响应失败处理函数
+                    layer.alert("服务器繁忙");
+                }
+            });
         });
+
 
 
     });

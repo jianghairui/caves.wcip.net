@@ -14,12 +14,14 @@ use think\Exception;
 class Api extends Common
 {
 //获取轮播图列表
-    public function slideList()
-    {
+    public function slideList() {
+        $where = [
+            ['status', '=', 1]
+        ];
         try {
-            $list = Db::table('mp_slideshow')->where([
-                ['status', '=', 1]
-            ])->order(['sort' => 'ASC'])->select();
+            $list = Db::table('mp_slideshow')->where($where)
+                ->field('id,title,url,pic')
+                ->order(['sort' => 'ASC'])->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -536,12 +538,14 @@ class Api extends Common
 
     }
 //充值类目列表
-    public function getVipList()
-    {
+    public function getVipList() {
+        $where = [
+            ['status','=',1]
+        ];
         try {
-            $list = Db::table('mp_vip')->where([
-                ['status', '=', 1]
-            ])->select();
+            $list = Db::table('mp_vip')->where($where)
+                ->field('id,title,detail,price,pic,days')
+                ->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
