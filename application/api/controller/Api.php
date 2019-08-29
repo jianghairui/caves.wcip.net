@@ -30,63 +30,20 @@ class Api extends Common
 //获取活动列表
     public function getReqList()
     {
-        $type = input('post.type', '');
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        if (!in_array($type, [1, 2])) {
-            return ajax($type, -4);
-        }
-        $where = [];
-        if ($type == 1) {
-            $where = [
-                ['r.vote_time', '>', date('Y-m-d H:i:s')],
-                ['r.status', '=', 1],
-                ['r.show', '=', 1],
-                ['r.del', '=', 0]
-            ];
-        }
-        if ($type == 2) {
-            $where = [
-                ['r.vote_time', '<=', date('Y-m-d H:i:s')],
-                ['r.end_time', '>', date('Y-m-d H:i:s')],
-                ['r.status', '=', 1],
-                ['r.show', '=', 1],
-                ['r.del', '=', 0]
-            ];
-        }
-
-        try {
-            $list = Db::table('mp_req')
-                ->alias('r')
-                ->join("mp_user u", "r.uid=u.id", "left")
-                ->where($where)->order(['r.start_time' => 'ASC'])
-                ->field("r.id,r.title,r.cover,r.part_num,r.start_time,r.end_time,u.org as user_org")
-                ->limit(($curr_page - 1) * $perpage, $perpage)
-                ->select();
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        foreach ($list as &$v) {
-            $v['start_time'] = date('Y-m-d', strtotime($v['start_time']));
-            $v['end_time'] = date('Y-m-d', strtotime($v['end_time']));
-        }
-        return ajax($list);
-    }
-//获取首页活动标题列表
-    public function getActiveList() {
         $where = [
             ['r.status', '=', 1],
             ['r.show', '=', 1],
-            ['r.del', '=', 0],
-            ['r.recommend', '=', 1]
+            ['r.del', '=', 0]
         ];
         try {
             $list = Db::table('mp_req')
                 ->alias('r')
                 ->join("mp_user u", "r.uid=u.id", "left")
-                ->where($where)->order(['r.id' => 'DESC'])
-                ->field("r.id,r.title,r.cover AS pic,r.part_num,r.start_time,r.end_time,u.org as user_org")
-                ->limit(0,10)
+                ->where($where)->order(['r.start_time' => 'ASC'])
+                ->field("r.id,r.title,r.cover,r.start_time,r.end_time,u.org as user_org")
+                ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -159,7 +116,7 @@ class Api extends Common
             $where_work = [
                 ['id', '=', $val['work_id']]
             ];
-            $work_exist = Db::table('mp_design_works')->where($where_work)->find();
+            $work_exist = Db::table('mp_req_works')->where($where_work)->find();
             if (!$work_exist || $work_exist['type'] != 2) {
                 return ajax($val['work_id'], -4);
             }
@@ -181,7 +138,7 @@ class Api extends Common
                 return ajax('当前时间段无法竞标', 36);
             }
             Db::table('mp_bidding')->insert($val);
-            Db::table('mp_design_works')->where($where_work)->setInc('bid_num');
+            Db::table('mp_req_works')->where($where_work)->setInc('bid_num');
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -221,7 +178,7 @@ class Api extends Common
                 ['type', '=', 2],
                 ['uid', '=', $this->myinfo['id']]
             ];
-            $workExist = Db::table('mp_design_works')->where($where)->find();
+            $workExist = Db::table('mp_req_works')->where($where)->find();
             if ($workExist) {
                 return ajax('已参加', 31);
             }
@@ -260,7 +217,7 @@ class Api extends Common
                 ['type', '=', 2],
                 ['uid', '=', $this->myinfo['id']]
             ];
-            $workExist = Db::table('mp_design_works')->where($where)->find();
+            $workExist = Db::table('mp_req_works')->where($where)->find();
             if ($workExist) {
                 return ajax('已参加', 31);
             }
@@ -296,14 +253,14 @@ class Api extends Common
                 ['type', '=', 2],
                 ['uid', '=', $this->myinfo['id']]
             ];
-            $workExist = Db::table('mp_design_works')->where($where)->find();
+            $workExist = Db::table('mp_req_works')->where($where)->find();
             if ($workExist) {
                 foreach ($image_array as $v) {
                     @unlink($v);
                 }
                 return ajax('已参加', 31);
             }
-            Db::table('mp_design_works')->insert($val);
+            Db::table('mp_req_works')->insert($val);
             Db::table('mp_req')->where('id', $val['req_id'])->setInc('part_num');
         } catch (\Exception $e) {
             foreach ($image_array as $v) {
@@ -324,7 +281,7 @@ class Api extends Common
             $where = [
                 ['w.req_id', '=', $val['req_id']]
             ];
-            $list = Db::table('mp_design_works')->alias('w')
+            $list = Db::table('mp_req_works')->alias('w')
                 ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
@@ -345,7 +302,7 @@ class Api extends Common
         $val['id'] = input('post.id');
         checkPost($val);
         try {
-            $exist = Db::table('mp_design_works')->alias('w')
+            $exist = Db::table('mp_req_works')->alias('w')
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->join("mp_user_role r", "w.uid=r.uid", "left")
                 ->where('w.id', $val['id'])
@@ -398,7 +355,7 @@ class Api extends Common
                 ['work_id', '=', $val['work_id']],
                 ['uid', '=', $this->myinfo['id']]
             ];
-            $vote_exist = Db::table('mp_vote')->where($whereVote)->find();
+            $vote_exist = Db::table('mp_works_vote')->where($whereVote)->find();
             if ($vote_exist) {
                 return ajax('已投票', 32);
             }
@@ -406,7 +363,7 @@ class Api extends Common
                 ['id', '=', $val['work_id']],
                 ['type', '=', 2]
             ];
-            $workExist = Db::table('mp_design_works')->where($where)->find();
+            $workExist = Db::table('mp_req_works')->where($where)->find();
             if (!$workExist) {
                 return ajax($val['work_id'], -4);
             }
@@ -420,7 +377,7 @@ class Api extends Common
             if ($exist['vote_time'] <= date('Y-m-d H:i:s')) {
                 return ajax('报名时间已结束', 30);
             }
-            Db::table('mp_design_works')->where($where)->setInc('vote', 1);
+            Db::table('mp_req_works')->where($where)->setInc('vote', 1);
             $insert_data = [
                 'work_id' => $val['work_id'],
                 'uid' => $this->myinfo['id'],
@@ -428,7 +385,7 @@ class Api extends Common
                 'req_id' => $workExist['req_id'],
                 'create_time' => time()
             ];
-            Db::table('mp_vote')->insert($insert_data);
+            Db::table('mp_works_vote')->insert($insert_data);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -445,7 +402,7 @@ class Api extends Common
             $whereFocus = [
                 ['uid','=',$this->myinfo['id']]
             ];
-            $myFocus = Db::table('mp_focus')->where($whereFocus)->column('to_uid');
+            $myFocus = Db::table('mp_user_focus')->where($whereFocus)->column('to_uid');
             $list = Db::table('mp_user')
                 ->where($where)
                 ->field("id,nickname,avatar,focus,sex,age")
@@ -474,7 +431,7 @@ class Api extends Common
                 ['type', '=', 2],
                 ['uid', '=', $val['uid']]
             ];
-            $list = Db::table('mp_design_works')
+            $list = Db::table('mp_req_works')
                 ->where($where)
                 ->field("id,title,req_id,vote,pics")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
@@ -499,7 +456,7 @@ class Api extends Common
                 ['type', '=', 1],
                 ['uid', '=', $val['uid']]
             ];
-            $list = Db::table('mp_design_works')
+            $list = Db::table('mp_req_works')
                 ->where($where)
                 ->field("id,title,pics")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
@@ -520,7 +477,7 @@ class Api extends Common
             $whereFocus = [
                 ['uid','=',$this->myinfo['id']]
             ];
-            $myFocus = Db::table('mp_focus')->where($whereFocus)->column('to_uid');
+            $myFocus = Db::table('mp_user_focus')->where($whereFocus)->column('to_uid');
             $info = Db::table('mp_user')->alias('u')
                 ->join("mp_user_role r","u.id=r.uid","left")
                 ->where('u.id', $val['uid'])
@@ -728,7 +685,7 @@ class Api extends Common
                 ['b.uid','=',$val['uid']]
             ];
             $list = Db::table('mp_bidding')->alias('b')
-                ->join("mp_design_works w","b.work_id=w.id","left")
+                ->join("mp_req_works w","b.work_id=w.id","left")
                 ->join("mp_req r","b.req_id=r.id","left")
                 ->join("mp_user_role ro","r.uid=ro.uid","left")
                 ->field("b.work_id,b.req_id,b.create_time,w.title as work_title,w.pics,r.title as req_title,ro.org")

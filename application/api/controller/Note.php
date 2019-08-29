@@ -33,7 +33,7 @@ class Note extends Common {
             $map = [
                 ['uid','=',$this->myinfo['id']]
             ];
-            $like_ids = Db::table('mp_like')->where($map)->column('note_id');
+            $like_ids = Db::table('mp_note_like')->where($map)->column('note_id');
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -105,10 +105,10 @@ class Note extends Common {
                 ['note_id','=',$id]
             ];
             $info['comment_count'] =
-                Db::table('mp_comment')->alias('c')
+                Db::table('mp_note_comment')->alias('c')
                     ->join('mp_user u','c.uid=u.id','left')
                     ->where($map)->count();
-            $info['comment_list'] = Db::table('mp_comment')->alias('c')
+            $info['comment_list'] = Db::table('mp_note_comment')->alias('c')
                 ->join('mp_user u','c.uid=u.id','left')
                 ->where($map)
                 ->field('c.*,u.nickname,u.avatar')
@@ -130,7 +130,7 @@ class Note extends Common {
                 return ajax('invalid note_id',-4);
             }
             $list = DB::query("SELECT c.id,c.note_id,c.uid,c.to_cid,c.to_uid,c.content,c.root_cid,c.created_time,u.avatar,u.nickname,IFNULL(u2.nickname,'') AS to_nickname 
-FROM mp_comment c 
+FROM mp_note_comment c 
 LEFT JOIN mp_user u ON c.uid=u.id 
 LEFT JOIN mp_user u2 ON c.to_uid=u2.id 
 WHERE c.note_id=?",[$val['note_id']]);
@@ -158,7 +158,7 @@ WHERE c.note_id=?",[$val['note_id']]);
                     ['id','=',$val['to_cid']],
                     ['note_id','=',$val['note_id']]
                 ];
-                $comment_exist = Db::table('mp_comment')->where($map)->find();
+                $comment_exist = Db::table('mp_note_comment')->where($map)->find();
                 if($comment_exist) {
                     $val['to_uid'] = $comment_exist['uid'];
                     if($comment_exist['to_cid'] == 0) {
@@ -175,7 +175,7 @@ WHERE c.note_id=?",[$val['note_id']]);
                 $val['root_cid'] = 0;
             }
             $val['created_time'] = date("Y-m-d H:i:s");
-            Db::table('mp_comment')->insert($val);
+            Db::table('mp_note_comment')->insert($val);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -195,7 +195,7 @@ WHERE c.note_id=?",[$val['note_id']]);
                 ['uid','=',$val['uid']],
                 ['note_id','=',$val['note_id']]
             ];
-            $exist = Db::table('mp_like')->where($map)->find();
+            $exist = Db::table('mp_note_like')->where($map)->find();
             if($exist) {
                 $like = true;
             }else {
@@ -220,13 +220,13 @@ WHERE c.note_id=?",[$val['note_id']]);
                 ['uid','=',$val['uid']],
                 ['note_id','=',$val['note_id']]
             ];
-            $exist = Db::table('mp_like')->where($map)->find();
+            $exist = Db::table('mp_note_like')->where($map)->find();
             if($exist) {
-                Db::table('mp_like')->where($map)->delete();
+                Db::table('mp_note_like')->where($map)->delete();
                 Db::table('mp_note')->where('id',$val['note_id'])->setDec('like',1);
                 return ajax(false);
             }
-            Db::table('mp_like')->insert($val);
+            Db::table('mp_note_like')->insert($val);
             Db::table('mp_note')->where('id',$val['note_id'])->setInc('like',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -247,7 +247,7 @@ WHERE c.note_id=?",[$val['note_id']]);
                 ['uid','=',$val['uid']],
                 ['note_id','=',$val['note_id']]
             ];
-            $exist = Db::table('mp_collect')->where($map)->find();
+            $exist = Db::table('mp_note_collect')->where($map)->find();
             if($exist) {
                 $like = true;
             }else {
@@ -272,13 +272,13 @@ WHERE c.note_id=?",[$val['note_id']]);
                 ['uid','=',$val['uid']],
                 ['note_id','=',$val['note_id']]
             ];
-            $exist = Db::table('mp_collect')->where($map)->find();
+            $exist = Db::table('mp_note_collect')->where($map)->find();
             if($exist) {
-                Db::table('mp_collect')->where($map)->delete();
+                Db::table('mp_note_collect')->where($map)->delete();
                 Db::table('mp_note')->where('id',$val['note_id'])->setDec('collect',1);
                 return ajax(false);
             }
-            Db::table('mp_collect')->insert($val);
+            Db::table('mp_note_collect')->insert($val);
             Db::table('mp_note')->where('id',$val['note_id'])->setInc('collect',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -299,7 +299,7 @@ WHERE c.note_id=?",[$val['note_id']]);
                 ['uid','=',$val['uid']],
                 ['to_uid','=',$val['to_uid']]
             ];
-            $exist = Db::table('mp_focus')->where($map)->find();
+            $exist = Db::table('mp_user_focus')->where($map)->find();
             if($exist) {
                 $like = true;
             }else {
@@ -327,13 +327,13 @@ WHERE c.note_id=?",[$val['note_id']]);
                 ['uid','=',$val['uid']],
                 ['to_uid','=',$val['to_uid']]
             ];
-            $exist = Db::table('mp_focus')->where($map)->find();
+            $exist = Db::table('mp_user_focus')->where($map)->find();
             if($exist) {
-                Db::table('mp_focus')->where($map)->delete();
+                Db::table('mp_user_focus')->where($map)->delete();
                 Db::table('mp_user')->where('id',$val['to_uid'])->setDec('focus',1);
                 return ajax(false);
             }else {
-                Db::table('mp_focus')->insert($val);
+                Db::table('mp_user_focus')->insert($val);
                 Db::table('mp_user')->where('id',$val['to_uid'])->setInc('focus',1);
                 return ajax(true);
             }

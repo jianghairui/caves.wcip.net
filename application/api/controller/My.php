@@ -15,12 +15,11 @@ class My extends Common {
             ['id','=',$this->myinfo['id']]
         ];
         try {
-            $info = Db::table('mp_user')
-                ->where($map)
-                ->find();
+            $info = Db::table('mp_user')->where($map)->find();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
+        $info['zzzz'] = create_unique_number('');
         return ajax($info);
     }
     //点击头像编辑个人资料
@@ -200,11 +199,11 @@ class My extends Common {
             ['c.uid','=',$this->myinfo['id']]
         ];
         try {
-            $ret['count'] = Db::table('mp_collect')->alias('c')
+            $ret['count'] = Db::table('mp_note_collect')->alias('c')
                 ->join('mp_note n','c.note_id=n.id','left')
                 ->join('mp_user u','c.uid=u.id','left')
                 ->where($where)->count();
-            $list = Db::table('mp_collect')->alias('c')
+            $list = Db::table('mp_note_collect')->alias('c')
                 ->join('mp_note n','c.note_id=n.id','left')
                 ->join('mp_user u','n.uid=u.id','left')
                 ->where($where)
@@ -287,7 +286,7 @@ class My extends Common {
                 ];
             }
             if($user['role'] == 3) {
-                $req_ids = Db::table('mp_design_works')->where([
+                $req_ids = Db::table('mp_req_works')->where([
                     ['uid','=',$val['uid']],
                     ['type','=',2]
                 ])->column('req_id');
@@ -429,7 +428,7 @@ class My extends Common {
                 $image_array[] = rename_file($v,'static/uploads/work/');
             }
             $val['pics'] = serialize($image_array);
-            Db::table('mp_design_works')->insert($val);
+            Db::table('mp_req_works')->insert($val);
         }catch (\Exception $e) {
             foreach ($image_array as $v) {
                 @unlink($v);
@@ -447,7 +446,7 @@ class My extends Common {
                 ['type','=',1],
                 ['uid','=',$this->myinfo['id']]
             ];
-            $list = Db::table('mp_design_works')
+            $list = Db::table('mp_req_works')
                 ->where($where)
                 ->field("id,title,pics")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
@@ -469,7 +468,7 @@ class My extends Common {
                 ['type','=',2],
                 ['uid','=',$this->myinfo['id']]
             ];
-            $list = Db::table('mp_design_works')
+            $list = Db::table('mp_req_works')
                 ->where($where)
                 ->field("id,title,req_id,vote,pics")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
@@ -661,7 +660,7 @@ class My extends Common {
                 ['b.uid','=',$val['uid']]
             ];
             $list = Db::table('mp_bidding')->alias('b')
-                ->join("mp_design_works w","b.work_id=w.id","left")
+                ->join("mp_req_works w","b.work_id=w.id","left")
                 ->join("mp_req r","b.req_id=r.id","left")
                 ->join("mp_user_role ro","r.uid=ro.uid","left")
                 ->field("b.work_id,b.req_id,b.create_time,w.title as work_title,w.pics,r.title as req_title,ro.org")
