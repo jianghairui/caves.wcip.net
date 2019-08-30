@@ -19,7 +19,6 @@ class My extends Common {
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        $info['zzzz'] = create_unique_number('');
         return ajax($info);
     }
     //点击头像编辑个人资料
@@ -487,11 +486,14 @@ class My extends Common {
     public function applyStatus() {
         $uid = $this->myinfo['id'];
         try {
-            $auth = Db::table('mp_user')->where('id',$uid)->field('role_check')->find();
+            $info = Db::table('mp_user')->where('id',$uid)->field('role_check')->find();
+            if($info['role_check'] == 3) {
+                $info['reason'] = Db::table('mp_user_role')->where('uid','=',$uid)->value('reason');
+            }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        return ajax($auth);
+        return ajax($info);
     }
     //获取申请信息
     public function applyInfo() {
@@ -517,28 +519,24 @@ class My extends Common {
         $val['code'] = input('post.code');
         $val['uid'] = $this->myinfo['id'];
         checkPost($val);
-        $val['desc'] = input('post.desc');
-        $val['org'] = input('post.org','');
+        $val['desc'] = input('post.desc','');
+        $val['org'] = input('post.org');
+        $val['address'] = input('post.address');
+        $val['busine'] = input('post.busine');
         $val['weixin'] = input('post.weixin');
         $id_front = input('post.id_front');
         $id_back = input('post.id_back');
-        $cover = input('post.cover');
+        $license = input('post.license');
         $works = input('post.works', []);
 
-        if(!in_array($val['role'],[1,2,3,4])) {
+        if(!in_array($val['role'],[1,2,3])) {
             return ajax($val['role'],-4);
         }
         if (!isCreditNo_simple($val['identity'])) {
-            return ajax('', 13);
+            return ajax('无效的身份证号', 13);
         }
         if (!is_tel($val['tel'])) {
-            return ajax('', 6);
-        }
-        if(!$cover) {
-            return ajax('请上传封面',33);
-        }
-        if (!file_exists($cover)) {
-            return ajax('封面图片不存在', 5);
+            return ajax('无效的手机号', 6);
         }
         if(!$id_front || !$id_back) {
             return ajax('上传身份证正反面',18);
@@ -546,11 +544,16 @@ class My extends Common {
         if (!file_exists($id_front) || !file_exists($id_back)) {
             return ajax('身份证图片不存在', 5);
         }
+        if(!is_array($works)) {
+            return ajax('works',-4);
+        }
+
         try {//验证短信验证码
-            $code_exist = Db::table('mp_verify')->where([
+            $whereCode = [
                 ['tel','=',$val['tel']],
                 ['code','=',$val['code']]
-            ])->find();
+            ];
+            $code_exist = Db::table('mp_verify')->where($whereCode)->find();
             if($code_exist) {
                 if((time() - $code_exist['create_time']) > 60*5) {
                     return ajax('验证码已过期',17);
@@ -558,42 +561,90 @@ class My extends Common {
             }else {
                 return ajax('验证码无效',16);
             }
-            $image_array = [];//验证设计师作品
-            if($val['role'] == 3) {
-                if (is_array($works) && !empty($works)) {
-                    if (count($works) > 6) {
-                        return ajax('最多上传6张作品', 15);
+
+            $works_array = [];//设计师必须传入作品
+            if($val['role'] == 2) {
+                if (!empty($works)) {
+                    if (count($works) > 9) {
+                        return ajax('最多上传9张作品', 15);
                     }
                     foreach ($works as $v) {
                         if (!file_exists($v)) {
-                            return ajax($v, 5);
+                            return ajax($v, 51);
                         }
                     }
                 } else {
                     return ajax('请传入作品', 14);
                 }
-                foreach ($works as $v) {
-                    $image_array[] = rename_file($v);
-                }
-            }else {
-                $license = input('post.license');
+            }else {//博物馆工厂必须传入证书
                 if(!$val['org']) {
-                    return ajax('机构名称不能为空',23);
+                    return ajax('org不能为空',23);
                 }
-                if(!$license) {
-                    return ajax('请传入资质证书',19);
+                if(!$val['address']) {
+                    return ajax('address不能为空',53);
                 }
-                $val['license'] = rename_file($license,'static/uploads/role/');
+                if($val['role'] == 3) {
+                    if(!$val['busine']) {
+                        return ajax('busine不能为空',54);
+                    }
+                }
             }
-            $val['works'] = serialize($image_array);
-            $val['cover'] = rename_file($cover,'static/uploads/role/');
-            $val['id_front'] = rename_file($id_front,'static/uploads/role/');
-            $val['id_back'] = rename_file($id_back,'static/uploads/role/');
 
             $role_exist = Db::table('mp_user_role')->where('uid',$val['uid'])->find();
+            if($role_exist) {
+                if($license) {
+                    if (!file_exists($license)) {
+                        return ajax('资质图片不存在', 50);
+                    }
+                    if($license != $role_exist['license']) {
+                        $val['license'] = rename_file($license,'upload/role/');
+                    }else {
+                        $val['license'] = $license;
+                    }
+                }else {
+                    if($val['role'] != 2) {
+                        return ajax('请传入资质证书',55);
+                    }
+                }
+                if($id_front != $role_exist['id_front']) {
+                    $val['id_front'] = rename_file($id_front,'upload/role/');
+                }else {
+                    $val['id_front'] = $id_front;
+                }
+                if($id_back != $role_exist['id_back']) {
+                    $val['id_back'] = rename_file($id_back,'upload/role/');
+                }else {
+                    $val['id_back'] = $id_back;
+                }
+                $old_works = unserialize($role_exist['works']);
+                foreach ($works as $v) {
+                    if(!in_array($v,$old_works)) {
+                        $works_array[] = rename_file($v,'upload/role/');
+                    }else {
+                        $works_array[] = $v;
+                    }
+                }
+            }else {
+                if($license) {
+                    if (!file_exists($license)) {
+                        return ajax('资质图片不存在', 50);
+                    }
+                    $val['license'] = rename_file($license,'upload/role/');
+                }else {
+                    if($val['role'] != 2) {
+                        return ajax('请传入资质证书',55);
+                    }
+                }
+                $val['id_front'] = rename_file($id_front,'upload/role/');
+                $val['id_back'] = rename_file($id_back,'upload/role/');
+                foreach ($works as $v) {
+                    $works_array[] = rename_file($v,'upload/role/');
+                }
+            }
+
+            $val['works'] = serialize($works_array);
             unset($val['code']);
             if($role_exist) {
-                $old_works = unserialize($role_exist['works']);
                 Db::table('mp_user_role')->where('uid',$val['uid'])->update($val);
             }else {
                 Db::table('mp_user_role')->insert($val);
@@ -603,24 +654,26 @@ class My extends Common {
                 'role_check' => 1,
                 'org' => $val['org']
             ]);
+            Db::table('mp_verify')->where($whereCode)->delete();
         }catch (\Exception $e) {//异常删图
             if($role_exist) {
                 if(isset($val['license']) && $val['license'] != $role_exist['license']) {
-                    @unlink($role_exist['license']);
+                    @unlink($val['license']);
                 }
-                foreach ($image_array as $v) {
+                foreach ($works_array as $v) {
                     if(!in_array($v,$old_works)) {
                         @unlink($v);
                     }
                 }
+                if($val['id_front'] != $role_exist['cover']) {@unlink($val['id_front']);}
+                if($val['id_back'] != $role_exist['id_back']) {@unlink($val['id_back']);}
             }else {
                 if(isset($val['license'])) {
                     @unlink($val['license']);
                 }
-                foreach ($image_array as $v) {
+                foreach ($works_array as $v) {
                     @unlink($v);
                 }
-                @unlink($val['cover']);
                 @unlink($val['id_front']);
                 @unlink($val['id_back']);
             }
@@ -630,18 +683,15 @@ class My extends Common {
             if(isset($val['license']) && $val['license'] != $role_exist['license']) {
                 @unlink($role_exist['license']);
             }
-            if($val['cover'] != $role_exist['cover']) {
-                @unlink($role_exist['cover']);
-            }
             if($val['id_front'] != $role_exist['id_front']) {
                 @unlink($role_exist['id_front']);
             }
             if($val['id_back'] != $role_exist['id_back']) {
                 @unlink($role_exist['id_back']);
             }
-            if($val['role'] == 3) {
+            if($val['role'] == 2) {
                 foreach ($old_works as $v) {
-                    if(!in_array($v,$image_array)) {
+                    if(!in_array($v,$works_array)) {
                         @unlink($v);
                     }
                 }

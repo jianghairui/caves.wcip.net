@@ -56,11 +56,11 @@
                     {/switch}
                 </td>
                 <td class="td-manage">
-                    <a title="查看详情" href="javascript:;" onclick="detail('订单详情','{:url("Member/rechargeDetail",array("id"=>$li["id"]))}')">
+                    <a title="查看详情" href="javascript:;" onclick="detail('订单详情','{:url("User/rechargeDetail",array("id"=>$li["id"]))}')">
                     <i class="Hui-iconfont">&#xe6df;</i>
                     </a>
                     {if $li['send'] == 0 && $li['status'] == 1}
-                    <a title="发货" href="javascript:;" onclick="order_send('订单发货','{:url("Member/orderSend",array("id"=>$li["id"]))}','600','400')"">
+                    <a title="发货" href="javascript:;" onclick="order_send('订单发货','{:url("User/orderSend",array("id"=>$li["id"]))}','600','400')"">
                         <i class="Hui-iconfont">&#xe669;</i>
                     </a>
                     {/if}
@@ -89,7 +89,7 @@
 <script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
 <script type="text/javascript">
 
-    var url = '{:url("Member/rechargeList")}' + '?<?php echo $page["query"];?>';
+    var url = '{:url("User/rechargeList")}' + '?<?php echo $page["query"];?>';
     var curr = '{$page.curr}',totalPage='{$page.totalPage}';
     if(totalPage > 1) {
         laypage({
@@ -122,7 +122,7 @@
         if(search.length != '') {
             str += '&search=' + search
         }
-        window.location.href = '{:url("Member/rechargeList")}' + '?' + str;
+        window.location.href = '{:url("User/rechargeList")}' + '?' + str;
     });
 
     /*查看订单信息*/

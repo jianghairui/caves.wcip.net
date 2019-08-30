@@ -27,7 +27,8 @@
             <th width="80">余额</th>
             <th width="90">性别</th>
             <th width="120">手机号</th>
-            <th width="120">用户角色</th>
+            <th width="80">用户角色</th>
+            <th width="150">机构名称</th>
             <th width="60">认证状态</th>
             <th width="60">用户状态</th>
             <th width="130">注册时间</th>
@@ -35,7 +36,6 @@
         </tr>
         </thead>
         <tbody>
-        <form id="multi-check">
             {foreach $list as $li}
             <tr class="text-c userinfo">
                 <td>{$li.id}</td>
@@ -70,6 +70,7 @@
                     {default /}
                     {/switch}
                 </td>
+                <td>{$li.org}</td>
                 <td>
                     {switch $li['role_check']}
                     {case 1}
@@ -104,17 +105,16 @@
                         <i class="Hui-iconfont">&#xe66b;</i>
                     </a>
                     {/if}
-                    <a title="查看详情" href="javascript:;" onclick="user_detail('用户信息','{:url("Member/detail",array("id"=>$li['id']))}')" class="ml-5" style="text-decoration:none">
+                    <a title="查看详情" href="javascript:;" onclick="user_detail('用户信息','{:url("User/userDetail",array("id"=>$li['id']))}')" class="ml-5" style="text-decoration:none">
                     <i class="Hui-iconfont">&#xe6df;</i>
                     </a>
                 </td>
             </tr>
             {/foreach}
-        </form>
 
-        <tr>
-            <td colspan="11" id="page" class="text-r"></td>
-        </tr>
+            <tr>
+                <td colspan="11" id="page" class="text-r"></td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -124,7 +124,7 @@
 <script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
 <script type="text/javascript">
 
-    var url = '{:url("Member/memberlist")}' + '?<?php echo $page["query"];?>';
+    var url = '{:url("User/userList")}' + '?<?php echo $page["query"];?>';
     var curr = '{$page.curr}',totalPage='{$page.totalPage}';
     if(totalPage > 1) {
         laypage({
@@ -156,7 +156,7 @@
         if(search.length != '') {
             str += '&search=' + search
         }
-        window.location.href = '{:url("Member/memberlist")}' + '?' + str;
+        window.location.href = '{:url("User/userList")}' + '?' + str;
     });
 
     /*查看用户信息*/
@@ -172,7 +172,7 @@
     function user_stop(obj,id) {
         layer.confirm('确认要拉黑吗？',function(index){
             $.ajax({
-                url:"{:url('Member/userStop')}",
+                url:"{:url('User/userStop')}",
                 type:'post',
                 dataType:'json',
                 data:{id:id},
@@ -197,7 +197,7 @@
     function user_start(obj,id) {
         layer.confirm('确认恢复吗？',function(index){
             $.ajax({
-                url:"{:url('Member/userGetback')}",
+                url:"{:url('User/userGetback')}",
                 type:'post',
                 dataType:'json',
                 data:{id:id},

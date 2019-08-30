@@ -93,7 +93,7 @@
                     isclick = false
                     $(form).ajaxSubmit({
                         type: 'post',
-                        url: "{:url('Member/vipModPost')}" ,
+                        url: "{:url('User/vipModPost')}" ,
                         success: function(data){
                             // console.log(data);return;
                             if(data.code == 1) {
