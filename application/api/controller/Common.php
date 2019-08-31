@@ -81,18 +81,6 @@ class Common extends Controller {
 
     }
 
-    //获取我的个人信息
-    protected function getMyInfo() {
-        $where = [
-            ['id','=',$this->myinfo['id']]
-        ];
-        try {
-            $info = Db::table('mp_user')->where($where)->find();
-        }catch (\Exception $e) {
-            throw new HttpResponseException(ajax($e->getMessage(),-1));
-        }
-        return $info;
-    }
     //Exception日志
     protected function log($cmd,$str) {
         $file= ROOT_PATH . '/exception_api.txt';

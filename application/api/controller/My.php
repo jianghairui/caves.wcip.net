@@ -32,7 +32,7 @@ class My extends Common {
 
         $val['desc'] = input('post.desc','');
         $val['id'] = $this->myinfo['id'];
-        $user = $this->getMyInfo();
+        $user = $this->myinfo;
         try {
             $avatar = input('post.avatar');
             if($avatar) {
@@ -273,7 +273,7 @@ class My extends Common {
         $val['uid'] = $this->myinfo['id'];
         $where = [];
         try {
-            $user = $this->getMyInfo();
+            $user = $this->myinfo;
             if($user['role_check'] != 2) {
                 return ajax([]);
             }
@@ -359,7 +359,7 @@ class My extends Common {
         $val['uid'] = $this->myinfo['id'];
         $val['weixin'] = input('post.weixin');
 
-        $user = $this->getMyInfo();
+        $user = $this->myinfo;
         if(!in_array($user['role'],[1,2]) || $user['role_check'] != 2) {
             return ajax('当前角色状态无法发布需求',24);
         }

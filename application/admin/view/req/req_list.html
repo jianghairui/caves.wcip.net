@@ -1,16 +1,16 @@
-<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 需求管理 <span class="c-gray en">&gt;</span> 需求列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 活动管理 <span class="c-gray en">&gt;</span> 活动列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
 <div class="page-container">
     <section id="formAjax">
         <div class="text-c">
             <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
-            <input type="text" name="search" value="{$Think.get.search}" id="search" placeholder=" 需求名" style="width:250px" class="input-text">
-            <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找需求</button>
+            <input type="text" name="search" value="{$Think.get.search}" id="search" placeholder=" 活动名" style="width:250px" class="input-text">
+            <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找活动</button>
         </div>
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
         <span class="l">
-            <!--<a class="btn btn-primary radius" data-title="添加需求" data-href="article-add.html" onclick="add_info('添加需求','')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 添加需求-->
-            <!--</a>-->
+            <a class="btn btn-primary radius" data-title="发布活动" data-href="" onclick="add_info('发布活动','{:url("Req/reqAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 发布活动
+            </a>
         </span>
         <span class="r">共有数据：<strong>{$page.count}</strong> 条</span> </div>
     <table class="table table-border table-bordered table-bg">
@@ -19,7 +19,7 @@
             <th width="25">#</th>
             <th width="100">封面</th>
             <th width="120">举办方单位</th>
-            <th>赛事名称</th>
+            <th>活动名称</th>
             <th width="120">活开始时间</th>
             <th width="80">审核状态</th>
             <th width="80">审核</th>
@@ -32,11 +32,11 @@
             <tr class="text-c userinfo">
                 <td>{$li.id}</td>
                 <td>
-                    <div style="width: 100px;height: 80px;background-image: url('/{$li.cover}');background-position: center;background-repeat: no-repeat;background-size: cover"></div>
+                    <div style="width: 120px;height: 80px;background-image: url('{$qiniu_weburl}{$li.cover}');background-position: center;background-repeat: no-repeat;background-size: cover"></div>
                 </td>
                 <td>{$li.org}</td>
                 <td>{$li.title}</td>
-                <td>{$li.start_time|date="Y-m-d H:i"}</td>
+                <td>{$li.start_time|date="Y-m-d"}</td>
                 <td class="td-status">
                     {switch $li['status']}
                     {case 0}
@@ -82,7 +82,7 @@
                         {/if}
                     </span>
                     <span>
-                        <a style="text-decoration:none" onclick="add_info('需求信息','{:url("Index/reqDetail",array("rid"=>$li["id"]))}')" href="javascript:;" title="查看需求">
+                        <a style="text-decoration:none" onclick="add_info('活动详情','{:url("Req/reqDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="活动详情">
                     <i class="Hui-iconfont">&#xe6df;</i>
                         </a>
                     </span>
@@ -107,7 +107,7 @@
 <script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
 <script type="text/javascript">
 
-    var url = '{:url("Index/rlist")}' + '?<?php echo $page["query"];?>';
+    var url = '{:url("Req/reqList")}' + '?<?php echo $page["query"];?>';
     var curr = '{$page.curr}',totalPage = '{$page.totalPage}';
     var click_lock = true;
     if(totalPage > 1) {
@@ -134,24 +134,25 @@
         if(search.length != '') {
             str += '&search=' + search;
         }
-        window.location.href = '{:url("Index/rlist")}' + '?' + str;
+        window.location.href = '{:url("Req/reqList")}' + '?' + str;
     });
 
-    /*添加需求*/
+    /*发布活动*/
     function add_info(title,url){
         var index = layer.open({
             type: 2,
             title: title,
-            content: url
+            content: url,
+            area: ['100%','100%']
         });
-        layer.full(index);
+        // layer.full(index);
     }
 
     /*下架*/
     function req_hide(obj,id){
         layer.confirm('确认要隐藏吗？',function(index){
             $.ajax({
-                url:"{:url('Index/reqHide')}",
+                url:"{:url('Req/reqHide')}",
                 type:'post',
                 dataType:'json',
                 data:{id:id},
@@ -175,7 +176,7 @@
     function req_show(obj,id){
         layer.confirm('确认要显示吗？',function(index){
             $.ajax({
-                url:"{:url('Index/reqShow')}",
+                url:"{:url('Req/reqShow')}",
                 type:'post',
                 dataType:'json',
                 data:{id:id},
@@ -201,7 +202,7 @@
         if(click_lock) {
             click_lock = false;
             $.ajax({
-                url:"{:url('Index/reqRecommend')}",
+                url:"{:url('Req/reqRecommend')}",
                 type:'post',
                 dataType:'json',
                 data:{id:id},
@@ -232,7 +233,7 @@
     function req_del(obj,id){
         layer.confirm('确认要删除吗？',function(index){
             $.ajax({
-                url: "{:url('Index/reqDel')}",
+                url: "{:url('Req/reqDel')}",
                 type: 'POST',
                 dataType: 'json',
                 data:{id:id},
@@ -252,16 +253,16 @@
         });
     }
 
-    /*需求审核*/
+    /*活动审核*/
     function req_shenhe(obj,id){
-        layer.confirm('审核需求？', {
+        layer.confirm('审核活动？', {
                 btn: ['通过','不通过','取消'],
                 shade: false,
                 closeBtn: 0
             },
             function(){
                 $.ajax({
-                    url:"{:url('Index/reqPass')}",
+                    url:"{:url('Req/reqPass')}",
                     type:'post',
                     dataType:'json',
                     data:{id:id},
@@ -292,7 +293,7 @@
                     reason = value;
                     layer.close(index);
                     $.ajax({
-                        url:"{:url('Index/reqReject')}",
+                        url:"{:url('Req/reqReject')}",
                         type:'post',
                         dataType:'json',
                         data:{id:id,reason:reason},

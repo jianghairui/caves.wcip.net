@@ -67,7 +67,7 @@ class Login extends Common {
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        $user = $this->getMyInfo();
+        $user = $this->myinfo;
         $inviter_id = input('post.inviter_id');
         try {
             //未授权过的新用户

@@ -111,7 +111,6 @@
         $(document).on("change","#qiniu-file",function(){
             var obj = $("#qiniu-file");
             var fileName = obj.val();//上传的本地文件绝对路径
-            $("#uploadfile").val(fileName);
             if(fileName === '') {
                 return;
             }else {

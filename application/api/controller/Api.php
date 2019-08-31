@@ -33,77 +33,70 @@ class Api extends Common
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         $where = [
-            ['r.status', '=', 1],
-            ['r.show', '=', 1],
-            ['r.del', '=', 0]
+            ['status', '=', 1],
+            ['show', '=', 1],
+            ['del', '=', 0]
         ];
         try {
             $list = Db::table('mp_req')
-                ->alias('r')
-                ->join("mp_user u", "r.uid=u.id", "left")
-                ->where($where)->order(['r.start_time' => 'ASC'])
-                ->field("r.id,r.title,r.cover,r.start_time,r.end_time,u.org as user_org")
+                ->where($where)->order(['start_time' => 'ASC'])
+                ->field("id,title,cover,start_time,end_time")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         foreach ($list as &$v) {
-            $v['start_time'] = date('Y-m-d', strtotime($v['start_time']));
-            $v['end_time'] = date('Y-m-d', strtotime($v['end_time']));
+            $v['start_time'] = date('Y-m-d', $v['start_time']);
+            $v['end_time'] = date('Y-m-d', $v['end_time']);
         }
         return ajax($list);
     }
 //获取活动详情
-    public function getReqDetail()
-    {
+    public function getReqDetail() {
         $val['id'] = input('post.id');
         checkPost($val);
         try {
             $where = [
-                ['r.status', '=', 1],
-                ['r.show', '=', 1],
-                ['r.del', '=', 0],
-                ['r.id', '=', $val['id']],
+                ['status', '=', 1],
+                ['show', '=', 1],
+                ['del', '=', 0],
+                ['id', '=', $val['id']],
             ];
-            $info = Db::table('mp_req')->alias('r')
-                ->join("mp_user u", "r.uid=u.id", "left")
+            $info = Db::table('mp_req')
                 ->where($where)
-                ->field("r.*,u.org as user_org")
                 ->find();
             if (!$info) {
                 return ajax($val['id'], -4);
             }
-//            if (date('Y-m-d 23:59:59', strtotime($info['end_time'])) <= date('Y-m-d H:i:s')) {
-//                return ajax('活动已结束,无法查看', 25);
-//            }
+
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        if ($info['start_time'] <= date('Y-m-d H:i:s') && $info['deadline'] > date('Y-m-d H:i:s')) {
+        if ($info['start_time'] <= time() && $info['deadline'] > time()) {
             $info['join_btn'] = true;
         } else {
             $info['join_btn'] = false;
         }
-        if ($info['deadline'] <= date('Y-m-d H:i:s') && $info['vote_time'] > date('Y-m-d H:i:s')) {
+        if ($info['deadline'] <= time() && $info['vote_time'] > time()) {
             $info['vote_btn'] = true;
         } else {
             $info['vote_btn'] = false;
         }
-        if ($info['vote_time'] <= date('Y-m-d H:i:s') && $info['end_time'] > date('Y-m-d H:i:s')) {
+        if ($info['start_time'] <= time() && $info['end_time'] > time()) {
             $info['bidding_btn'] = true;
         } else {
             $info['bidding_btn'] = false;
         }
         return ajax($info);
     }
-//竞标
+//工厂接单竞标
     public function bidding()
     {
         $val['work_id'] = input('post.work_id');
         $val['desc'] = input('post.desc');
         checkPost($val);
-        $user = $this->getMyInfo();
+        $user = $this->myinfo;
         $val['uid'] = $user['id'];
         try {
             $bidding_exist = Db::table('mp_bidding')->where([
@@ -145,11 +138,10 @@ class Api extends Common
         return ajax();
     }
 //我要参加
-    public function takePartIn()
-    {
+    public function takePartIn() {
         $val['req_id'] = input('post.req_id');
         checkPost($val);
-        $user = $this->getMyInfo();
+        $user = $this->myinfo;
         try {
             $where = [
                 ['id', '=', $val['req_id']]
@@ -158,16 +150,16 @@ class Api extends Common
             if (!$exist) {
                 return ajax('非法参数', -4);
             }
-            if ($exist['start_time'] > date('Y-m-d H:i:s')) {
+            if ($exist['start_time'] > time()) {
                 return ajax('活动未开始', 26);
             }
-            if ($exist['end_time'] <= date('Y-m-d H:i:s')) {
+            if ($exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
             }
-            if ($exist['deadline'] <= date('Y-m-d H:i:s')) {
+            if ($exist['deadline'] <= time()) {
                 return ajax('报名时间已结束', 27);
             }
-            if ($user['role'] != 3) {
+            if ($user['role'] != 2) {
                 return ajax('只有设计师可以参加', 28);
             }
             if ($user['role_check'] != 2) {
@@ -190,37 +182,23 @@ class Api extends Common
 //上传参赛作品
     public function uploadWorks()
     {
+        $val['uid'] = $this->myinfo['id'];
         $val['req_id'] = input('post.req_id');
         $val['title'] = input('post.title');
         $val['desc'] = input('post.desc');
         checkPost($val);
-        $user = $this->getMyInfo();
-        $val['uid'] = $this->myinfo['id'];
-        $val['type'] = 2;
+        $val['idea_id'] = input('post.idea_id');
         $val['create_time'] = time();
+        $user = $this->myinfo;
         $image = input('post.pics', []);
         if (is_array($image) && !empty($image)) {
             if (count($image) > 9) {
                 return ajax('最多上传9张图片', 8);
             }
-            foreach ($image as $v) {
-                if (!file_exists($v)) {
-                    return ajax($v, 5);
-                }
-            }
         } else {
             return ajax('请传入图片', 3);
         }
         try {
-            $where = [
-                ['req_id', '=', $val['req_id']],
-                ['type', '=', 2],
-                ['uid', '=', $this->myinfo['id']]
-            ];
-            $workExist = Db::table('mp_req_works')->where($where)->find();
-            if ($workExist) {
-                return ajax('已参加', 31);
-            }
             $where = [
                 ['id', '=', $val['req_id']]
             ];
@@ -228,40 +206,35 @@ class Api extends Common
             if (!$exist) {
                 return ajax('非法参数', -4);
             }
-            if ($exist['start_time'] > date('Y-m-d H:i:s')) {
+            if ($exist['start_time'] > time()) {
                 return ajax('活动未开始', 26);
             }
-            if ($exist['end_time'] <= date('Y-m-d H:i:s')) {
+            if ($exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
             }
-            if ($exist['deadline'] <= date('Y-m-d H:i:s')) {
+            if ($exist['deadline'] <= time()) {
                 return ajax('投稿时间已结束', 27);
             }
-            if ($user['role'] != 3) {
+            if ($user['role'] != 2) {
                 return ajax('只有设计师可以参加', 28);
             }
             if ($user['role_check'] != 2) {
                 return ajax('角色还未认证', 29);
             }
+            //todo
+            foreach ($image as $v) {
+                if (!file_exists($v)) {
+                    return ajax($v, 5);
+                }
+            }
             $image_array = [];
+            //todo
             foreach ($image as $v) {
                 $image_array[] = rename_file($v, 'static/uploads/work/');
             }
             $val['pics'] = serialize($image_array);
-            $where = [
-                ['req_id', '=', $val['req_id']],
-                ['type', '=', 2],
-                ['uid', '=', $this->myinfo['id']]
-            ];
-            $workExist = Db::table('mp_req_works')->where($where)->find();
-            if ($workExist) {
-                foreach ($image_array as $v) {
-                    @unlink($v);
-                }
-                return ajax('已参加', 31);
-            }
             Db::table('mp_req_works')->insert($val);
-            Db::table('mp_req')->where('id', $val['req_id'])->setInc('part_num');
+            Db::table('mp_req')->where($where)->setInc('part_num');
         } catch (\Exception $e) {
             foreach ($image_array as $v) {
                 @unlink($v);
@@ -282,7 +255,7 @@ class Api extends Common
                 ['w.req_id', '=', $val['req_id']]
             ];
             $list = Db::table('mp_req_works')->alias('w')
-                ->join("mp_req r", "w.req_id=r.id", "left")
+                ->join("mp_req r", "w.req_id=id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
                 ->field("w.id,w.title,w.vote,w.bid_num,w.pics,u.nickname,u.avatar")
@@ -304,7 +277,7 @@ class Api extends Common
         try {
             $exist = Db::table('mp_req_works')->alias('w')
                 ->join("mp_user u", "w.uid=u.id", "left")
-                ->join("mp_user_role r", "w.uid=r.uid", "left")
+                ->join("mp_user_role r", "w.uid=uid", "left")
                 ->where('w.id', $val['id'])
                 ->field("w.id,w.title,w.desc,w.pics,w.type,u.avatar,u.nickname,r.name")
                 ->find();
@@ -349,7 +322,7 @@ class Api extends Common
     {
         $val['work_id'] = input('post.work_id');
         checkPost($val);
-        $user = $this->getMyInfo();
+        $user = $this->myinfo;
         try {
             $whereVote = [
                 ['work_id', '=', $val['work_id']],
@@ -371,10 +344,10 @@ class Api extends Common
                 ['id', '=', $workExist['req_id']]
             ];
             $exist = Db::table('mp_req')->where($map)->find();
-            if ($exist['end_time'] <= date('Y-m-d H:i:s')) {
+            if ($exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
             }
-            if ($exist['vote_time'] <= date('Y-m-d H:i:s')) {
+            if ($exist['vote_time'] <= time()) {
                 return ajax('报名时间已结束', 30);
             }
             Db::table('mp_req_works')->where($where)->setInc('vote', 1);
