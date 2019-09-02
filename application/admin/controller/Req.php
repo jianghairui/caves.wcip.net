@@ -296,5 +296,134 @@ class Req extends Base {
         }
     }
 
+    public function ideaList() {
+        $param['status'] = input('param.status','');
+        $param['req_id'] = input('param.req_id');
+        $param['search'] = input('param.search');
+
+        $page['query'] = http_build_query(input('param.'));
+
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+
+        $where = [
+            ['r.del','=',0]
+        ];
+
+        if(!is_null($param['status']) && $param['status'] !== '') {
+            $where[] = ['r.status','=',$param['status']];
+        }
+
+        if($param['req_id']) {
+            $where[] = ['r.req_id','=',$param['req_id']];
+        }
+
+        if($param['search']) {
+            $where[] = ['i.title','like',"%{$param['search']}%"];
+        }
+        try {
+            $count = Db::table('mp_req_idea')->alias('i')
+                ->join('mp_req r','i.req_id=r.id','left')
+                ->where($where)->count();
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_req_idea')->alias('i')
+                ->join('mp_req r','i.req_id=r.id','left')
+                ->field('i.*,r.title AS req_title,r.org')
+                ->order(['r.id'=>'DESC'])
+                ->where($where)
+                ->order(['r.id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        $this->assign('param',$param);
+        return $this->fetch();
+    }
+
+    public function ideaDetail() {
+        $param['id'] = input('param.id','');
+        try {
+            $where = [
+                ['i.id','=',$param['id']]
+            ];
+            $info = Db::table('mp_req_idea')->alias('i')
+                ->join('mp_req r','i.req_id=r.id','left')
+                ->join('mp_user u','i.uid=u.id','left')
+                ->field('i.*,r.title AS req_title,r.org,u.nickname,u.avatar')
+                ->where($where)
+                ->find();
+            if(!$info) {
+                die('非法操作');
+            }
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('info',$info);
+        return $this->fetch();
+    }
+
+    public function ideaMod() {
+        $val['id'] = input('post.id');
+        $val['title'] = input('post.title');
+        $val['content'] = input('post.content');
+        checkInput($val);
+        try {
+            $whereIdea = [['id','=',$val['id']]];
+            $idea_exist = Db::table('mp_req_idea')->where($whereIdea)->find();
+            if(!$idea_exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_idea')->where($whereIdea)->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+
+    public function ideaPass() {
+        $map = [
+            ['status','=',0],
+            ['id','=',input('post.id',0)]
+        ];
+        try {
+            $exist = Db::table('mp_req_idea')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_idea')->where($map)->update(['status'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+    public function ideaReject() {
+        $val['id'] = input('post.id','');
+        $val['reason'] = input('post.reason','');
+        checkInput($val);
+        $map = [
+            ['status','=',0],
+            ['id','=',$val['id']]
+        ];
+        try {
+            $exist = Db::table('mp_req_idea')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_idea')->where($map)->update(['status'=>2,'reason'=>$val['reason']]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+    public function workList() {
+        return $this->fetch();
+    }
+
 
 }

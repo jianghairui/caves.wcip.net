@@ -137,6 +137,61 @@ class Api extends Common
         }
         return ajax();
     }
+//提出创意
+    public function createIdea() {
+        $val['title'] = input('post.title');
+        $val['content'] = input('post.content');
+        $val['req_id'] = input('post.req_id');
+        checkPost($val);
+        $val['uid'] = $this->myinfo['id'];
+        $val['create_time'] = time();
+        try {
+            $whereReq = [
+                ['id', '=', $val['req_id']]
+            ];
+            $exist = Db::table('mp_req')->where($whereReq)->find();
+            if (!$exist) {
+                return ajax('非法参数req_id', -4);
+            }
+            if ($exist['start_time'] > time()) {
+                return ajax('活动未开始', 26);
+            }
+            if ($exist['end_time'] <= time()) {
+                return ajax('活动已结束', 25);
+            }
+            if ($exist['deadline'] <= time()) {
+                return ajax('创意时间已结束', 57);
+            }
+            if (!$this->myinfo['user_auth']) {
+                return ajax('用户未授权', 56);
+            }
+            Db::table('mp_req')->where($whereReq)->setInc('idea_num',1);
+            Db::table('mp_req_idea')->insert($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+
+    public function ideaList() {
+        $val['req_id'] = input('post.req_id');
+        $curr_page = input('post.page',1);
+        $perpage = input('post.perpage',20);
+        try {
+            $where = [
+                ['i.req_id','=',$val['req_id']]
+            ];
+            $list = Db::table('mp_req_idea')->alias('i')
+                ->join('mp_user u','i.uid=u.id','left')
+                ->where($where)
+                ->field('i.id,i.title,i.content,i.works_num,i.vote,u.nickname,u.avatar')
+                ->limit(($curr_page-1)*$perpage,$perpage)
+                ->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($list);
+    }
 //我要参加
     public function takePartIn() {
         $val['req_id'] = input('post.req_id');
@@ -199,12 +254,12 @@ class Api extends Common
             return ajax('请传入图片', 3);
         }
         try {
-            $where = [
+            $whereReq = [
                 ['id', '=', $val['req_id']]
             ];
-            $exist = Db::table('mp_req')->where($where)->find();
+            $exist = Db::table('mp_req')->where($whereReq)->find();
             if (!$exist) {
-                return ajax('非法参数', -4);
+                return ajax('非法参数req_id', -4);
             }
             if ($exist['start_time'] > time()) {
                 return ajax('活动未开始', 26);
@@ -218,26 +273,55 @@ class Api extends Common
             if ($user['role'] != 2) {
                 return ajax('只有设计师可以参加', 28);
             }
+            if (!$user['user_auth']) {
+                return ajax('用户未授权', 56);
+            }
             if ($user['role_check'] != 2) {
                 return ajax('角色还未认证', 29);
             }
-            //todo
-            foreach ($image as $v) {
-                if (!file_exists($v)) {
-                    return ajax($v, 5);
+            if($val['idea_id']) {
+                $whereIdea = [
+                    ['id','=',$val['idea_id']]
+                ];
+                $idea_exist = Db::table('mp_req_idea')->where($whereIdea)->find();
+                if(!$idea_exist) {
+                    return ajax('非法参数idea_id',-4);
                 }
             }
+            //七牛云上传多图
             $image_array = [];
-            //todo
+            $limit = 9;
+            if(is_array($image) && !empty($image)) {
+                if(count($image) > $limit) {
+                    return ajax('最多上传'.$limit.'张图片',-1);
+                }
+                foreach ($image as $v) {
+                    $qiniu_exist = $this->qiniuFileExist($v);
+                    if($qiniu_exist !== true) {
+                        return ajax('图片已失效请重新上传',-1);
+                    }
+                }
+            }else {
+                return ajax('请上传商品图片',-1);
+            }
             foreach ($image as $v) {
-                $image_array[] = rename_file($v, 'static/uploads/work/');
+                $qiniu_move = $this->moveFile($v,'upload/works/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],-2);
+                }
             }
             $val['pics'] = serialize($image_array);
+
             Db::table('mp_req_works')->insert($val);
-            Db::table('mp_req')->where($where)->setInc('part_num');
+            Db::table('mp_req')->where($whereReq)->setInc('works_num',1);
+            if($val['idea_id']) {
+                Db::table('mp_req_idea')->where($whereIdea)->setInc('works_num',1);
+            }
         } catch (\Exception $e) {
             foreach ($image_array as $v) {
-                @unlink($v);
+                $this->rs_delete($v);
             }
             return ajax($e->getMessage(), -1);
         }
@@ -255,7 +339,7 @@ class Api extends Common
                 ['w.req_id', '=', $val['req_id']]
             ];
             $list = Db::table('mp_req_works')->alias('w')
-                ->join("mp_req r", "w.req_id=id", "left")
+                ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
                 ->field("w.id,w.title,w.vote,w.bid_num,w.pics,u.nickname,u.avatar")
@@ -275,11 +359,13 @@ class Api extends Common
         $val['id'] = input('post.id');
         checkPost($val);
         try {
+            $whereWorks = [
+                ['w.id', '=',$val['id']]
+            ];
             $exist = Db::table('mp_req_works')->alias('w')
                 ->join("mp_user u", "w.uid=u.id", "left")
-                ->join("mp_user_role r", "w.uid=uid", "left")
-                ->where('w.id', $val['id'])
-                ->field("w.id,w.title,w.desc,w.pics,w.type,u.avatar,u.nickname,r.name")
+                ->where($whereWorks)
+                ->field("w.id,w.title,w.desc,w.pics,w.type,u.avatar,u.nickname")
                 ->find();
             if (!$exist) {
                 return ajax($val['id'], -4);

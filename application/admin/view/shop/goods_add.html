@@ -153,7 +153,8 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">描述：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <textarea name="desc" id="desc" cols="" rows="" maxlength="255" class="textarea"  placeholder="说点什么...最少输入10个字符"></textarea>
+                <textarea name="desc" cols="" rows="" class="textarea" maxlength="255" placeholder="" oninput="this.value.length<=255?$('#textlen1').text(this.value.length):$('#textlen1').text(255)" ></textarea>
+                <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/255</p>
             </div>
         </div>
         <div class="row cl">
