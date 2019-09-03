@@ -1,0 +1,179 @@
+<link href="/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
+<style>
+    .image-del {
+        position: absolute;z-index: +9;font-size: 20px;cursor: pointer;
+    }
+    .thumbnail{ width:132px;border-radius: 50%;}
+</style>
+<article class="page-container">
+    <form class="form form-horizontal" id="form-article-add">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"></label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <img class="thumbnail" src="{$info.avatar}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">设计师昵称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="">{$info.nickname}</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">作品票数：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="">{$info.vote}</span>
+            </div>
+        </div>
+        {if $info['idea_title']}
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">创意名称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="">{$info.idea_title}</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">创意内容：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <p class="">{$info.idea_content}</p>
+            </div>
+        </div>
+        {else /}
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"></label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <b class="">作品直投</b>
+            </div>
+        </div>
+        {/if}
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>作品标题：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="{$info.title}" placeholder="输入活动标题" id="title" name="title" maxlength="30">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">作品展示: </label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <ul class="cl portfolio-area" id="fileList">
+                    <?php $images = unserialize($info['pics']);?>
+                    {if $images}
+                    {foreach $images as $v}
+                    <li class="item">
+                        <div class="portfoliobox">
+                            <span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span>
+                            <div class="picbox">
+                                <a href="{$qiniu_weburl}{$v}" data-lightbox="gallery" data-title=""><img src="{$qiniu_weburl}{$v}"></a>
+                            </div>
+                            <input type="hidden" value="{$v}" name="pic_url[]"/>
+                        </div>
+                    </li>
+                    {/foreach}
+                    {/if}
+                </ul>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">作品内容：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <textarea name="desc" cols="" rows="" class="textarea" maxlength="500" placeholder="" oninput="this.value.length<=500?$('#textlen1').text(this.value.length):$('#textlen1').text(500)" >{$info.desc}</textarea>
+                <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/500</p>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">作品来源(活动)：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="">{$info.req_title} ({$info.org}) </span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">作品时间：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="">{$info.create_time|date="Y-m-d H:i:s"}</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">审核状态：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                {switch $info['status']}
+                {case 0}
+                <span class="label label-warning radius">审核中</span>{/case}
+                {case 1}
+                <span class="label label-success radius">已通过</span>{/case}
+                {case 2}
+                <span class="label label-danger radius">未通过</span>
+
+                <span style="color: red;margin-left: 15px">(*{$info.reason})</span>{/case}
+                {default /}
+                {/switch}
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+                <button class="btn btn-primary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+                <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;取消&nbsp;&nbsp;</button>
+            </div>
+        </div>
+        <input type="hidden" name="id" value="{$info.id}">
+    </form>
+    <input type="file" name="file" id="qiniu-file" style="display: none;">
+</article>
+
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/messages_zh.js"></script>
+<script type="text/javascript" src="/lib/lightbox2/2.8.1/js/lightbox.min.js"></script>
+
+<script type="text/javascript">
+
+    $(function(){
+
+        var isclick = true;
+        //表单验证
+        $("#form-article-add").validate({
+            rules:{
+                title:{
+                    required:true,
+                    maxlength:30
+                },
+                content: {
+                    required:true
+                }
+            },
+            focusCleanup:true,
+            success:"valid",
+            submitHandler:function(form){
+                if(isclick === true) {
+                    isclick = false;
+                    $(form).ajaxSubmit({
+                        type: 'post',
+                        url: "{:url('Req/workMod')}" ,
+                        success: function(data){
+                            // console.log(data.data);isclick=true;return;
+                            if(data.code == 1) {
+                                layer.msg('保存成功!',{icon:1,time:1000},function () {
+                                    window.parent.location.reload();
+                                });
+                            }else {
+                                console.log(data.data,'--HERE--');
+                                layer.msg(data.data,{icon:2,time:1000});
+                                isclick = true;
+                            }
+
+                        },
+                        error: function(XmlHttpRequest, textStatus, errorThrown){
+                            layer.msg('error!',{icon:5,time:1000});
+                            isclick = true
+                        }
+                    });
+                }
+
+            }
+        });
+
+        var textlen1 = $("textarea[name='desc']").val().length;
+        $("#textlen1").text(textlen1);
+
+    });
+
+</script>

@@ -311,11 +311,11 @@ class Req extends Base {
         ];
 
         if(!is_null($param['status']) && $param['status'] !== '') {
-            $where[] = ['r.status','=',$param['status']];
+            $where[] = ['i.status','=',$param['status']];
         }
 
         if($param['req_id']) {
-            $where[] = ['r.req_id','=',$param['req_id']];
+            $where[] = ['i.req_id','=',$param['req_id']];
         }
 
         if($param['search']) {
@@ -422,8 +422,155 @@ class Req extends Base {
     }
 
     public function workList() {
+        $param['status'] = input('param.status','');
+        $param['req_id'] = input('param.req_id');
+        $param['idea_id'] = input('param.idea_id');
+        $param['search'] = input('param.search');
+
+        $page['query'] = http_build_query(input('param.'));
+
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+
+        $where = [
+            ['r.del','=',0]
+        ];
+
+        if(!is_null($param['status']) && $param['status'] !== '') {
+            $where[] = ['r.status','=',$param['status']];
+        }
+        if($param['req_id']) {
+            $where[] = ['w.req_id','=',$param['req_id']];
+        }
+        if($param['req_id']) {
+            $where[] = ['i.idea_id','=',$param['idea_id']];
+        }
+        if($param['search']) {
+            $where[] = ['w.title','like',"%{$param['search']}%"];
+        }
+        try {
+            $count = Db::table('mp_req_works')->alias('w')
+                ->join('mp_req r','w.req_id=r.id','left')
+                ->join('mp_req_idea i','w.idea_id=i.id','left')
+                ->where($where)->count();
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_req_works')->alias('w')
+                ->join('mp_req r','w.req_id=r.id','left')
+                ->join('mp_req_idea i','w.idea_id=i.id','left')
+                ->field('w.*,r.title AS req_title,r.org,i.title AS idea_title')
+                ->order(['w.id'=>'DESC'])
+                ->where($where)
+                ->order(['r.id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        $this->assign('param',$param);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
+
+    public function workDetail() {
+        $param['id'] = input('param.id','');
+        try {
+            $where = [
+                ['w.id','=',$param['id']]
+            ];
+            $info = Db::table('mp_req_works')->alias('w')
+                ->join('mp_req r','w.req_id=r.id','left')
+                ->join('mp_req_idea i','w.idea_id=i.id','left')
+                ->join('mp_user u','w.uid=u.id','left')
+                ->field('w.*,r.title AS req_title,r.org,u.nickname,u.avatar,i.title AS idea_title,i.content AS idea_content')
+                ->where($where)
+                ->find();
+            if(!$info) {
+                die('非法操作');
+            }
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        return $this->fetch();
+    }
+
+    public function workMod() {
+        $val['id'] = input('post.id');
+        $val['title'] = input('post.title');
+        $val['desc'] = input('post.desc');
+        checkInput($val);
+        try {
+            $whereIdea = [['id','=',$val['id']]];
+            $idea_exist = Db::table('mp_req_works')->where($whereIdea)->find();
+            if(!$idea_exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_works')->where($whereIdea)->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+
+    public function workPass() {
+        $map = [
+            ['status','=',0],
+            ['id','=',input('post.id',0)]
+        ];
+        try {
+            $exist = Db::table('mp_req_works')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_works')->where($map)->update(['status'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+    public function workReject() {
+        $map = [
+            ['status','=',0],
+            ['id','=',input('post.id',0)]
+        ];
+        $reason = input('post.reason','');
+        try {
+            $exist = Db::table('mp_req_works')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_works')->where($map)->update(['status'=>2,'reason'=>$reason]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+    public function workShow() {
+        $map[] = ['id','=',input('post.id',0)];
+        try {
+            Db::table('mp_req_works')->where($map)->update(['show'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+    public function workHide() {
+        $map[] = ['id','=',input('post.id',0)];
+        try {
+            Db::table('mp_req_works')->where($map)->update(['show'=>0]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+
 
 
 }
