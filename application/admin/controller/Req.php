@@ -296,6 +296,7 @@ class Req extends Base {
         }
     }
 
+    //创意列表
     public function ideaList() {
         $param['status'] = input('param.status','');
         $param['req_id'] = input('param.req_id');
@@ -343,7 +344,7 @@ class Req extends Base {
         $this->assign('param',$param);
         return $this->fetch();
     }
-
+    //创意详情
     public function ideaDetail() {
         $param['id'] = input('param.id','');
         try {
@@ -365,7 +366,7 @@ class Req extends Base {
         $this->assign('info',$info);
         return $this->fetch();
     }
-
+    //创意编辑
     public function ideaMod() {
         $val['id'] = input('post.id');
         $val['title'] = input('post.title');
@@ -383,7 +384,7 @@ class Req extends Base {
         }
         return ajax();
     }
-
+    //创意审核-通过
     public function ideaPass() {
         $map = [
             ['status','=',0],
@@ -400,7 +401,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
-
+    //创意审核-拒绝
     public function ideaReject() {
         $val['id'] = input('post.id','');
         $val['reason'] = input('post.reason','');
@@ -420,7 +421,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
-
+    //作品列表
     public function workList() {
         $param['status'] = input('param.status','');
         $param['req_id'] = input('param.req_id');
@@ -472,7 +473,7 @@ class Req extends Base {
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
-
+    //作品详情
     public function workDetail() {
         $param['id'] = input('param.id','');
         try {
@@ -496,7 +497,7 @@ class Req extends Base {
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
-
+    //作品编辑
     public function workMod() {
         $val['id'] = input('post.id');
         $val['title'] = input('post.title');
@@ -514,7 +515,7 @@ class Req extends Base {
         }
         return ajax();
     }
-
+    //作品审核-通过
     public function workPass() {
         $map = [
             ['status','=',0],
@@ -531,7 +532,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
-
+    //作品审核-拒绝
     public function workReject() {
         $map = [
             ['status','=',0],
@@ -549,7 +550,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
-
+    //作品显示
     public function workShow() {
         $map[] = ['id','=',input('post.id',0)];
         try {
@@ -559,7 +560,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
-
+    //作品隐藏
     public function workHide() {
         $map[] = ['id','=',input('post.id',0)];
         try {
