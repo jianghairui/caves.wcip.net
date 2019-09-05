@@ -24,6 +24,7 @@
             <th width="80">审核状态</th>
             <th width="80">审核</th>
             <th width="80">投票数</th>
+            <th width="80">竞标数</th>
             <th width="100">操作</th>
         </tr>
         </thead>
@@ -62,6 +63,7 @@
                     {/if}
                 </td>
                 <td>{$li.vote}</td>
+                <td>{$li.bid_num}</td>
                 <td class="td-manage">
                     <span>
                         <a style="text-decoration:none" onclick="pagefull('作品详情','{:url("Req/workDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="作品详情">

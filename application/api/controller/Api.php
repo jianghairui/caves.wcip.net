@@ -13,7 +13,7 @@ use think\Exception;
 
 class Api extends Common
 {
-//获取轮播图列表
+    //获取轮播图列表
     public function slideList() {
         $where = [
             ['status', '=', 1]
@@ -27,7 +27,7 @@ class Api extends Common
         }
         return ajax($list);
     }
-//获取活动列表
+    //获取活动列表
     public function getReqList()
     {
         $curr_page = input('post.page', 1);
@@ -40,7 +40,7 @@ class Api extends Common
         try {
             $list = Db::table('mp_req')
                 ->where($where)->order(['start_time' => 'ASC'])
-                ->field("id,title,cover,start_time,end_time")
+                ->field("id,title,works_num,idea_num,cover,start_time,end_time")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->select();
         } catch (\Exception $e) {
@@ -52,7 +52,7 @@ class Api extends Common
         }
         return ajax($list);
     }
-//获取活动详情
+    //获取活动详情
     public function getReqDetail() {
         $val['id'] = input('post.id');
         checkPost($val);
@@ -64,8 +64,8 @@ class Api extends Common
                 ['id', '=', $val['id']],
             ];
             $info = Db::table('mp_req')
-                ->where($where)
-                ->find();
+                ->field('id,title,cover,theme,explain,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num')
+                ->where($where)->find();
             if (!$info) {
                 return ajax($val['id'], -4);
             }
@@ -90,54 +90,7 @@ class Api extends Common
         }
         return ajax($info);
     }
-//工厂接单竞标
-    public function bidding()
-    {
-        $val['work_id'] = input('post.work_id');
-        $val['desc'] = input('post.desc');
-        checkPost($val);
-        $user = $this->myinfo;
-        $val['uid'] = $user['id'];
-        try {
-            $bidding_exist = Db::table('mp_bidding')->where([
-                ['work_id', '=', $val['work_id']],
-                ['uid', '=', $val['uid']]
-            ])->find();
-            if ($bidding_exist) {
-                return ajax('已经参与竞标', 37);
-            }
-            $where_work = [
-                ['id', '=', $val['work_id']]
-            ];
-            $work_exist = Db::table('mp_req_works')->where($where_work)->find();
-            if (!$work_exist || $work_exist['type'] != 2) {
-                return ajax($val['work_id'], -4);
-            }
-            if ($user['role'] != 4) {
-                return ajax('只有工厂可以参加竞标', 35);
-            }
-            if ($user['role_check'] != 2) {
-                return ajax('角色未认证', 29);
-            }
-            $where_req = [
-                ['id', '=', $work_exist['req_id']]
-            ];
-            $req_exist = Db::table('mp_req')->where($where_req)->find();
-            $val['req_id'] = $req_exist['id'];
-            if ($req_exist['end_time'] <= date('Y-m-d H:i:s')) {
-                return ajax('活动已结束', 25);
-            }
-            if (!($req_exist['vote_time'] <= date('Y-m-d H:i:s') && $req_exist['end_time'] > date('Y-m-d H:i:s'))) {
-                return ajax('当前时间段无法竞标', 36);
-            }
-            Db::table('mp_bidding')->insert($val);
-            Db::table('mp_req_works')->where($where_work)->setInc('bid_num');
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        return ajax();
-    }
-//提出创意
+    //提出创意
     public function createIdea() {
         $val['title'] = input('post.title');
         $val['content'] = input('post.content');
@@ -172,14 +125,15 @@ class Api extends Common
         }
         return ajax();
     }
-
+    //创意列表
     public function ideaList() {
         $val['req_id'] = input('post.req_id');
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',20);
         try {
             $where = [
-                ['i.req_id','=',$val['req_id']]
+                ['i.req_id','=',$val['req_id']],
+                ['i.status','=',1]
             ];
             $list = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_user u','i.uid=u.id','left')
@@ -192,7 +146,7 @@ class Api extends Common
         }
         return ajax($list);
     }
-//我要参加
+    //我要参加
     public function takePartIn() {
         $val['req_id'] = input('post.req_id');
         checkPost($val);
@@ -220,23 +174,13 @@ class Api extends Common
             if ($user['role_check'] != 2) {
                 return ajax('角色未认证', 29);
             }
-            $where = [
-                ['req_id', '=', $val['req_id']],
-                ['type', '=', 2],
-                ['uid', '=', $this->myinfo['id']]
-            ];
-            $workExist = Db::table('mp_req_works')->where($where)->find();
-            if ($workExist) {
-                return ajax('已参加', 31);
-            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         return ajax();
     }
-//上传参赛作品
-    public function uploadWorks()
-    {
+    //上传参赛作品
+    public function uploadWorks() {
         $val['uid'] = $this->myinfo['id'];
         $val['req_id'] = input('post.req_id');
         $val['title'] = input('post.title');
@@ -287,6 +231,15 @@ class Api extends Common
                 if(!$idea_exist) {
                     return ajax('非法参数idea_id',-4);
                 }
+//                $whereWork = [
+//                    ['req_id', '=', $val['req_id']],
+//                    ['idea_id', '=', $val['idea_id']],
+//                    ['uid', '=', $this->myinfo['id']]
+//                ];
+//                $workExist = Db::table('mp_req_works')->where($whereWork)->find();
+//                if ($workExist) {
+//                    return ajax('已投过此创意,不可重复投稿', 58);
+//                }
             }
             //七牛云上传多图
             $image_array = [];
@@ -327,7 +280,7 @@ class Api extends Common
         }
         return ajax();
     }
-//获取参赛作品列表
+    //获取参赛作品列表
     public function worksList()
     {
         $val['req_id'] = input('post.req_id');
@@ -342,7 +295,7 @@ class Api extends Common
                 ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
-                ->field("w.id,w.title,w.vote,w.bid_num,w.pics,u.nickname,u.avatar")
+                ->field("w.id,w.title,w.vote,w.pics,u.nickname,u.avatar")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -353,7 +306,7 @@ class Api extends Common
         }
         return ajax($list);
     }
-//参赛作品详情
+    //参赛作品详情
     public function worksDetail()
     {
         $val['id'] = input('post.id');
@@ -365,7 +318,7 @@ class Api extends Common
             $exist = Db::table('mp_req_works')->alias('w')
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($whereWorks)
-                ->field("w.id,w.title,w.desc,w.pics,w.type,u.avatar,u.nickname")
+                ->field("w.id,w.title,w.desc,w.pics,w.req_id,u.avatar,u.nickname")
                 ->find();
             if (!$exist) {
                 return ajax($val['id'], -4);
@@ -375,9 +328,14 @@ class Api extends Common
                 ['uid', '=', $this->myinfo['id']]
             ])->find();
             if ($bidding_exist) {
-                $exist['bidding'] = true;
+                $exist['bidding_btn'] = true;
+                $where_req = [['id','=',$exist['req_id']]];
+                $req_exist = Db::table('mp_req')->where($where_req)->find();
+                if ($req_exist['end_time'] <= time()) {
+                    $exist['bidding_btn'] = false;
+                }
             } else {
-                $exist['bidding'] = false;
+                $exist['bidding_btn'] = false;
             }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -385,7 +343,54 @@ class Api extends Common
         $exist['pics'] = unserialize($exist['pics']);
         return ajax($exist);
     }
-//获取竞标列表
+    //工厂接单竞标
+    public function bidding()
+    {
+        $val['work_id'] = input('post.work_id');
+        $val['desc'] = input('post.desc');
+        checkPost($val);
+        $user = $this->myinfo;
+        $val['uid'] = $user['id'];
+        $val['create_time'] = time();
+        try {
+            $where_work = [
+                ['id', '=', $val['work_id']]
+            ];
+            $work_exist = Db::table('mp_req_works')->where($where_work)->find();
+            if (!$work_exist) {
+                return ajax('非法参数work_id', -4);
+            }
+
+            $bidding_exist = Db::table('mp_bidding')->where([
+                ['work_id', '=', $val['work_id']],
+                ['uid', '=', $val['uid']]
+            ])->find();
+            if ($bidding_exist) {
+                return ajax('已经参与竞标', 37);
+            }
+
+            if ($user['role'] != 3) {
+                return ajax('只有工厂可以参加竞标', 35);
+            }
+            if ($user['role_check'] != 2) {
+                return ajax('角色未认证', 29);
+            }
+            $where_req = [
+                ['id', '=', $work_exist['req_id']]
+            ];
+            $req_exist = Db::table('mp_req')->where($where_req)->find();
+            $val['req_id'] = $req_exist['id'];
+            if ($req_exist['end_time'] <= time()) {
+                return ajax('活动已结束', 25);
+            }
+            Db::table('mp_bidding')->insert($val);
+            Db::table('mp_req_works')->where($where_work)->setInc('bid_num',1);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    //获取竞标列表
     public function biddingList()
     {
         $val['work_id'] = input('post.work_id');
@@ -396,47 +401,47 @@ class Api extends Common
             ];
             $list = Db::table('mp_bidding')->alias("b")
                 ->join("mp_user u", "b.uid=u.id", "left")
-                ->field("b.*,u.nickname,u.avatar")
+                ->field("b.*,u.nickname,u.org,u.avatar")
                 ->where($where)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         return ajax($list);
     }
-//投票
-    public function vote()
+    //作品投票
+    public function worksVote()
     {
         $val['work_id'] = input('post.work_id');
         checkPost($val);
         $user = $this->myinfo;
         try {
+            $whereWork = [
+                ['id', '=', $val['work_id']]
+            ];
+            $workExist = Db::table('mp_req_works')->where($whereWork)->find();
+            if (!$workExist) {
+                return ajax($val['work_id'], -4);
+            }
+
             $whereVote = [
                 ['work_id', '=', $val['work_id']],
                 ['uid', '=', $this->myinfo['id']]
             ];
             $vote_exist = Db::table('mp_works_vote')->where($whereVote)->find();
             if ($vote_exist) {
-                return ajax('已投票', 32);
+                return ajax('只能投一次票', 32);
             }
-            $where = [
-                ['id', '=', $val['work_id']],
-                ['type', '=', 2]
-            ];
-            $workExist = Db::table('mp_req_works')->where($where)->find();
-            if (!$workExist) {
-                return ajax($val['work_id'], -4);
-            }
-            $map = [
+
+            $whereReq = [
                 ['id', '=', $workExist['req_id']]
             ];
-            $exist = Db::table('mp_req')->where($map)->find();
-            if ($exist['end_time'] <= time()) {
+            $req_exist = Db::table('mp_req')->where($whereReq)->find();
+            if ($req_exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
             }
-            if ($exist['vote_time'] <= time()) {
-                return ajax('报名时间已结束', 30);
+            if ($req_exist['vote_time'] <= time()) {
+                return ajax('投票时间已结束', 30);
             }
-            Db::table('mp_req_works')->where($where)->setInc('vote', 1);
             $insert_data = [
                 'work_id' => $val['work_id'],
                 'uid' => $this->myinfo['id'],
@@ -445,11 +450,136 @@ class Api extends Common
                 'create_time' => time()
             ];
             Db::table('mp_works_vote')->insert($insert_data);
+            Db::table('mp_req_works')->where($whereWork)->setInc('vote', 1);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         return ajax();
     }
+    //创意投票
+    public function ideaVote()
+    {
+        $val['idea_id'] = input('post.idea_id');
+        checkPost($val);
+        $user = $this->myinfo;
+        try {
+            $whereIdea = [
+                ['id', '=', $val['idea_id']]
+            ];
+            $ideaExist = Db::table('mp_req_idea')->where($whereIdea)->find();
+            if (!$ideaExist) {
+                return ajax('非法参数idea_id', -4);
+            }
+
+            $whereVote = [
+                ['idea_id', '=', $val['idea_id']],
+                ['uid', '=', $this->myinfo['id']]
+            ];
+            $vote_exist = Db::table('mp_idea_vote')->where($whereVote)->find();
+            if ($vote_exist) {
+                return ajax('只能投一次票', 32);
+            }
+
+            $whereReq = [
+                ['id', '=', $ideaExist['req_id']]
+            ];
+            $req_exist = Db::table('mp_req')->where($whereReq)->find();
+            if ($req_exist['end_time'] <= time()) {
+                return ajax('活动已结束', 25);
+            }
+            if ($req_exist['vote_time'] <= time()) {
+                return ajax('投票时间已结束', 30);
+            }
+            $insert_data = [
+                'idea_id' => $val['idea_id'],
+                'uid' => $this->myinfo['id'],
+                'vip' => $user['vip'],
+                'req_id' => $ideaExist['req_id'],
+                'create_time' => time()
+            ];
+            Db::table('mp_idea_vote')->insert($insert_data);
+            Db::table('mp_req_idea')->where($whereIdea)->setInc('vote', 1);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    //众筹列表
+    public function fundingList() {
+        $param['status'] = input('post.status','');
+        $param['search'] = input('post.search');
+        $curr_page = input('post.page',1);
+        $perpage = input('post.perpage',10);
+
+        $where = [
+            ['del','=',0]
+        ];
+        if(!is_null($param['status']) && $param['status'] !== '') {
+            $where[] = ['f.status','=',$param['status']];
+        }
+        if($param['search']) {
+            $where[] = ['f.title','like',"%{$param['search']}%"];
+        }
+
+        try {
+            $list = Db::table('mp_funding')
+                ->field('id,title,cover,need_money,curr_money,order_num,start_time,end_time')
+                ->where($where)
+                ->order(['id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        return ajax($list);
+    }
+    //众筹详情
+    public function fundingDetail() {
+        $val['id'] = input('param.id','');
+        checkPost($val);
+        try {
+            $where = [
+                ['f.id','=',$val['id']],
+                ['f.del','=',0]
+            ];
+            $info = Db::table('mp_funding')->alias('f')
+                ->join('mp_req r','f.req_id=r.id','left')
+                ->join('mp_req_idea i','f.idea_id=i.id','left')
+                ->join('mp_req_works w','f.work_id=w.id','left')
+                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,i.title AS idea_title,i.content AS idea_detail,w.title AS work_title,w.desc AS work_detail,w.pics AS work_pics,f.desc,f.content')
+                ->where($where)->find();
+            if(!$info) { return ajax('非法参数id',-4);}
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        return ajax($info);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //设计师列表
     public function designerList() {
         $curr_page = input('post.page', 1);
