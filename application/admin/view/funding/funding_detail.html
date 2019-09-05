@@ -6,12 +6,8 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">作品来源：</label>
             <div class="formControls col-xs-4 col-sm-4">
-                <span class="select-box">
-                <select class="select" name="work_id" id="work_id">
-                    {foreach $worklist as $v}
-                    <option value="{$v.id}" {if $v['id']==$info['work_id']}selected{/if}>{$v.title} (id: {$v.id})</option>
-                    {/foreach}
-				</select>
+                <span>
+                    {$info.work_title} (id: {$info.work_id})
                 </span>
             </div>
             <div class="col-3">
@@ -231,6 +227,8 @@
             });
         });
 
+        var textlen1 = $("textarea[name='desc']").val().length;
+        $("#textlen1").text(textlen1);
 
 
     });

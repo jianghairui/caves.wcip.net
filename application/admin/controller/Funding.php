@@ -142,21 +142,19 @@ class Funding extends Base {
             ];
             $info = Db::table('mp_funding')->alias('f')
                 ->join('mp_req_works w','f.work_id=w.id','left')
+                ->field('f.*,w.title AS work_title')
                 ->where($where)->find();
             if(!$info) { die('非法操作');}
-            $worklist = Db::table('mp_req_works')->where('factory_id','NOT NULL')->field('id,title')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('info',$info);
-        $this->assign('worklist',$worklist);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //编辑众筹
     public function fundingMod() {
         if(request()->isPost()) {
-            $val['work_id'] = input('post.work_id');
             $val['title'] = input('post.title');
             $val['need_money'] = input('post.need_money');
             $val['start_time'] = input('post.start_time');
@@ -174,25 +172,13 @@ class Funding extends Base {
                 if(!$cover) {
                     return ajax('请传入封面图',-1);
                 }
-                $whereWork = [
-                    ['id','=',$val['work_id']],
-                    ['del','=',0]
-                ];
-                $work_exist = Db::table('mp_req_works')
-                    ->where($whereWork)->where('factory_id','NOT NULL')->find();
-                if(!$work_exist) {
-                    return ajax('非法参数',-1);
-                }
-                $val['req_id'] = $work_exist['req_id'];
-                $val['idea_id'] = $work_exist['idea_id'];
-                $val['factory_id'] = $work_exist['factory_id'];
                 $whereFunding = [
-                    ['work_id','=',$val['work_id']],
+                    ['id','=',$val['id']],
                     ['del','=',0]
                 ];
                 $funding_exist = Db::table('mp_funding')->where($whereFunding)->find();
-                if($funding_exist) {
-                    return ajax('此作品已发起过众筹',-1);
+                if(!$funding_exist) {
+                    return ajax('非法参数id',-1);
                 }
                 $qiniu_exist = $this->qiniuFileExist($cover);
                 if($qiniu_exist !== true) {
@@ -205,51 +191,296 @@ class Funding extends Base {
                 }else {
                     return ajax($qiniu_move['msg'],-2);
                 }
-                Db::table('mp_funding')->insert($val);
+                Db::table('mp_funding')->update($val);
             } catch (\Exception $e) {
-                if(isset($val['cover'])) {
+                if($val['cover'] != $funding_exist['cover']) {
                     $this->rs_delete($val['cover']);
                 }
                 return ajax($e->getMessage(), -1);
+            }
+            if($val['cover'] != $funding_exist['cover']) {
+                $this->rs_delete($funding_exist['cover']);
             }
             return ajax();
         }
     }
     //隐藏众筹
     public function fundingHide() {
-
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id],
+            ['status','=',1]
+        ];
+        try {
+            $exist = Db::table('mp_funding')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法参数',-1);
+            }
+            Db::table('mp_funding')->where($map)->update(['status'=>0]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
     }
     //显示
     public function fundingShow() {
-
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id],
+            ['status','=',0]
+        ];
+        try {
+            $exist = Db::table('mp_funding')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法参数',-1);
+            }
+            Db::table('mp_funding')->where($map)->update(['status'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
     }
-    //众筹终止,用户退款,不可逆操作
-    public function fundingStop() {
+    //删除众筹
+    public function fundingDel() {
+        $id = input('post.id','0');
+        try {
+            $whereFunding = [['id','=',$id]];
+            $exist = Db::table('mp_funding')->where($whereFunding)->find();
+            if(!$exist) {
+                return ajax('非法参数',-1);
+            }
+            Db::table('mp_funding')->where($whereFunding)->update(['del'=>1]);
 
+            $whereGoods = [['funding_id','=',$id]];
+            Db::table('mp_funding_goods')->where($whereGoods)->update(['del'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
     }
     //置顶,取消置顶
     public function recommend() {
 
     }
 
-    public function goodsList() {
 
+
+    public function goodsList() {
+        $param['search'] = input('param.search');
+        $page['query'] = http_build_query(input('param.'));
+
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+        $where = [
+            ['g.del','=',0]
+        ];
+        if($param['search']) {
+            $where[] = ['g.name','like',"%{$param['search']}%"];
+        }
+        $count = Db::table('mp_funding_goods')->alias('g')->where($where)->count();
+
+        $page['count'] = $count;
+        $page['curr'] = $curr_page;
+        $page['totalPage'] = ceil($count/$perpage);
+        try {
+            $list = Db::table('mp_funding_goods')->alias('g')
+                ->join('mp_funding f','g.funding_id=f.id','left')
+                ->field('g.*,f.title')
+                ->where($where)
+                ->limit(($curr_page - 1)*$perpage,$perpage)
+                ->order(['id'=>'DESC'])
+                ->select();
+        }catch (\Exception $e) {
+            die('SQL错误: ' . $e->getMessage());
+        }
+
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        return $this->fetch();
     }
 
     public function goodsAdd() {
+        if(request()->isPost()) {
+            $val['funding_id'] = input('post.funding_id');
+            $val['name'] = input('post.name');
+            $val['price'] = input('post.price');
+            $val['send_date'] = input('post.send_date');
+            $val['desc'] = input('post.desc');
+            $val['create_time'] = time();
+            checkInput($val);
+            $val['status'] = 0;
+            $image = input('post.pic_url',[]);
 
+            try {
+                $image_array = [];
+                $limit = 6;
+                if(is_array($image) && !empty($image)) {
+                    if(count($image) > $limit) {
+                        return ajax('最多上传'.$limit.'张图片',-1);
+                    }
+                    foreach ($image as $v) {
+                        $qiniu_exist = $this->qiniuFileExist($v);
+                        if($qiniu_exist !== true) {
+                            return ajax('图片已失效请重新上传',-1);
+                        }
+                    }
+                }else {
+                    return ajax('请上传商品图片',-1);
+                }
+                foreach ($image as $v) {
+                    $qiniu_move = $this->moveFile($v,'upload/funding_goods/');
+                    if($qiniu_move['code'] == 0) {
+                        $image_array[] = $qiniu_move['path'];
+                    }else {
+                        return ajax($qiniu_move['msg'],-2);
+                    }
+                }
+                $val['pics'] = serialize($image_array);
+                Db::table('mp_funding_goods')->insert($val);
+            }catch (\Exception $e) {
+                foreach ($image_array as $v) {
+                    $this->rs_delete($v);
+                }
+                return ajax($e->getMessage(),-1);
+            }
+            return ajax([],1);
+        }
+        try {
+            $where = [
+                ['del','=',0],
+                ['status','=',1]
+            ];
+            $list = Db::table('mp_funding')->where($where)->field('id,title')->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('list',$list);
+        return $this->fetch();
     }
 
     public function goodsDetail() {
-
+        $id = input('param.id');
+        try {
+            $where = [['g.id','=',$id]];
+            $info = Db::table('mp_funding_goods')->alias('g')
+                ->join('mp_funding f','g.funding_id=f.id','left')
+                ->field('g.*,f.title')
+                ->where($where)->find();
+            if(!$info) {
+                die('非法参数');
+            }
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        return $this->fetch();
     }
 
     public function goodsMod() {
+        if(request()->isPost()) {
+            $val['name'] = input('post.name');
+            $val['price'] = input('post.price');
+            $val['send_date'] = input('post.send_date');
+            $val['desc'] = input('post.desc');
+            $val['id'] = input('post.id');
+            checkInput($val);
+            $image = input('post.pic_url',[]);
 
+            try {
+                $whereGoods = [['id','=',$val['id']]];
+                $goods_exist = Db::table('mp_funding_goods')->where($whereGoods)->find();
+                if(!$goods_exist) {
+                    return ajax('非法参数',-1);
+                }
+                $old_pics = unserialize($goods_exist['pics']);
+                $image_array = [];
+                $limit = 6;
+                if(is_array($image) && !empty($image)) {
+                    if(count($image) > $limit) {
+                        return ajax('最多上传'.$limit.'张图片',-1);
+                    }
+                    foreach ($image as $v) {
+                        $qiniu_exist = $this->qiniuFileExist($v);
+                        if($qiniu_exist !== true) {
+                            return ajax('图片已失效请重新上传',-1);
+                        }
+                    }
+                }else {
+                    return ajax('请上传商品图片',-1);
+                }
+
+                foreach ($image as $v) {
+                    $qiniu_move = $this->moveFile($v,'upload/funding_goods/');
+                    if($qiniu_move['code'] == 0) {
+                        $image_array[] = $qiniu_move['path'];
+                    }else {
+                        return ajax($qiniu_move['msg'],-2);
+                    }
+                }
+                $val['pics'] = serialize($image_array);
+                Db::table('mp_funding_goods')->update($val);
+            }catch (\Exception $e) {
+                foreach ($image_array as $v) {
+                    if(!in_array($v,$old_pics)) {
+                        $this->rs_delete($v);
+                    }
+                }
+                return ajax($e->getMessage(),-1);
+            }
+            foreach ($old_pics as $v) {
+                if(!in_array($v,$image_array)) {
+                    $this->rs_delete($v);
+                }
+            }
+            return ajax([],1);
+        }
     }
 
     public function goodsDel() {
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id]
+        ];
+        try {
+            $exist = Db::table('mp_funding_goods')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法参数',-1);
+            }
+            Db::table('mp_funding_goods')->where($map)->update(['del'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
+    }
 
+    //下架
+    public function goodsHide() {
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id],
+            ['status','=',1]
+        ];
+        try {
+            Db::table('mp_funding_goods')->where($map)->update(['status'=>0]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
+    }
+    //上架
+    public function goodsShow() {
+        $id = input('post.id','0');
+        $map = [
+            ['id','=',$id],
+            ['status','=',0]
+        ];
+        try {
+            Db::table('mp_funding_goods')->where($map)->update(['status'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
     }
 
 

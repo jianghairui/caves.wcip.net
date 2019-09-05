@@ -14,7 +14,7 @@
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
         <span class="l">
-            <a class="btn btn-primary radius" data-title="添加商品" data-href="article-add.html" onclick="add_info('添加商品','{:url("Shop/goodsAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 添加商品
+            <a class="btn btn-primary radius" data-title="添加商品" data-href="article-add.html" onclick="pagefull('添加商品','{:url("Shop/goodsAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 添加商品
             </a>
         </span>
         <span class="r">共有数据：<strong>{$page.count}</strong> 条</span> </div>
@@ -64,7 +64,7 @@
                         <i class="Hui-iconfont">&#xe603;</i>
                     </a>
                     {/if}
-                    <a style="text-decoration:none" onclick="add_info('商品信息','{:url("Shop/goodsDetail",array("id"=>$li["id"]))}')" class="ml-5" href="javascript:;" title="查看商品">
+                    <a style="text-decoration:none" onclick="pagefull('商品信息','{:url("Shop/goodsDetail",array("id"=>$li["id"]))}')" class="ml-5" href="javascript:;" title="查看商品">
                     <i class="Hui-iconfont">&#xe6df;</i>
                     </a>
                 </td>
@@ -113,7 +113,7 @@
     });
 
     /*添加商品*/
-    function add_info(title,url) {
+    function pagefull(title,url) {
         var index = layer.open({
             type: 2,
             title: title,

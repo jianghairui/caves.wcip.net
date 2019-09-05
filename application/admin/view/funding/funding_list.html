@@ -13,7 +13,7 @@
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
         <span class="l">
-            <a class="btn btn-primary radius" data-title="发起众筹" data-href="" onclick="add_info('发起众筹','{:url("Funding/fundingAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 发起众筹
+            <a class="btn btn-primary radius" data-title="发起众筹" data-href="" onclick="pagefull('发起众筹','{:url("Funding/fundingAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 发起众筹
             </a>
         </span>
         <span class="r">共有数据：<strong>{$page.count}</strong> 条</span> </div>
@@ -71,12 +71,12 @@
                 </td>
                 <td class="td-manage" rowspan="2">
                     <span>
-                        <a style="text-decoration:none" onclick="add_info('众筹详情','{:url("Funding/fundingDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="众筹详情">
+                        <a style="text-decoration:none" onclick="pagefull('众筹详情','{:url("Funding/fundingDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="众筹详情">
                             <i class="Hui-iconfont">&#xe6df;</i>
                         </a>
                     </span>
                     <span>
-                        <a style="text-decoration:none" onClick="work_del(this,{$li['id']})" href="javascript:;" title="删除">
+                        <a style="text-decoration:none" onClick="funding_del(this,{$li['id']})" href="javascript:;" title="删除">
                         <i class="Hui-iconfont">&#xe6e2;</i>
                         </a>
                     </span>
@@ -135,7 +135,7 @@
     });
 
     /*发布众筹*/
-    function add_info(title,url){
+    function pagefull(title,url){
         var index = layer.open({
             type: 2,
             title: title,
@@ -145,8 +145,8 @@
     }
 
     /*删除*/
-    function work_del(obj,id){
-        layer.confirm('确认要删除吗？',function(index){
+    function funding_del(obj,id){
+        layer.confirm('警告!此操作会将相关商品一并删除,确定删除吗？',function(index){
             $.ajax({
                 url: "{:url('Funding/fundingDel')}",
                 type: 'POST',
@@ -155,6 +155,7 @@
                 success: function(data){
                     console.log(data);
                     if(data.code == 1) {
+                        $(obj).parents("tr").next().remove();
                         $(obj).parents("tr").remove();
                         layer.msg('已删除!',{icon:1,time:1000});
                     }else {
@@ -167,9 +168,8 @@
             });
         });
     }
-
     /*众筹审核*/
-    function work_shenhe(obj,id){
+    function funding_shenhe(obj,id){
         layer.confirm('审核众筹？', {
                 btn: ['通过','不通过','取消'],
                 shade: false,

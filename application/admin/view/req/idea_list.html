@@ -61,7 +61,7 @@
                 <td>{$li.works_num}</td>
                 <td class="td-manage">
                     <span>
-                        <a style="text-decoration:none" onclick="add_info('创意详情','{:url("Req/ideaDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="创意详情">
+                        <a style="text-decoration:none" onclick="pagefull('创意详情','{:url("Req/ideaDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="创意详情">
                             <i class="Hui-iconfont">&#xe6df;</i>
                         </a>
                     </span>
@@ -116,7 +116,7 @@
     });
 
     /*发布创意*/
-    function add_info(title,url){
+    function pagefull(title,url){
         var index = layer.open({
             type: 2,
             title: title,

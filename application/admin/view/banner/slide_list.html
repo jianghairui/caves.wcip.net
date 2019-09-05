@@ -54,7 +54,7 @@
                         <i class="Hui-iconfont">&#xe603;</i>
                     </a>
                     {/if}
-                    <a style="text-decoration:none" class="ml-5" onClick="slide_edit('轮播图编辑','{:url("Banner/slideDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="编辑">
+                    <a style="text-decoration:none" class="ml-5" onClick="pagefull('轮播图编辑','{:url("Banner/slideDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="编辑">
                         <i class="Hui-iconfont">&#xe6df;</i>
                     </a>
                     <a style="text-decoration:none" class="ml-5" onClick="slide_del(this,'{$li.id}')" href="javascript:;" title="删除">
@@ -221,13 +221,13 @@
 
 
     /*图片-编辑*/
-    function slide_edit(title,url){
+    function pagefull(title,url){
         var index = layer.open({
             type: 2,
             title: title,
-            content: url
+            content: url,
+            area: ['100%','100%']
         });
-        layer.full(index);
     }
 
     /*图片-删除*/

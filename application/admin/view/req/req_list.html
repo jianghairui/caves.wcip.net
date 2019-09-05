@@ -9,7 +9,7 @@
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
         <span class="l">
-            <a class="btn btn-primary radius" data-title="发布活动" data-href="" onclick="add_info('发布活动','{:url("Req/reqAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 发布活动
+            <a class="btn btn-primary radius" data-title="发布活动" data-href="" onclick="pagefull('发布活动','{:url("Req/reqAdd")}')" href="javascript:;"><i class="Hui-iconfont">&#xe600;</i> 发布活动
             </a>
         </span>
         <span class="r">共有数据：<strong>{$page.count}</strong> 条</span> </div>
@@ -82,7 +82,7 @@
                         {/if}
                     </span>
                     <span>
-                        <a style="text-decoration:none" onclick="add_info('活动详情','{:url("Req/reqDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="活动详情">
+                        <a style="text-decoration:none" onclick="pagefull('活动详情','{:url("Req/reqDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="活动详情">
                     <i class="Hui-iconfont">&#xe6df;</i>
                         </a>
                     </span>
@@ -138,7 +138,7 @@
     });
 
     /*发布活动*/
-    function add_info(title,url){
+    function pagefull(title,url){
         var index = layer.open({
             type: 2,
             title: title,
