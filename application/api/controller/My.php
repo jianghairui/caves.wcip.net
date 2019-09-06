@@ -29,9 +29,7 @@ class My extends Common {
         $val['age'] = input('post.age');
         $val['tel'] = input('post.tel');
         checkPost($val);
-
-        $val['desc'] = input('post.desc','');
-        $val['id'] = $this->myinfo['id'];
+        $val['sign'] = input('post.sign','');
         $user = $this->myinfo;
         try {
             $avatar = input('post.avatar');
@@ -39,20 +37,25 @@ class My extends Common {
                 if (substr($avatar,0,4) == 'http') {
                     $val['avatar'] = $avatar;
                 }else {
-                    $val['avatar'] = rename_file($avatar,'upload/avatar/');
+                    $qiniu_move = $this->moveFile($avatar,'upload/avatar/');
+                    if($qiniu_move['code'] == 0) {
+                        $val['avatar'] = $qiniu_move['path'];
+                    }else {
+                        return ajax($qiniu_move['msg'],-2);
+                    }
                 }
             }else {
-                return ajax('',3);
+                return ajax('请上传头像',61);
             }
-            Db::table('mp_user')->where('id',$val['id'])->update($val);
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
         } catch (\Exception $e) {
-            if ($val['avatar'] != $user['avatar']) {
-                @unlink($val['avatar']);
+            if ($val['avatar'] != $user['avatar'] &&  substr($val['avatar'],0,4) != 'http') {
+                $this->rs_delete($val['avatar']);
             }
             return ajax($e->getMessage(), -1);
         }
-        if ($val['avatar'] != $user['avatar']) {
-            @unlink($user['avatar']);
+        if ($val['avatar'] != $user['avatar'] && substr($user['avatar'],0,4) != 'http') {
+            $this->rs_delete($user['avatar']);
         }
         return ajax();
 
@@ -217,7 +220,7 @@ class My extends Common {
             $list = Db::table('mp_req')->alias('r')
                 ->join("mp_user u","r.uid=u.id","left")
                 ->where($whereReq)->order(['r.id'=>'DESC'])
-                ->field("r.id,r.title,r.cover,r.part_num,r.status,r.start_time,r.end_time,u.org as user_org")
+                ->field("r.id,r.title,r.cover,r.org,r.works_num,r.idea_num,r.status,r.start_time,r.end_time")
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
         }catch (\Exception $e) {
@@ -877,6 +880,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $val['address'] = input('post.address');
         $val['busine'] = input('post.busine');
         $val['weixin'] = input('post.weixin');
+        $cover = input('post.cover');
         $id_front = input('post.id_front');
         $id_back = input('post.id_back');
         $license = input('post.license');
@@ -890,6 +894,9 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         }
         if (!is_tel($val['tel'])) {
             return ajax('无效的手机号', 6);
+        }
+        if(!$cover) {
+            return ajax('请上传封面',33);
         }
         if(!$id_front || !$id_back) {
             return ajax('上传身份证正反面',18);
@@ -918,8 +925,8 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             $works_array = [];//设计师必须传入作品
             if($val['role'] == 2) {
                 if (!empty($works)) {
-                    if (count($works) > 9) {
-                        return ajax('最多上传9张作品', 15);
+                    if (count($works) > 6) {
+                        return ajax('最多上传6张作品', 15);
                     }
                     foreach ($works as $v) {
                         if (!file_exists($v)) {
@@ -959,6 +966,11 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                         return ajax('请传入资质证书',55);
                     }
                 }
+                if($cover != $role_exist['cover']) {
+                    $val['cover'] = rename_file($cover,'upload/role/');
+                }else {
+                    $val['cover'] = $id_front;
+                }
                 if($id_front != $role_exist['id_front']) {
                     $val['id_front'] = rename_file($id_front,'upload/role/');
                 }else {
@@ -988,6 +1000,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                         return ajax('请传入资质证书',55);
                     }
                 }
+                $val['cover'] = rename_file($cover,'upload/role/');
                 $val['id_front'] = rename_file($id_front,'upload/role/');
                 $val['id_back'] = rename_file($id_back,'upload/role/');
                 foreach ($works as $v) {
@@ -1018,7 +1031,8 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                         @unlink($v);
                     }
                 }
-                if($val['id_front'] != $role_exist['cover']) {@unlink($val['id_front']);}
+                if($val['cover'] != $role_exist['cover']) {@unlink($val['cover']);}
+                if($val['id_front'] != $role_exist['id_front']) {@unlink($val['id_front']);}
                 if($val['id_back'] != $role_exist['id_back']) {@unlink($val['id_back']);}
             }else {
                 if(isset($val['license'])) {
@@ -1027,12 +1041,16 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                 foreach ($works_array as $v) {
                     @unlink($v);
                 }
+                @unlink($val['cover']);
                 @unlink($val['id_front']);
                 @unlink($val['id_back']);
             }
             return ajax($e->getMessage(),-1);
         }
         if($role_exist) {//正常删图
+            if(isset($val['cover']) && $val['cover'] != $role_exist['cover']) {
+                @unlink($role_exist['cover']);
+            }
             if(isset($val['license']) && $val['license'] != $role_exist['license']) {
                 @unlink($role_exist['license']);
             }

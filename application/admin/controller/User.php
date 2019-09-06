@@ -46,13 +46,14 @@ class User extends Base {
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_user')->where($where)->order(['id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+            $list = Db::table('mp_user')->where($where)->order(['id'=>'ASC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         $this->assign('list',$list);
         $this->assign('page',$page);
         $this->assign('status',$param['status']);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 
