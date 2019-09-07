@@ -73,6 +73,7 @@ class User extends Base {
             return ajax($e->getMessage(),-1);
         }
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //申请角色-通过审核

@@ -880,10 +880,10 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $val['address'] = input('post.address');
         $val['busine'] = input('post.busine');
         $val['weixin'] = input('post.weixin');
-        $cover = input('post.cover');
-        $id_front = input('post.id_front');
-        $id_back = input('post.id_back');
-        $license = input('post.license');
+        $tmp['cover'] = input('post.cover');
+        $tmp['id_front'] = input('post.id_front');
+        $tmp['id_back'] = input('post.id_back');
+        $tmp['license'] = input('post.license');
         $works = input('post.works', []);
 
         if(!in_array($val['role'],[1,2,3])) {
@@ -895,20 +895,23 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         if (!is_tel($val['tel'])) {
             return ajax('无效的手机号', 6);
         }
-        if(!$cover) {
+        if(!$tmp['cover']) {
             return ajax('请上传封面',33);
         }
-        if(!$id_front || !$id_back) {
+        if(!$tmp['id_front'] || !$tmp['id_back']) {
             return ajax('上传身份证正反面',18);
         }
-        if (!file_exists($id_front) || !file_exists($id_back)) {
-            return ajax('身份证图片不存在', 5);
+        if(!$tmp['license']) {
+            return ajax('请上传资质',55);
         }
         if(!is_array($works)) {
             return ajax('works',-4);
         }
-
-        try {//验证短信验证码
+        if($this->myinfo['role_check'] == 1 || $this->myinfo['role_check'] == 2) {
+            return ajax('当前状态无法提交审核',62);
+        }
+        try {
+            //验证短信验证码
             $whereCode = [
                 ['tel','=',$val['tel']],
                 ['code','=',$val['code']]
@@ -921,22 +924,36 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             }else {
                 return ajax('验证码无效',16);
             }
+            $role_exist = Db::table('mp_user_role')->where('uid',$val['uid'])->find();
+            if($role_exist) {
+                $old_works = unserialize($role_exist['works']);
+            }
 
-            $works_array = [];//设计师必须传入作品
+            //验证图片是否存在
+            foreach ($tmp as $k=>$v) {
+                $qiniu_exist = $this->qiniuFileExist($v);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'] . ' :'.$k,5);
+                }
+            }
+            //设计师必须传入作品
             if($val['role'] == 2) {
                 if (!empty($works)) {
                     if (count($works) > 6) {
                         return ajax('最多上传6张作品', 15);
                     }
+                    //验证图片是否存在
                     foreach ($works as $v) {
-                        if (!file_exists($v)) {
-                            return ajax($v, 51);
+                        $qiniu_exist = $this->qiniuFileExist($v);
+                        if($qiniu_exist !== true) {
+                            return ajax($qiniu_exist['msg'] . ' :works:'.$v,5);
                         }
                     }
                 } else {
                     return ajax('请传入作品', 14);
                 }
-            }else {//博物馆工厂必须传入证书
+            }else {
+            //非设计师必须传入参数
                 if(!$val['org']) {
                     return ajax('org不能为空',23);
                 }
@@ -949,66 +966,28 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                     }
                 }
             }
-
-            $role_exist = Db::table('mp_user_role')->where('uid',$val['uid'])->find();
-            if($role_exist) {
-                if($license) {
-                    if (!file_exists($license)) {
-                        return ajax('资质图片不存在', 50);
-                    }
-                    if($license != $role_exist['license']) {
-                        $val['license'] = rename_file($license,'upload/role/');
-                    }else {
-                        $val['license'] = $license;
-                    }
+            //转移七牛云图片
+            foreach ($tmp as $k=>$v) {
+                $qiniu_move = $this->moveFile($v,'upload/role/');
+                if($qiniu_move['code'] == 0) {
+                    $val[$k] = $qiniu_move['path'];
                 }else {
-                    if($val['role'] != 2) {
-                        return ajax('请传入资质证书',55);
-                    }
-                }
-                if($cover != $role_exist['cover']) {
-                    $val['cover'] = rename_file($cover,'upload/role/');
-                }else {
-                    $val['cover'] = $id_front;
-                }
-                if($id_front != $role_exist['id_front']) {
-                    $val['id_front'] = rename_file($id_front,'upload/role/');
-                }else {
-                    $val['id_front'] = $id_front;
-                }
-                if($id_back != $role_exist['id_back']) {
-                    $val['id_back'] = rename_file($id_back,'upload/role/');
-                }else {
-                    $val['id_back'] = $id_back;
-                }
-                $old_works = unserialize($role_exist['works']);
-                foreach ($works as $v) {
-                    if(!in_array($v,$old_works)) {
-                        $works_array[] = rename_file($v,'upload/role/');
-                    }else {
-                        $works_array[] = $v;
-                    }
-                }
-            }else {
-                if($license) {
-                    if (!file_exists($license)) {
-                        return ajax('资质图片不存在', 50);
-                    }
-                    $val['license'] = rename_file($license,'upload/role/');
-                }else {
-                    if($val['role'] != 2) {
-                        return ajax('请传入资质证书',55);
-                    }
-                }
-                $val['cover'] = rename_file($cover,'upload/role/');
-                $val['id_front'] = rename_file($id_front,'upload/role/');
-                $val['id_back'] = rename_file($id_back,'upload/role/');
-                foreach ($works as $v) {
-                    $works_array[] = rename_file($v,'upload/role/');
+                    return ajax($qiniu_move['msg'] .' :' . $k . '',-999);
                 }
             }
 
-            $val['works'] = serialize($works_array);
+            if($val['role'] == 2) {
+                foreach ($works as $v) {
+                    $qiniu_move = $this->moveFile($v,'upload/role/');
+                    if($qiniu_move['code'] == 0) {
+                        $works_array[] = $qiniu_move['path'];
+                    }else {
+                        return ajax($qiniu_move['msg'] . ' :works:'.$v,-1111);
+                    }
+                }
+                $val['works'] = serialize($works_array);
+            }
+
             unset($val['code']);
             if($role_exist) {
                 Db::table('mp_user_role')->where('uid',$val['uid'])->update($val);
@@ -1023,47 +1002,43 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             Db::table('mp_verify')->where($whereCode)->delete();
         }catch (\Exception $e) {//异常删图
             if($role_exist) {
-                if(isset($val['license']) && $val['license'] != $role_exist['license']) {
-                    @unlink($val['license']);
-                }
-                foreach ($works_array as $v) {
-                    if(!in_array($v,$old_works)) {
-                        @unlink($v);
+                foreach ($tmp as $k=>$v) {
+                    if(isset($val[$k]) && $role_exist[$k] != $val[$k]) {
+                        $this->rs_delete($val[$k]);
                     }
                 }
-                if($val['cover'] != $role_exist['cover']) {@unlink($val['cover']);}
-                if($val['id_front'] != $role_exist['id_front']) {@unlink($val['id_front']);}
-                if($val['id_back'] != $role_exist['id_back']) {@unlink($val['id_back']);}
+                if($val['role'] == 2) {
+                    foreach ($works_array as $v) {
+                        if(!in_array($v,$old_works)) {
+                            $this->rs_delete($v);
+                        }
+                    }
+                }
+
             }else {
-                if(isset($val['license'])) {
-                    @unlink($val['license']);
+                foreach ($tmp as $k=>$v) {
+                    if(isset($val[$k])) {
+                        $this->rs_delete($val[$k]);
+                    }
                 }
-                foreach ($works_array as $v) {
-                    @unlink($v);
+                if($val['role'] == 2) {
+                    foreach ($works_array as $v) {
+                        $this->rs_delete($v);
+                    }
                 }
-                @unlink($val['cover']);
-                @unlink($val['id_front']);
-                @unlink($val['id_back']);
             }
             return ajax($e->getMessage(),-1);
         }
         if($role_exist) {//正常删图
-            if(isset($val['cover']) && $val['cover'] != $role_exist['cover']) {
-                @unlink($role_exist['cover']);
-            }
-            if(isset($val['license']) && $val['license'] != $role_exist['license']) {
-                @unlink($role_exist['license']);
-            }
-            if($val['id_front'] != $role_exist['id_front']) {
-                @unlink($role_exist['id_front']);
-            }
-            if($val['id_back'] != $role_exist['id_back']) {
-                @unlink($role_exist['id_back']);
+            foreach ($tmp as $k=>$v) {
+                if($val[$k] != $role_exist[$k]) {
+                    $this->rs_delete($role_exist[$k]);
+                }
             }
             if($val['role'] == 2) {
-                foreach ($old_works as $v) {
-                    if(!in_array($v,$works_array)) {
-                        @unlink($v);
+                foreach ($works_array as $v) {
+                    if(!in_array($v,$old_works)) {
+                        $this->rs_delete($v);
                     }
                 }
             }
