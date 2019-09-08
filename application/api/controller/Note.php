@@ -57,60 +57,98 @@ class Note extends Common {
         $val['height'] = input('post.height',1);
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
+        $val['create_time'] = time();
         $image = input('post.pics',[]);
+
         if(is_array($image) && !empty($image)) {
             if(count($image) > 9) {
                 return ajax('最多上传9张图片',8);
             }
+            //验证图片是否存在
             foreach ($image as $v) {
-                if(!file_exists($v)) {
-                    return ajax($v,5);
+                $qiniu_exist = $this->qiniuFileExist($v);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'] . ' :'.$v,5);
                 }
             }
         }else {
             return ajax('请传入图片',3);
         }
         $image_array = [];
+        //转移七牛云图片
         foreach ($image as $v) {
-            $image_array[] = rename_file($v);
+            $qiniu_move = $this->moveFile($v,'upload/note/');
+            if($qiniu_move['code'] == 0) {
+                $image_array[] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'] .' :' . $v . '',-1);
+            }
         }
         $val['pics'] = serialize($image_array);
         try {
             Db::table('mp_note')->insert($val);
         }catch (\Exception $e) {
             foreach ($image_array as $v) {
-                @unlink($v);
+                $this->rs_delete($v);
             }
             return ajax($e->getMessage(),-1);
         }
-        return ajax($val,1);
+        return ajax();
     }
     //获取笔记详情
     public function getNoteDetail() {
-        $id = input('post.id');
-        if(!$id) {
-            return ajax('id不能为空',-2);
-        }
+        $val['note_id'] = input('post.note_id');
+        checkPost($val);
         try {
             $info = Db::table('mp_note')->alias('n')
                 ->join('mp_user u','n.uid=u.id','left')
-                ->where('n.id',$id)
-                ->field('n.*,u.nickname,u.avatar')
+                ->where('n.id','=',$val['note_id'])
+                ->field('n.id,n.uid,n.title,n.content,n.pics,n.like,n.status,u.nickname,u.avatar')
                 ->find();
             if(!$info) {
                 return ajax('invalid id',-4);
             }
-            $map = [
+            $whereIlike = [
+                ['uid','=',$this->myinfo['id']],
+                ['note_id','=',$val['note_id']]
+            ];
+            $exist = Db::table('mp_note_like')->where($whereIlike)->find();
+            if($exist) {
+                $info['ilike'] = true;
+            }else {
+                $info['ilike'] = false;
+            }
+            $whereIcollect = [
+                ['uid','=',$this->myinfo['id']],
+                ['note_id','=',$val['note_id']]
+            ];
+            $exist = Db::table('mp_note_collect')->where($whereIcollect)->find();
+            if($exist) {
+                $info['icollect'] = true;
+            }else {
+                $info['icollect'] = false;
+            }
+            $whereFocus = [
+                ['uid','=',$this->myinfo['id']],
+                ['to_uid','=',$info['uid']]
+            ];
+            $exist = Db::table('mp_user_focus')->where($whereFocus)->find();
+            if($exist) {
+                $info['ifocus'] = true;
+            }else {
+                $info['ifocus'] = false;
+            }
+            $whereComment = [
                 ['to_cid','=',0],
-                ['note_id','=',$id]
+                ['note_id','=',$val['note_id']]
             ];
             $info['comment_count'] =
                 Db::table('mp_note_comment')->alias('c')
                     ->join('mp_user u','c.uid=u.id','left')
-                    ->where($map)->count();
+                    ->where($whereComment)->count();
             $info['comment_list'] = Db::table('mp_note_comment')->alias('c')
                 ->join('mp_user u','c.uid=u.id','left')
-                ->where($map)
+                ->where($whereComment)
                 ->field('c.*,u.nickname,u.avatar')
                 ->limit(0,2)->select();
         }catch (\Exception $e) {
@@ -129,7 +167,7 @@ class Note extends Common {
             if(!$exist) {
                 return ajax('invalid note_id',-4);
             }
-            $list = DB::query("SELECT c.id,c.note_id,c.uid,c.to_cid,c.to_uid,c.content,c.root_cid,c.created_time,u.avatar,u.nickname,IFNULL(u2.nickname,'') AS to_nickname 
+            $list = DB::query("SELECT c.id,c.note_id,c.uid,c.to_cid,c.to_uid,c.content,c.root_cid,c.create_time,u.avatar,u.nickname,IFNULL(u2.nickname,'') AS to_nickname 
 FROM mp_note_comment c 
 LEFT JOIN mp_user u ON c.uid=u.id 
 LEFT JOIN mp_user u2 ON c.to_uid=u2.id 
@@ -167,14 +205,14 @@ WHERE c.note_id=?",[$val['note_id']]);
                         $val['root_cid'] = $comment_exist['root_cid'];
                     }
                 }else {
-                    return ajax('',-4);
+                    return ajax('invalid to_cid',-4);
                 }
             }else {
                 $val['to_cid'] = 0;
                 $val['to_uid'] = 0;
                 $val['root_cid'] = 0;
             }
-            $val['created_time'] = date("Y-m-d H:i:s");
+            $val['create_time'] = time();
             Db::table('mp_note_comment')->insert($val);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -285,7 +323,7 @@ WHERE c.note_id=?",[$val['note_id']]);
         }
         return ajax(true);
     }
-    //判断是否收藏
+    //判断是否关注
     public function ifFocus() {
         $val['to_uid'] = input('post.to_uid');
         checkPost($val);

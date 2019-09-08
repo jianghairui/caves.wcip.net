@@ -86,37 +86,12 @@ class My extends Common {
         $ret['list'] = $list;
         return ajax($ret);
     }
-    //获取我自己的笔记详情
-    public function getMyNoteDetail() {
-        $val['id'] = input('post.id');
-        checkPost($val);
-        $val['uid'] = $this->myinfo['id'];
-        try {
-            $where = [
-                ['id','=',$val['id']],
-                ['uid','=',$val['uid']],
-                ['del','=',0]
-            ];
-            $exist = Db::table('mp_note')->where($where)
-                ->field("id,title,content,pics,status,reason")
-                ->find();
-            if(!$exist) {
-                return ajax($val['id'],-4);
-            }
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        $exist['pics'] = unserialize($exist['pics']);
-        return ajax($exist);
-    }
     //编辑笔记
     public function noteMod ()
     {
         $val['id'] = input('post.id');
         $val['title'] = input('post.title');
         $val['content'] = input('post.content');
-        $val['width'] = input('post.width',1);
-        $val['height'] = input('post.height',1);
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
         $image = input('post.pics',[]);
@@ -972,7 +947,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                 if($qiniu_move['code'] == 0) {
                     $val[$k] = $qiniu_move['path'];
                 }else {
-                    return ajax($qiniu_move['msg'] .' :' . $k . '',-999);
+                    return ajax($qiniu_move['msg'] .' :' . $k . '',-1);
                 }
             }
 
@@ -982,7 +957,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                     if($qiniu_move['code'] == 0) {
                         $works_array[] = $qiniu_move['path'];
                     }else {
-                        return ajax($qiniu_move['msg'] . ' :works:'.$v,-1111);
+                        return ajax($qiniu_move['msg'] . ' :works:'.$v,-1);
                     }
                 }
                 $val['works'] = serialize($works_array);
