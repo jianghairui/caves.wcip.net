@@ -115,43 +115,49 @@ class User extends Base {
 
     //充值类目列表
     public function vipList() {
-        $where = [];
-        $where[] = ['status','=',1];
+        $where = [
+            ['status','=',1],
+            ['del','=',0]
+        ];
         try {
             $list = Db::table('mp_vip')->where($where)->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
         $this->assign('list',$list);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //添加充值类目
     public function vipAdd() {
         return $this->fetch();
     }
-    //添加充值类目POST  todo qiniu
+    //添加充值类目POST
     public function vipAddPost() {
         $val['title'] = input('post.title');
         $val['price'] = input('post.price');
         $val['detail'] = input('post.detail');
         $val['days'] = input('post.days');
         checkInput($val);
-        if(isset($_FILES['file'])) {
-            $info = upload('file');
-            if($info['error'] === 0) {
-                $val['pic'] = $info['data'];
-            }else {
-                return ajax($info['msg'],-1);
-            }
-        }else {
+        $pic = input('post.pic');
+        if(!$pic) {
             return ajax('请上传图片',-1);
         }
-
         try {
+            $qiniu_exist = $this->qiniuFileExist($pic);
+            if($qiniu_exist !== true) {
+                return ajax($qiniu_exist['msg'],-1);
+            }
+            $qiniu_move = $this->moveFile($pic,'upload/vip/');
+            if($qiniu_move['code'] == 0) {
+                $val['pic'] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'],-2);
+            }
             Db::table('mp_vip')->insert($val);
         }catch (\Exception $e) {
             if(isset($val['pic'])) {
-                @unlink($val['pic']);
+                $this->rs_delete($val['pic']);
             }
             return ajax($e->getMessage(),-1);
         }
@@ -167,25 +173,24 @@ class User extends Base {
             die($e->getMessage());
         }
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
-    //充值类目编辑    todo qiniu
+    //充值类目编辑
     public function vipModPost() {
         $val['title'] = input('post.title');
         $val['price'] = input('post.price');
         $val['detail'] = input('post.detail');
         $val['days'] = input('post.days');
+        $val['pic'] = input('post.pic');
         $val['id'] = input('post.id');
         checkInput($val);
-        if(isset($_FILES['file'])) {
-            $info = upload('file');
-            if($info['error'] === 0) {
-                $val['pic'] = $info['data'];
-            }else {
-                return ajax($info['msg'],-1);
-            }
-        }
         try {
+            $qiniu_exist = $this->qiniuFileExist($val['pic']);
+            if($qiniu_exist !== true) {
+                return ajax($qiniu_exist['msg'],-1);
+            }
+
             $where = [
                 ['id','=',$val['id']]
             ];
@@ -193,15 +198,21 @@ class User extends Base {
             if(!$exist) {
                 return ajax('非法参数',-1);
             }
+            $qiniu_move = $this->moveFile($val['pic'],'upload/vip/');
+            if($qiniu_move['code'] == 0) {
+                $val['pic'] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'],-2);
+            }
             Db::table('mp_vip')->where($where)->update($val);
         }catch (\Exception $e) {
-            if(isset($val['pic'])) {
-                @unlink($val['pic']);
+            if($val['pic'] != $exist['pic']) {
+                $this->rs_delete($val['pic']);
             }
             return ajax($e->getMessage(),-1);
         }
-        if(isset($val['pic'])) {
-            @unlink($exist['pic']);
+        if($val['pic'] != $exist['pic']) {
+            $this->rs_delete($exist['pic']);
         }
         return ajax([],1);
 
@@ -211,16 +222,20 @@ class User extends Base {
         $val['id'] = input('post.id');
         checkInput($val);
         try {
-            $exist = Db::table('mp_vip')->where('id',$val['id'])->find();
+            $where = [
+                ['id','=',$val['id']]
+            ];
+            $exist = Db::table('mp_vip')->where($where)->find();
             if(!$exist) {
                 return ajax('非法操作',-1);
             }
-            $model = model('vip');
-            $model::destroy($val['id']);
+//            Db::table('mp_vip')->where($where)->delete();
+            Db::table('mp_vip')->where($where)->update(['del'=>1]);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        return ajax([],1);
+//        $this->rs_delete($exist['pic']);
+        return ajax();
     }
 
     //拉黑用户
@@ -335,7 +350,6 @@ class User extends Base {
         $this->assign('id',$id);
         return $this->fetch();
     }
-
     //确认发货
     public function deliver() {
         $val['tracking_name'] = input('post.tracking_name');

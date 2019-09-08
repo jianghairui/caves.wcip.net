@@ -111,6 +111,7 @@ class Note extends Base {
             die('参数无效');
         }
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 

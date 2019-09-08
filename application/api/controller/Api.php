@@ -295,7 +295,7 @@ class Api extends Common
                 ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
-                ->field("w.id,w.title,w.vote,w.pics,u.nickname,u.avatar")
+                ->field("w.id,w.title,w.vote,w.pics,w.bid_num,u.nickname,u.avatar")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -347,8 +347,8 @@ class Api extends Common
     public function bidding()
     {
         $val['work_id'] = input('post.work_id');
-        $val['desc'] = input('post.desc');
         checkPost($val);
+        $val['desc'] = input('post.desc');
         $user = $this->myinfo;
         $val['uid'] = $user['id'];
         $val['create_time'] = time();

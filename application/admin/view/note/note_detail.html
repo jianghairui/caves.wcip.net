@@ -7,18 +7,19 @@
 
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">
-                笔记图片：
+                <span id="btn-star1" class="btn btn-primary btn-uploadstar radius ml-10">笔记图片</span>
             </label>
             <div class="formControls col-xs-8 col-sm-9">
-                <ul class="cl portfolio-area">
-                    {if $info['pics']}
-                    <?php $image = unserialize($info['pics']);?>
-                    {foreach $image as $li}
+                <ul class="cl portfolio-area" id="fileList">
+                    <?php $images = unserialize($info['pics']);?>
+                    {if $images}
+                    {foreach $images as $v}
                     <li class="item">
                         <div class="portfoliobox">
-                            <input class="checkbox" name="" type="checkbox" value="">
-                            <div class="picbox"><a href="/{$li}" data-lightbox="gallery" data-title=""><img src="/{$li}"></a></div>
-                            <div class="textbox"></div>
+                            <!--<span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span>-->
+                            <div class="picbox">
+                                <a href="{$qiniu_weburl}{$v}" data-lightbox="gallery" data-title=""><img src="{$qiniu_weburl}{$v}"></a>
+                            </div>
                         </div>
                     </li>
                     {/foreach}
@@ -35,8 +36,8 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">笔记内容：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <textarea name="content" cols="" rows="" class="textarea"  placeholder="说点什么...最少输入10个字符" datatype="*10-100" dragonfly="true" nullmsg="备注不能为空！">{$info.content}</textarea>
-                <p class="textarea-numberbar"><em class="textarea-length">0</em>/255</p>
+                <textarea name="content" class="textarea" maxlength="1000" placeholder="" oninput="this.value.length<=1000?$('#textlen1').text(this.value.length):$('#textlen1').text(1000)" >{$info.content}</textarea>
+                <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/1000</p>
             </div>
         </div>
         <div class="row cl">
@@ -103,6 +104,10 @@
 
             }
         });
+
+
+        var textlen1 = $("textarea[name='content']").val().length;
+        $("#textlen1").text(textlen1);
 
     })
 
