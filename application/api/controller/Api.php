@@ -46,10 +46,6 @@ class Api extends Common
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        foreach ($list as &$v) {
-            $v['start_time'] = date('Y-m-d', $v['start_time']);
-            $v['end_time'] = date('Y-m-d', $v['end_time']);
-        }
         return ajax($list);
     }
     //获取活动详情
@@ -290,8 +286,7 @@ class Api extends Common
         return ajax();
     }
     //获取参赛作品列表
-    public function worksList()
-    {
+    public function worksList() {
         $val['req_id'] = input('post.req_id');
         $val['order'] = input('post.order',1);
         $curr_page = input('post.page', 1);
@@ -310,7 +305,7 @@ class Api extends Common
                 ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
-                ->field("w.id,w.title,w.vote,w.pics,w.bid_num,u.nickname,u.avatar")
+                ->field("w.id,w.title,w.vote,w.pics,w.bid_num,w.desc,u.nickname,u.avatar")
                 ->order($order)
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
@@ -323,8 +318,7 @@ class Api extends Common
         return ajax($list);
     }
     //参赛作品详情
-    public function worksDetail()
-    {
+    public function worksDetail() {
         $val['id'] = input('post.id');
         checkPost($val);
         try {
@@ -360,8 +354,7 @@ class Api extends Common
         return ajax($exist);
     }
     //工厂接单竞标
-    public function bidding()
-    {
+    public function bidding() {
         $val['work_id'] = input('post.work_id');
         checkPost($val);
         $val['desc'] = input('post.desc');
@@ -407,8 +400,7 @@ class Api extends Common
         return ajax();
     }
     //获取竞标列表
-    public function biddingList()
-    {
+    public function biddingList() {
         $val['work_id'] = input('post.work_id');
         checkPost($val);
         try {
@@ -522,6 +514,28 @@ class Api extends Common
     }
     //众筹列表
     public function fundingList() {
+        $param['search'] = input('post.search');
+        $curr_page = input('post.page',1);
+        $perpage = input('post.perpage',10);
+
+        $where = [
+            ['del','=',0]
+        ];
+        if($param['search']) {
+            $where[] = ['f.title','like',"%{$param['search']}%"];
+        }
+        try {
+            $list = Db::table('mp_funding')
+                ->field('id,title,cover,need_money,curr_money,order_num,start_time,end_time')
+                ->where($where)
+                ->order(['id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        return ajax($list);
+    }
+    //众筹列表
+    public function allFundingList() {
         $param['status'] = input('post.status','');
         $param['search'] = input('post.search');
         $curr_page = input('post.page',1);
@@ -531,15 +545,15 @@ class Api extends Common
             ['del','=',0]
         ];
         if(!is_null($param['status']) && $param['status'] !== '') {
-            $where[] = ['f.status','=',$param['status']];
+            $where[] = ['status','=',$param['status']];
         }
         if($param['search']) {
-            $where[] = ['f.title','like',"%{$param['search']}%"];
+            $where[] = ['title','like',"%{$param['search']}%"];
         }
 
         try {
             $list = Db::table('mp_funding')
-                ->field('id,title,cover,need_money,curr_money,order_num,start_time,end_time')
+                ->field('id,title,cover,need_money,curr_money,order_num,start_time,end_time,status')
                 ->where($where)
                 ->order(['id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
@@ -566,6 +580,7 @@ class Api extends Common
         }catch (\Exception $e) {
             die($e->getMessage());
         }
+        $info['works_pics'] = unserialize($info['works_pics']);
         return ajax($info);
     }
     //众筹商品列表
