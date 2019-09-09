@@ -53,8 +53,8 @@ class System extends Base {
 
     public function syslog() {
 
-        $param['logmin'] = input('param.logmin');
-        $param['logmax'] = input('param.logmax');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
         $param['search'] = input('param.search');
 
         $page['query'] = http_build_query(input('param.'));
@@ -63,12 +63,12 @@ class System extends Base {
         $perpage = input('param.perpage',20);
 
         $where = [];
-        if($param['logmin']) {
-            $where[] = ['s.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['logmin'])))];
+        if($param['datemin']) {
+            $where[] = ['s.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
         }
 
-        if($param['logmax']) {
-            $where[] = ['s.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['logmax'])))];
+        if($param['datemax']) {
+            $where[] = ['s.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
         }
 
         if($param['search']) {

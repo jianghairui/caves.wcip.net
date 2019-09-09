@@ -2,9 +2,9 @@
 <div class="page-container">
     <form id="formAjax">
         <div class="text-c"> 日期范围：
-            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'logmax\')||\'%y-%M-%d\' }' })" id="logmin" value="{$Think.get.logmin}" class="input-text Wdate" style="width:120px;">
+            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'datemax\')||\'%y-%M-%d\' }' })" id="datemin" value="{$Think.get.datemin}" class="input-text Wdate" style="width:120px;">
             -
-            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'logmin\') }',maxDate:'%y-%M-%d' })" id="logmax" value="{$Think.get.logmax}" class="input-text Wdate" style="width:120px;">
+            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'datemin\') }',maxDate:'%y-%M-%d' })" id="datemax" value="{$Think.get.datemax}" class="input-text Wdate" style="width:120px;">
             <input type="text" class="input-text" style="width:250px" placeholder="输入管理员名称" value="{$Think.get.search}" id="search" name="search">
             <button type="button" class="btn btn-success" id="search-btn" name=""><i class="Hui-iconfont">&#xe665;</i> 搜用户</button>
         </div>
@@ -113,15 +113,15 @@
     });
 
     $("#search-btn").click(function () {
-        var logmin = $("#formAjax").find("#logmin").val();
-        var logmax = $("#formAjax").find("#logmax").val();
+        var datemin = $("#formAjax").find("#datemin").val();
+        var datemax = $("#formAjax").find("#datemax").val();
         var search = $("#formAjax").find("#search").val();
         var str = '';
-        if(logmin.length !== '') {
-            str += '&logmin=' + logmin
+        if(datemin.length !== '') {
+            str += '&datemin=' + datemin
         }
-        if(logmax.length !== '') {
-            str += '&logmax=' + logmax
+        if(datemax.length !== '') {
+            str += '&datemax=' + datemax
         }
         if(search.length !== '') {
             str += '&search=' + search

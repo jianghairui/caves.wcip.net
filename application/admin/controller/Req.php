@@ -12,10 +12,11 @@ class Req extends Base {
     //活动列表
     public function reqList() {
         $param['status'] = input('param.status','');
-        $param['logmin'] = input('param.logmin');
-        $param['logmax'] = input('param.logmax');
+        $param['datetype'] = input('param.datetype','1');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
         $param['search'] = input('param.search');
-
+        $param['state'] = input('param.state');
         $page['query'] = http_build_query(input('param.'));
 
         $curr_page = input('param.page',1);
@@ -29,12 +30,32 @@ class Req extends Base {
             $where[] = ['r.status','=',$param['status']];
         }
 
-        if($param['logmin']) {
-            $where[] = ['r.create_time','>=',$param['logmin']];
+        switch ($param['datetype']) {
+            case '1':$condition_date = 'r.create_time';break;
+            case '2':$condition_date = 'r.start_time';break;
+            case '3':$condition_date = 'r.deadline';break;
+            case '4':$condition_date = 'r.vote_time';break;
+            case '5':$condition_date = 'r.end_time';break;
+            default:$condition_date = 'r.create_time';
         }
-
-        if($param['logmax']) {
-            $where[] = ['r.create_time','<=',$param['logmax']];
+        switch ($param['state']) {
+            case '1'://未开始
+                $where[] = ['r.start_time','>',time()];break;
+            case '2'://创意中
+                $where[] = ['r.start_time','<',time()];
+                $where[] = ['r.deadline','>=',time()];break;
+            case '3'://投票中
+                $where[] = ['r.deadline','<',time()];
+                $where[] = ['r.vote_time','>=',time()];break;
+            case '4'://已结束
+                $where[] = ['r.end_time','<',time()];break;
+            default:;
+        }
+        if($param['datemin']) {
+            $where[] = [$condition_date,'>=',strtotime($param['datemin'])];
+        }
+        if($param['datemax']) {
+            $where[] = [$condition_date,'<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
         }
 
         if($param['search']) {
@@ -50,7 +71,6 @@ class Req extends Base {
             $list = Db::table('mp_req')->alias('r')
                 ->join('mp_user_role ro','r.uid=ro.uid','left')
                 ->field('r.*,ro.org')
-                ->order(['r.id'=>'DESC'])
                 ->where($where)
                 ->order(['r.id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
@@ -59,7 +79,7 @@ class Req extends Base {
 
         $this->assign('list',$list);
         $this->assign('page',$page);
-        $this->assign('status',$param['status']);
+        $this->assign('param',$param);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
@@ -98,11 +118,23 @@ class Req extends Base {
             $val['deadline'] = strtotime($val['deadline'] . ' 23:59:59');
             $val['vote_time'] = strtotime($val['vote_time'] . ' 23:59:59');
             $val['end_time'] = strtotime($val['end_time'] . ' 23:59:59');
+
+            $use_video = input('post.use_video',0);
             $cover = input('post.cover');
+            $video_url = input('post.video_url');
             try {
                 if(!$cover) {
                     return ajax('请传入封面图',-1);
                 }
+                if($use_video) {
+                    if(!$video_url) {
+                        return ajax('请上传视频',-1);
+                    }
+                    $val['use_video'] = 1;
+                }else {
+                    $val['use_video'] = 0;
+                }
+
                 $whereUser = [
                     ['id','=',$val['uid']],
                     ['role','=',1],
@@ -117,16 +149,30 @@ class Req extends Base {
                 if($qiniu_exist !== true) {
                     return ajax($qiniu_exist['msg'],-1);
                 }
-
                 $qiniu_move = $this->moveFile($cover,'upload/req/');
                 if($qiniu_move['code'] == 0) {
                     $val['cover'] = $qiniu_move['path'];
                 }else {
                     return ajax($qiniu_move['msg'],-2);
                 }
+                if($use_video) {
+                    $qiniu_exist = $this->qiniuFileExist($video_url);
+                    if($qiniu_exist !== true) {
+                        return ajax($qiniu_exist['msg'],-1);
+                    }
+                    $qiniu_move = $this->moveFile($video_url,'upload/req/');
+                    if($qiniu_move['code'] == 0) {
+                        $val['video_url'] = $qiniu_move['path'];
+                    }else {
+                        return ajax($qiniu_move['msg'],-2);
+                    }
+                }
                 Db::table('mp_req')->insert($val);
             } catch (\Exception $e) {
                 $this->rs_delete($val['cover']);
+                if($use_video) {
+                    $this->rs_delete($val['video_url']);
+                }
                 return ajax($e->getMessage(), -1);
             }
             return ajax();
@@ -165,10 +211,20 @@ class Req extends Base {
             $val['deadline'] = strtotime($val['deadline'] . ' 23:59:59');
             $val['vote_time'] = strtotime($val['vote_time'] . ' 23:59:59');
             $val['end_time'] = strtotime($val['end_time'] . ' 23:59:59');
+            $use_video = input('post.use_video',0);
             $cover = input('post.cover');
+            $video_url = input('post.video_url');
             try {
                 if(!$cover) {
                     return ajax('请传入封面图',-1);
+                }
+                if($use_video) {
+                    if(!$video_url) {
+                        return ajax('请上传视频',-1);
+                    }
+                    $val['use_video'] = 1;
+                }else {
+                    $val['use_video'] = 0;
                 }
                 $where = [
                     ['id','=',$val['id']]
@@ -187,20 +243,41 @@ class Req extends Base {
                 }else {
                     return ajax($qiniu_move['msg'],-2);
                 }
+                if($use_video) {
+                    $qiniu_exist = $this->qiniuFileExist($video_url);
+                    if($qiniu_exist !== true) {
+                        return ajax($qiniu_exist['msg'],-1);
+                    }
+                    $qiniu_move = $this->moveFile($video_url,'upload/req/');
+                    if($qiniu_move['code'] == 0) {
+                        $val['video_url'] = $qiniu_move['path'];
+                    }else {
+                        return ajax($qiniu_move['msg'],-2);
+                    }
+                }
                 Db::table('mp_req')->update($val);
             } catch (\Exception $e) {
                 if($val['cover'] != $req_exist['cover']) {
                     $this->rs_delete($val['cover']);
+                }
+                if($use_video) {
+                    if($val['video_url'] != $req_exist['video_url']) {
+                        $this->rs_delete($val['video_url']);
+                    }
                 }
                 return ajax($e->getMessage(), -1);
             }
             if($val['cover'] != $req_exist['cover']) {
                 $this->rs_delete($req_exist['cover']);
             }
+            if($use_video) {
+                if($val['video_url'] != $req_exist['video_url']) {
+                    $this->rs_delete($req_exist['video_url']);
+                }
+            }
             return ajax();
         }
     }
-
     //活动审核-通过
     public function reqPass() {
         $map = [

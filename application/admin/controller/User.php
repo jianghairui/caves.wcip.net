@@ -16,8 +16,8 @@ class User extends Base {
     //会员列表
     public function userList() {
         $param['status'] = input('param.status','');
-        $param['logmin'] = input('param.logmin');
-        $param['logmax'] = input('param.logmax');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
         $param['search'] = input('param.search');
 
         $page['query'] = http_build_query(input('param.'));
@@ -30,12 +30,12 @@ class User extends Base {
         if(!is_null($param['status']) && $param['status'] !== '') {
             $where[] = ['status','=',$param['status']];
         }
-        if($param['logmin']) {
-            $where[] = ['create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['logmin'])))];
+        if($param['datemin']) {
+            $where[] = ['create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
         }
 
-        if($param['logmax']) {
-            $where[] = ['create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['logmax'])))];
+        if($param['datemax']) {
+            $where[] = ['create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
         }
 
         if($param['search']) {
@@ -277,17 +277,17 @@ class User extends Base {
 
     public function rechargeList() {
         $param['status'] = input('param.status','');
-        $param['logmin'] = input('param.logmin');
-        $param['logmax'] = input('param.logmax');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
         $param['search'] = input('param.search');
 
         $page['query'] = http_build_query(input('param.'));
 
-        if($param['logmin']) {
-            $where[] = ['o.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['logmin'])))];
+        if($param['datemin']) {
+            $where[] = ['o.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
         }
-        if($param['logmax']) {
-            $where[] = ['create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['logmax'])))];
+        if($param['datemax']) {
+            $where[] = ['create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
         }
         if($param['search']) {
             $where[] = ['nickname|tel','like',"%{$param['search']}%"];

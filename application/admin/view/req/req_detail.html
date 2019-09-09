@@ -21,15 +21,40 @@
                 </span>
             </div>
         </div>
-        <div class="row cl" id="pic">
+        <!--<div class="row cl">-->
+            <!--<label class="form-label col-xs-4 col-sm-2">使用视频：</label>-->
+            <!--<div class="formControls col-xs-8 col-sm-10">-->
+                <!--<input type="checkbox" id="use_video" name="use_video" value="1" style="width: 20px;height: 20px" {if $info['use_video']}checked{/if}>-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<div class="row cl" id="pic" >-->
+            <!--<label class="form-label col-xs-4 col-sm-2">-->
+                <!--<span id="btn-star" class="btn btn-primary uploadfile radius ml-10">活动封面</span>-->
+            <!--</label>-->
+            <!--<div class="formControls col-xs-8 col-sm-9">-->
+                <!--<div class="uploader-thum-container">-->
+                    <!--<div id="fileList" class="uploader-list">-->
+                        <!--<img class="thumbnail" src="{$qiniu_weburl}{$info.cover}" alt="">-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+        <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">
-                <span id="btn-star" class="btn btn-primary uploadfile radius ml-10">活动封面</span>
+                <span class="btn btn-primary uploadfile radius ml-10">上传视频</span>
             </label>
-            <div class="formControls col-xs-8 col-sm-9">
+            <div class="formControls col-xs-4 col-sm-4">
                 <div class="uploader-thum-container">
-                    <div id="fileList" class="uploader-list">
-                        <img class="thumbnail" src="{$qiniu_weburl}{$info.cover}" alt="">
+                    <div class="uploader-list">
+                        <video id="video" src="{$qiniu_weburl}{$info.video_url}" controls="controls" style="width: 100%">
+                            your browser does not support the video tag
+                        </video>
                     </div>
+                </div>
+            </div>
+            <div class="formControls col-xs-4 col-sm-4">
+                <div style="width: 100%;height: 20px;background: #e3e3e3;border-radius:2px;display: none" id="progress-bar">
+                    <div style="width: 0px;height: 20px;background: #177fcb;border-radius:2px" id="progress"><b style="margin-left: 15px;width: 80px;display: block" id="progress-text">0%</b></div>
                 </div>
             </div>
         </div>

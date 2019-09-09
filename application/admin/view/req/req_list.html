@@ -1,10 +1,36 @@
+<style>
+    .order-font-b{color:#363636;font-size: 13px}
+    .funding-label{display: inline-flex;font-size: 12px;width: 100px;font-weight: bold}
+    .funding-label2{display: inline-flex;font-size: 12px;width: 50px;font-weight: bold}
+</style>
 <nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 活动管理 <span class="c-gray en">&gt;</span> 活动列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
 <div class="page-container">
     <section id="formAjax">
         <div class="text-c">
             <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
+            <span class="select-box inline" style="width: 120px;">
+                <select name="datetype" id="datetype" class="select">
+                    <option value="1" {if $param['datetype'] === '1'}selected{/if}>活动发布时间</option>
+                    <option value="2" {if $param['datetype'] === '2'}selected{/if}>活动开始时间</option>
+                    <option value="3" {if $param['datetype'] === '3'}selected{/if}>创意截止时间</option>
+                    <option value="4" {if $param['datetype'] === '4'}selected{/if}>投票截止时间</option>
+                    <option value="5" {if $param['datetype'] === '5'}selected{/if}>活动结束时间</option>
+                </select>
+            </span>
+            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'datemax\') }' })" id="datemin" value="{$Think.get.datemin}" class="input-text Wdate" style="width:120px;">
+            -
+            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'datemin\') }' })" id="datemax" value="{$Think.get.datemax}" class="input-text Wdate" style="width:120px;">
             <input type="text" name="search" value="{$Think.get.search}" id="search" placeholder=" 活动名" style="width:250px" class="input-text">
             <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找活动</button>
+            <span class="select-box inline" style="width: 120px;">
+                <select name="state" id="state" class="select">
+                    <option value="">全部</option>
+                    <option value="1" {if $param['state'] === '1'}selected{/if}>未开始</option>
+                    <option value="2" {if $param['state'] === '2'}selected{/if}>创意中</option>
+                    <option value="3" {if $param['state'] === '3'}selected{/if}>投票中</option>
+                    <option value="4" {if $param['state'] === '4'}selected{/if}>已结束</option>
+                </select>
+            </span>
         </div>
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
@@ -18,25 +44,30 @@
         <tr class="text-c">
             <th width="25">#</th>
             <th width="100">封面</th>
-            <th width="120">举办方单位</th>
-            <th>活动名称</th>
-            <th width="120">活开始时间</th>
-            <th width="80">审核状态</th>
+            <th>活动</th>
+            <th width="150">审核状态</th>
             <th width="80">审核</th>
-            <th width="100">操作</th>
+            <th width="80">操作</th>
         </tr>
         </thead>
         <tbody>
         <form id="multi-check">
             {foreach $list as $li}
             <tr class="text-c userinfo">
-                <td>{$li.id}</td>
-                <td>
-                    <div style="width: 120px;height: 80px;background-image: url('{$qiniu_weburl}{$li.cover}');background-position: center;background-repeat: no-repeat;background-size: cover"></div>
+                <td rowspan="2">{$li.id}</td>
+                <td rowspan="2">
+                    <div style="width: 100px;height: 100px;background-image: url('{$qiniu_weburl}{$li.cover}');background-position: center;background-repeat: no-repeat;background-size: cover"></div>
                 </td>
-                <td>{$li.org}</td>
-                <td>{$li.title}</td>
-                <td>{$li.start_time|date="Y-m-d"}</td>
+                <td rowspan="2" class="text-l">
+                    <div style="margin: 0 10px;">
+                        <div><label class="funding-label">活动标题:</label><span class="order-font-b">{$li.title}</span></div>
+                        <div><label class="funding-label">举办方单位名:</label><span class="order-font-b">{$li.org}</span></div>
+                        <div><label class="funding-label">活动开始时间:</label><span class="order-font-b">{$li.start_time|date="Y年m月d日"}</span> {if $li['start_time'] <= time()}<i class="Hui-iconfont">&#xe698;</i>{/if}</div>
+                        <div><label class="funding-label">创意截止时间:</label><span class="order-font-b">{$li.deadline|date="Y年m月d日"}</span> {if $li['deadline'] <= time()}<i class="Hui-iconfont">&#xe698;</i>{/if}</div>
+                        <div><label class="funding-label">投票截止时间:</label><span class="order-font-b">{$li.vote_time|date="Y年m月d日"}</span> {if $li['vote_time'] <= time()}<i class="Hui-iconfont">&#xe698;</i>{/if}</div>
+                        <div><label class="funding-label">活动结束时间:</label><span class="order-font-b">{$li.end_time|date="Y年m月d日"}</span> {if $li['end_time'] <= time()}<i class="Hui-iconfont">&#xe698;</i>{/if}</div>
+                    </div>
+                </td>
                 <td class="td-status">
                     {switch $li['status']}
                     {case 0}
@@ -58,7 +89,7 @@
                     <span class="btn btn-link radius"></span>
                     {/if}
                 </td>
-                <td class="td-manage">
+                <td class="td-manage" rowspan="2">
                     <span>
                         {if $li['show'] == '1'}
                         <a style="text-decoration:none" onClick="req_hide(this,{$li.id})" href="javascript:;" title="隐藏">
@@ -91,6 +122,15 @@
                         <i class="Hui-iconfont">&#xe6e2;</i>
                         </a>
                     </span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div style="margin: 0 10px;">
+                        <div><label class="funding-label2">创意数:</label><span class="order-font-b">{$li.idea_num}</span></div>
+                        <div><label class="funding-label2">作品数:</label><span class="order-font-b">{$li.works_num}</span></div>
+                        <div><label class="funding-label">活动发布时间:</label><span class="order-font-b">{$li.create_time|date="Y年m月d日"}</span></div>
+                    </div>
                 </td>
             </tr>
             {/foreach}
@@ -128,11 +168,26 @@
 
 
     $("#search-btn").click(function () {
+        var datetype = $("#formAjax").find("#datetype").val();
+        var datemin = $("#formAjax").find("#datemin").val();
+        var datemax = $("#formAjax").find("#datemax").val();
         var search = $("#formAjax").find("#search").val();
-        var id = $("#formAjax").find("#id").val();
-        var str = 'id=' + id;
+        var state = $("#formAjax").find("#state").val();
+        var str = '';
+        if(datetype.length != '') {
+            str += '&datetype=' + datetype
+        }
+        if(datemin.length != '') {
+            str += '&datemin=' + datemin
+        }
+        if(datemax.length != '') {
+            str += '&datemax=' + datemax
+        }
         if(search.length != '') {
             str += '&search=' + search;
+        }
+        if(state.length != '') {
+            str += '&state=' + state;
         }
         window.location.href = '{:url("Req/reqList")}' + '?' + str;
     });
@@ -240,6 +295,7 @@
                 success: function(data){
                     console.log(data);
                     if(data.code == 1) {
+                        $(obj).parents("tr").next().remove();
                         $(obj).parents("tr").remove();
                         layer.msg('已删除!',{icon:1,time:1000});
                     }else {

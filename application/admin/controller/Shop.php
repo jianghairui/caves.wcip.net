@@ -549,8 +549,8 @@ class Shop extends Base {
     public function orderList() {
         $param['search'] = input('param.search','');
         $param['status'] = input('param.status','');
-        $param['logmin'] = input('param.logmin');
-        $param['logmax'] = input('param.logmax');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
         $param['refund_apply'] = input('param.refund_apply','');
         $page['query'] = http_build_query(input('param.'));
         $curr_page = input('param.page',1);
@@ -565,11 +565,11 @@ class Shop extends Base {
         if($param['refund_apply']) {
             $where .= " AND refund_apply=" . $param['refund_apply'];
         }
-        if($param['logmin']) {
-            $where .= " AND create_time>=" . strtotime(date('Y-m-d 00:00:00',strtotime($param['logmin'])));
+        if($param['datemin']) {
+            $where .= " AND create_time>=" . strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])));
         }
-        if($param['logmax']) {
-            $where .= " AND create_time<=" . strtotime(date('Y-m-d 23:59:59',strtotime($param['logmax'])));
+        if($param['datemax']) {
+            $where .= " AND create_time<=" . strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])));
         }
         if($param['search']) {
             $where .= " AND (pay_order_sn LIKE '%".$param['search']."%' OR tel LIKE '%".$param['search']."%')";

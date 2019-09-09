@@ -10,9 +10,9 @@
         <div class="text-c">
             <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
             日期范围：
-            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'logmax\')||\'%y-%M-%d\' }' })" id="logmin" value="{$Think.get.logmin}" class="input-text Wdate" style="width:120px;">
+            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'datemax\')||\'%y-%M-%d\' }' })" id="datemin" value="{$Think.get.datemin}" class="input-text Wdate" style="width:120px;">
             -
-            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'logmin\') }' })" id="logmax" value="{$Think.get.logmax}" class="input-text Wdate" style="width:120px;">
+            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'datemin\') }' })" id="datemax" value="{$Think.get.datemax}" class="input-text Wdate" style="width:120px;">
             <span class="select-box inline" style="width: 120px;">
                 <select name="status" id="status" class="select">
                     <option value="">全部</option>
@@ -168,17 +168,17 @@
 
     var click_lock = true;
     $("#search-btn").click(function () {
-        var logmin = $("#formAjax").find("#logmin").val();
-        var logmax = $("#formAjax").find("#logmax").val();
+        var datemin = $("#formAjax").find("#datemin").val();
+        var datemax = $("#formAjax").find("#datemax").val();
         var search = $("#formAjax").find("#search").val();
         var status = $("#formAjax").find("#status").val();
         var refund_apply = $("#formAjax").find("#refund_apply").val();
         var str = '';
-        if(logmin.length != '') {
-            str += '&logmin=' + logmin
+        if(datemin.length != '') {
+            str += '&datemin=' + datemin
         }
-        if(logmax.length != '') {
-            str += '&logmax=' + logmax
+        if(datemax.length != '') {
+            str += '&datemax=' + datemax
         }
         if(search.length != '') {
             str += '&search=' + search
