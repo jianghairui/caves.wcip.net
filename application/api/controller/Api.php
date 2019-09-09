@@ -40,7 +40,7 @@ class Api extends Common
         try {
             $list = Db::table('mp_req')
                 ->where($where)->order(['start_time' => 'ASC'])
-                ->field("id,title,works_num,idea_num,cover,start_time,end_time")
+                ->field("id,title,works_num,idea_num,cover,org,start_time,end_time")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->select();
         } catch (\Exception $e) {
@@ -60,12 +60,14 @@ class Api extends Common
                 ['id', '=', $val['id']],
             ];
             $info = Db::table('mp_req')
-                ->field('id,title,cover,theme,explain,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num')
+                ->field('id,uid,title,cover,theme,explain,desc,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num')
                 ->where($where)->find();
             if (!$info) {
                 return ajax($val['id'], -4);
             }
-
+            $user = Db::table('mp_user')->where('id','=',$info['uid'])->field('nickname,avatar')->find();
+            $info['nickname'] = $user['nickname'];
+            $info['avatar'] = $user['avatar'];
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

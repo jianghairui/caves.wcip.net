@@ -111,6 +111,7 @@ class Req extends Base {
             $val['deadline'] = input('post.deadline');
             $val['vote_time'] = input('post.vote_time');
             $val['end_time'] = input('post.end_time');
+            $val['desc'] = input('post.desc');
             checkInput($val);
             $val['weixin'] = input('post.weixin');
             $val['status'] = 1;
@@ -203,6 +204,7 @@ class Req extends Base {
             $val['deadline'] = input('post.deadline');
             $val['vote_time'] = input('post.vote_time');
             $val['end_time'] = input('post.end_time');
+            $val['desc'] = input('post.desc');
             $val['id'] = input('post.id');
             checkInput($val);
             $val['weixin'] = input('post.weixin');

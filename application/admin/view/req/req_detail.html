@@ -119,6 +119,13 @@
             </div>
         </div>
         <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">简介：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <textarea name="desc" cols="" rows="" class="textarea" maxlength="255" placeholder="" oninput="this.value.length<=255?$('#textlen1').text(this.value.length):$('#textlen1').text(255)" >{$info.desc}</textarea>
+                <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/255</p>
+            </div>
+        </div>
+        <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">活动说明：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 <textarea id="editor" type="text/plain" name="explain" style="width:100%;height:400px;">{$info.explain}</textarea>
@@ -377,7 +384,8 @@
             }
         });
 
-
+        var textlen1 = $("textarea[name='desc']").val().length;
+        $("#textlen1").text(textlen1);
 
     });
 
