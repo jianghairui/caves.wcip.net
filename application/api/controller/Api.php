@@ -128,17 +128,26 @@ class Api extends Common
     //创意列表
     public function ideaList() {
         $val['req_id'] = input('post.req_id');
+        $val['order'] = input('post.order',1);
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',20);
         try {
             $where = [
-                ['i.req_id','=',$val['req_id']],
                 ['i.status','=',1]
             ];
+            if($val['req_id']) {
+                $where[] = ['i.req_id','=',$val['req_id']];
+            }
+            if($val['order'] == 1) {
+                $order = ['i.id'=>'DESC'];
+            }else {
+                $order = ['i.vote'=>'DESC'];
+            }
             $list = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_user u','i.uid=u.id','left')
                 ->where($where)
                 ->field('i.id,i.title,i.content,i.works_num,i.vote,u.nickname,u.avatar')
+                ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
         } catch (\Exception $e) {
@@ -284,18 +293,25 @@ class Api extends Common
     public function worksList()
     {
         $val['req_id'] = input('post.req_id');
+        $val['order'] = input('post.order',1);
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        checkPost($val);
+        $where = [];
         try {
-            $where = [
-                ['w.req_id', '=', $val['req_id']]
-            ];
+            if($val['req_id']) {
+                $where[] = ['w.req_id', '=', $val['req_id']];
+            }
+            if($val['order'] == 1) {
+                $order = ['w.id'=>'DESC'];
+            }else {
+                $order = ['w.vote'=>'DESC'];
+            }
             $list = Db::table('mp_req_works')->alias('w')
                 ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
                 ->field("w.id,w.title,w.vote,w.pics,w.bid_num,u.nickname,u.avatar")
+                ->order($order)
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
