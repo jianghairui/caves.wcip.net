@@ -59,7 +59,12 @@ class Note extends Common {
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
         $image = input('post.pics',[]);
-
+        if(!$this->msgSecCheck($val['title'])) {
+            return ajax('标题包含敏感词',63);
+        }
+        if(!$this->msgSecCheck($val['content'])) {
+            return ajax('内容包含敏感词',64);
+        }
         if(is_array($image) && !empty($image)) {
             if(count($image) > 9) {
                 return ajax('最多上传9张图片',8);
@@ -185,7 +190,9 @@ WHERE c.note_id=?",[$val['note_id']]);
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
         $val['to_cid'] = input('post.to_cid');
-
+        if(!$this->msgSecCheck($val['content'])) {
+            return ajax('评论内容包含敏感词',65);
+        }
         try {
             $exist = Db::table('mp_note')->where('id',$val['note_id'])->find();
             if(!$exist) {

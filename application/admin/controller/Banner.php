@@ -184,6 +184,7 @@ class Banner extends Base {
             return ajax($e->getMessage(), -1);
         }
         $this->assign('list',$list);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //修改视频
@@ -198,6 +199,7 @@ class Banner extends Base {
             die($e->getMessage());
         }
         $this->assign('info',$exist);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 
@@ -206,8 +208,11 @@ class Banner extends Base {
         $val['title'] = input('post.title');
         $val['id'] = input('post.id');
         checkInput($val);
-
         $val['video_url'] = input('post.video_url');
+        $val['poster'] = input('post.poster');
+        if(!$val['poster']) {
+            return ajax('请传入封面',-1);
+        }
         if(!$val['video_url']) {
             return ajax('请传入视频',-1);
         }
@@ -219,21 +224,24 @@ class Banner extends Base {
             if(!$exist) {
                 return ajax('非法参数',-1);
             }
-            if(isset($_FILES['file'])) {
-                $info = upload('file','upload/poster/');
-                if($info['error'] === 0) {
-                    $val['poster'] = $info['data'];
-                }else {
-                    return ajax($info['msg'],-1);
-                }
-            }
 
+            $qiniu_exist = $this->qiniuFileExist($val['poster']);
+            if($qiniu_exist !== true) {
+                return ajax($qiniu_exist['msg'],-1);
+            }
             $qiniu_exist = $this->qiniuFileExist($val['video_url']);
             if($qiniu_exist !== true) {
                 return ajax($qiniu_exist['msg'],-1);
             }
 
-            $qiniu_move = $this->moveFile($val['video_url'],'upload/home/video/');
+            $qiniu_move = $this->moveFile($val['poster'],'upload/poster/');
+            if($qiniu_move['code'] == 0) {
+                $val['poster'] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'],-2);
+            }
+
+            $qiniu_move = $this->moveFile($val['video_url'],'upload/video/');
             if($qiniu_move['code'] == 0) {
                 $val['video_url'] = $qiniu_move['path'];
             }else {
@@ -241,16 +249,16 @@ class Banner extends Base {
             }
             Db::table('mp_video')->update($val);
         } catch (\Exception $e) {
-            if(isset($val['poster']) && $val['poster'] != $exist['poster']) {
-                @unlink($val['poster']);
+            if($val['poster'] != $exist['poster']) {
+                $this->rs_delete($val['poster']);
             }
             if($val['video_url'] !== $exist['video_url']) {
                 $this->rs_delete($val['video_url']);
             }
             return ajax($e->getMessage(), -1);
         }
-        if(isset($val['poster']) && $val['poster'] != $exist['poster']) {
-            @unlink($exist['poster']);
+        if($val['poster'] != $exist['poster']) {
+            $this->rs_delete($exist['poster']);
         }
         if($val['video_url'] !== $exist['video_url']) {
             $this->rs_delete($exist['video_url']);

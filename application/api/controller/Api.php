@@ -96,6 +96,12 @@ class Api extends Common
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
+        if(!$this->msgSecCheck($val['title'])) {
+            return ajax('标题包含敏感词',63);
+        }
+        if(!$this->msgSecCheck($val['content'])) {
+            return ajax('内容包含敏感词',64);
+        }
         try {
             $whereReq = [
                 ['id', '=', $val['req_id']]
@@ -219,6 +225,12 @@ class Api extends Common
         $val['create_time'] = time();
         $user = $this->myinfo;
         $image = input('post.pics', []);
+        if(!$this->msgSecCheck($val['title'])) {
+            return ajax('标题包含敏感词',63);
+        }
+        if(!$this->msgSecCheck($val['desc'])) {
+            return ajax('内容包含敏感词',64);
+        }
         if (is_array($image) && !empty($image)) {
             if (count($image) > 9) {
                 return ajax('最多上传9张图片', 8);

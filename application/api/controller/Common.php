@@ -192,7 +192,7 @@ class Common extends Controller {
                 }
             }
         } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
+            throw new HttpResponseException(ajax($e->getMessage(),-1));
         }
         return $audit;
     }
