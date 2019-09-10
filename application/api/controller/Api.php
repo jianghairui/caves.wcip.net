@@ -96,6 +96,7 @@ class Api extends Common
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
+        $val['status'] = 1;
         if(!$this->msgSecCheck($val['title'])) {
             return ajax('标题包含敏感词',63);
         }
@@ -169,8 +170,9 @@ class Api extends Common
             ];
             $info = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_user u','i.uid=u.id','left')
+                ->join('mp_req r','i.req_id=r.id','left')
                 ->where($whereIdea)
-                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar')
+                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar,i.req_id,r.title AS req_title,r.cover,r.org')
                 ->find();
             if(!$info) {
                 return ajax('invalid idea_id',-4);
@@ -612,8 +614,15 @@ class Api extends Common
                 ->join('mp_req r','f.req_id=r.id','left')
                 ->join('mp_req_idea i','f.idea_id=i.id','left')
                 ->join('mp_req_works w','f.work_id=w.id','left')
-                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.title AS work_title,w.desc AS work_detail,w.pics AS work_pics,f.desc,f.content')
+                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.uid,w.title AS work_title,w.desc AS work_detail,w.pics AS works_pics,f.desc,f.content')
                 ->where($where)->find();
+            $whereUser = [
+                ['id','=',$info['uid']]
+            ];
+            $designer = Db::table('mp_user')->where($whereUser)->field('id,nickname,avatar')->find();
+            $info['nickname'] = $designer['nickname'];
+            $info['avatar'] = $designer['avatar'];
+            $info['time_count'] = $info['end_time'] - time();
             if(!$info) { return ajax('非法参数id',-4);}
         }catch (\Exception $e) {
             die($e->getMessage());

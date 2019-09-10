@@ -3,8 +3,25 @@
     <section id="formAjax">
         <div class="text-c">
             <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
+            <span class="select-box inline">
+				<select class="select" name="req_id" id="req_id" style="width: 200px;">
+                    <option value="">全部(活动)</option>
+                    {foreach $reqlist as $li}
+					<option value="{$li.id}" {if $param['req_id']==$li['id']}selected{/if}>{$li.title}(id:{$li.id})</option>
+                    {/foreach}
+				</select>
+            </span>
             <input type="text" name="search" value="{$Think.get.search}" id="search" placeholder=" 创意" style="width:250px" class="input-text">
             <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找创意</button>
+            <span class="select-box inline">
+				<select class="select" name="sort" id="sort" style="width: 150px;">
+                    <option value="0">排序(默认)</option>
+					<option value="1" {if $param['sort']==1}selected{/if}>票数从高到低</option>
+					<option value="2" {if $param['sort']==2}selected{/if}>票数从低到高</option>
+					<option value="3" {if $param['sort']==3}selected{/if}>作品数从高到低</option>
+					<option value="4" {if $param['sort']==4}selected{/if}>作品数从低到高</option>
+				</select>
+            </span>
         </div>
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
@@ -19,11 +36,11 @@
             <th>创意标题</th>
             <th width="200">所属活动</th>
             <th width="120">举办方单位</th>
+            <th width="80">投票数</th>
+            <th width="80">作品数</th>
             <th width="120">创意时间</th>
             <th width="80">审核状态</th>
             <th width="80">审核</th>
-            <th width="80">投票数</th>
-            <th width="80">作品数</th>
             <th width="100">操作</th>
         </tr>
         </thead>
@@ -35,6 +52,8 @@
                 <td>{$li.title}</td>
                 <td>{$li.req_title}</td>
                 <td>{$li.org}</td>
+                <td>{$li.vote}</td>
+                <td>{$li.works_num}</td>
                 <td>{$li.create_time|date="Y-m-d H:i:s"}</td>
                 <td class="td-status">
                     {switch $li['status']}
@@ -57,8 +76,6 @@
                     <span class="btn btn-link radius"></span>
                     {/if}
                 </td>
-                <td>{$li.vote}</td>
-                <td>{$li.works_num}</td>
                 <td class="td-manage">
                     <span>
                         <a style="text-decoration:none" onclick="pagefull('创意详情','{:url("Req/ideaDetail",array("id"=>$li["id"]))}')" href="javascript:;" title="创意详情">
@@ -88,7 +105,6 @@
 
     var url = '{:url("Req/ideaList")}' + '?<?php echo $page["query"];?>';
     var curr = '{$page.curr}',totalPage = '{$page.totalPage}';
-    var click_lock = true;
     if(totalPage > 1) {
         laypage({
             cont: 'page', //容器。值支持id名、原生dom对象，jquery对象。
@@ -106,13 +122,20 @@
     }
 
     $("#search-btn").click(function () {
+        var req_id = $("#formAjax").find("#req_id").val();
         var search = $("#formAjax").find("#search").val();
-        var id = $("#formAjax").find("#id").val();
-        var str = 'id=' + id;
+        var sort = $("#formAjax").find("#sort").val();
+        var str = '';
+        if(req_id.length != '') {
+            str += '&req_id=' + req_id;
+        }
         if(search.length != '') {
             str += '&search=' + search;
         }
-        window.location.href = '{:url("Req/ideaList")}' + '?' + str;
+        if(sort.length != '') {
+            str += '&sort=' + sort;
+        }
+            window.location.href = '{:url("Req/ideaList")}' + '?' + str;
     });
 
     /*发布创意*/
