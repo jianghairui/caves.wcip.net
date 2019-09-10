@@ -888,7 +888,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                     return ajax($qiniu_move['msg'] .' :' . $k . '',-1);
                 }
             }
-
+            $works_array = [];
             if($val['role'] == 2) {
                 foreach ($works as $v) {
                     $qiniu_move = $this->moveFile($v,'upload/role/');
@@ -898,9 +898,8 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
                         return ajax($qiniu_move['msg'] . ' :works:'.$v,-1);
                     }
                 }
-                $val['works'] = serialize($works_array);
             }
-
+            $val['works'] = serialize($works_array);
             unset($val['code']);
             if($role_exist) {
                 Db::table('mp_user_role')->where('uid',$val['uid'])->update($val);

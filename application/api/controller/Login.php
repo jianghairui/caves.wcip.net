@@ -33,6 +33,7 @@ class Login extends Common {
                     'token'=>$token,
                     'session_key'=>$ret['session_key']
                 ]);
+                $uid = $exist['id'];
             }else {
                 $insert = [
                     'create_time' => time(),
@@ -41,12 +42,13 @@ class Login extends Common {
                     'session_key' => $ret['session_key'],
                     'token' => $token
                 ];
-                Db::table('mp_user')->insert($insert);
+                $uid = Db::table('mp_user')->insertGetId($insert);
             }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
         $json['token'] = $token;
+        $json['uid'] = $uid;
         return ajax($json);
     }
 

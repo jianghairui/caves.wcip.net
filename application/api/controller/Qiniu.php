@@ -24,7 +24,8 @@ class Qiniu extends Common {
         ];
         $policy = [
             'callbackUrl' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'].'/qiniu_callback.php',
-            'callbackBody' => json_encode($callbackBody)
+            'callbackBody' => json_encode($callbackBody),
+//            'mimeLimit' => 'image/*'
         ];
         $token = $auth->uploadToken(config('qiniu_bucket'),null,3600,$policy);
         $data = [

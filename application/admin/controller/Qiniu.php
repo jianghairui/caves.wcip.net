@@ -33,6 +33,7 @@ class Qiniu extends Base {
         $policy = [
             'callbackUrl' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'].'/qiniu_callback.php',
             'callbackBody' => json_encode($callbackBody)
+//            'mimeLimit' => 'image/*'
         ];
         $token = $auth->uploadToken(config('qiniu_bucket'),null,3600,$policy);
         $data = [
