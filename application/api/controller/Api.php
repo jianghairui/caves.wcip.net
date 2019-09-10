@@ -50,20 +50,20 @@ class Api extends Common
     }
     //获取活动详情
     public function getReqDetail() {
-        $val['id'] = input('post.id');
+        $val['req_id'] = input('post.req_id');
         checkPost($val);
         try {
             $where = [
                 ['status', '=', 1],
                 ['show', '=', 1],
                 ['del', '=', 0],
-                ['id', '=', $val['id']],
+                ['id', '=', $val['req_id']],
             ];
             $info = Db::table('mp_req')
                 ->field('id,uid,title,cover,theme,explain,desc,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num')
                 ->where($where)->find();
             if (!$info) {
-                return ajax($val['id'], -4);
+                return ajax($val['req_id'], -4);
             }
             $user = Db::table('mp_user')->where('id','=',$info['uid'])->field('nickname,avatar')->find();
             $info['nickname'] = $user['nickname'];
@@ -333,15 +333,14 @@ class Api extends Common
                 ->join("mp_req r", "w.req_id=r.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($where)
-                ->field("w.id,w.title,w.vote,w.pics,w.bid_num,w.desc,u.nickname,u.avatar")
+                ->field("w.id,w.title,w.vote,w.pics,w.bid_num,w.desc,w.create_time,u.nickname,u.avatar")
                 ->order($order)
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         foreach ($list as &$v) {
-            $v['cover'] = unserialize($v['pics'])[0];
-            unset($v['pics']);
+            $v['pics'] = unserialize($v['pics']);
         }
         return ajax($list);
     }
@@ -354,9 +353,10 @@ class Api extends Common
                 ['w.id', '=',$val['id']]
             ];
             $exist = Db::table('mp_req_works')->alias('w')
+                ->join("mp_req_idea i", "w.idea_id=i.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($whereWorks)
-                ->field("w.id,w.title,w.desc,w.pics,w.req_id,u.avatar,u.nickname")
+                ->field("w.id,w.title,w.desc,w.pics,w.vote,w.bid_num,w.req_id,w.create_time,u.avatar,u.nickname,i.title AS idea_title,i.vote AS idea_vote")
                 ->find();
             if (!$exist) {
                 return ajax($val['id'], -4);
@@ -564,6 +564,7 @@ class Api extends Common
     }
     //众筹列表
     public function allFundingList() {
+        $param['req_id'] = input('post.req_id','');
         $param['status'] = input('post.status','');
         $param['search'] = input('post.search');
         $curr_page = input('post.page',1);
@@ -572,7 +573,10 @@ class Api extends Common
         $where = [
             ['del','=',0]
         ];
-        if(!is_null($param['status']) && $param['status'] !== '') {
+        if($param['req_id']) {
+            $where[] = ['req_id','=',$param['req_id']];
+        }
+        if($param['status'] !== '' && !is_null($param['status'])) {
             $where[] = ['status','=',$param['status']];
         }
         if($param['search']) {

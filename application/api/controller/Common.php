@@ -13,6 +13,7 @@ use think\exception\HttpResponseException;
 require_once ROOT_PATH . '/extend/qiniu/autoload.php';
 use Qiniu\Config;
 use Qiniu\Storage\BucketManager;
+use EasyWeChat\Factory;
 
 class Common extends Controller {
 
@@ -167,6 +168,33 @@ class Common extends Controller {
         $config = new Config();
         $bucketManager = new BucketManager($auth, $config);
         $bucketManager->delete(config('qiniu_bucket'), $key);
+    }
+
+    //小程序验证内容是否违规
+    protected function msgSecCheck($msg) {
+        $content = $msg;
+        $app = Factory::payment($this->mp_config);
+        $access_token = $app->access_token;
+        $token = $access_token->getToken();
+        $url = 'https://api.weixin.qq.com/wxa/msg_sec_check?access_token=' . $token['access_token'];
+        $res = curl_post_data($url, '{ "content":"'.$content.'" }');
+
+        $result = json_decode($res,true);
+        try {
+            $audit = true;
+            if($result['errcode'] !== 0) {
+                $this->log($this->cmd,$this->myinfo['id'] .' : '. $content .' : '. var_export($result,true));
+                switch ($result['errcode']) {
+                    case 87014: $audit = false;break;
+                    case 40001:
+                        $audit = false;break;
+                    default:$audit = false;;
+                }
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return $audit;
     }
 
 
