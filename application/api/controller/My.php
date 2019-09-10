@@ -23,14 +23,23 @@ class My extends Common {
     }
     //点击头像编辑个人资料
     public function modMyInfo() {
-        $val['realname'] = input('post.realname');
         $val['nickname'] = input('post.nickname');
+        $val['realname'] = input('post.realname');
         $val['sex'] = input('post.sex');
         $val['age'] = input('post.age');
         $val['tel'] = input('post.tel');
         checkPost($val);
         $val['sign'] = input('post.sign','');
         $user = $this->myinfo;
+        if(!is_tel($val['tel'])) {
+            return ajax('无效的手机号',6);
+        }
+        if(!$this->msgSecCheck($val['nickname'])) {
+            return ajax('昵称包含敏感词',68);
+        }
+        if(!$this->msgSecCheck($val['sign'])) {
+            return ajax('签名包含敏感词',69);
+        }
         try {
             $avatar = input('post.avatar');
             if($avatar) {
@@ -41,7 +50,7 @@ class My extends Common {
                     if($qiniu_move['code'] == 0) {
                         $val['avatar'] = $qiniu_move['path'];
                     }else {
-                        return ajax($qiniu_move['msg'],-2);
+                        return ajax($qiniu_move['msg'],101);
                     }
                 }
             }else {
@@ -151,10 +160,7 @@ class My extends Common {
             ['c.uid','=',$this->myinfo['id']]
         ];
         try {
-            $ret['count'] = Db::table('mp_note_collect')->alias('c')
-                ->join('mp_note n','c.note_id=n.id','left')
-                ->join('mp_user u','c.uid=u.id','left')
-                ->where($where)->count();
+            $ret['count'] = Db::table('mp_note_collect')->alias('c')->where($where)->count();
             $list = Db::table('mp_note_collect')->alias('c')
                 ->join('mp_note n','c.note_id=n.id','left')
                 ->join('mp_user u','n.uid=u.id','left')
@@ -173,11 +179,9 @@ class My extends Common {
     }
 
 
+
+
     /*------ 博物馆独有接口 START ------*/
-    //发布需求
-    public function reqRelease() {
-        //todo
-    }
     //我发布的需求
     public function myReqList() {
         $curr_page = input('post.page',1);
@@ -203,88 +207,6 @@ class My extends Common {
         }
         return ajax($list);
     }
-    //获取需求详情
-    public function reqDetail() {
-        $val['id'] = input('post.id');
-        checkPost($val);
-        try {
-            $where = [
-                ['r.show','=',1],
-                ['r.del','=',0],
-                ['r.id','=',$val['id']],
-            ];
-            $info = Db::table('mp_req')->alias('r')
-                ->join("mp_user u","r.uid=u.id","left")
-                ->where($where)
-                ->field("r.*,u.org as user_org")
-                ->find();
-            if(!$info) {
-                return ajax($val['id'],-4);
-            }
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax($info);
-    }
-    //编辑需求
-    public function reqMod() {
-        $val['title'] = input('post.title');
-        $val['org'] = input('post.org');
-        $val['explain'] = input('post.explain');
-        $val['theme'] = input('post.theme');
-        $val['linkman'] = input('post.linkman');
-        $val['tel'] = input('post.tel');
-        $val['phone'] = input('post.phone');
-        $val['start_time'] = input('post.start_time');
-        $val['deadline'] = input('post.deadline');
-        $val['vote_time'] = input('post.vote_time');
-        $val['end_time'] = input('post.end_time');
-        $val['id'] = input('post.id');
-        checkPost($val);
-        $val['uid'] = $this->myinfo['id'];
-        $val['weixin'] = input('post.weixin');
-
-        $user = $this->myinfo;
-        if(!in_array($user['role'],[1,2]) || $user['role_check'] != 2) {
-            return ajax('当前角色状态无法发布需求',24);
-        }
-        try {
-            $where = [
-                ['id','=',$val['id']],
-                ['uid','=',$val['uid']]
-            ];
-            $exist = Db::table('mp_req')->where($where)->find();
-            if(!$exist) {
-                return ajax($val['id'],-4);
-            }
-            if($exist['status'] != 2) {
-                return ajax('当前活动状态无法修改',34);
-            }
-            $image = input('post.cover','');
-            if($image) {
-                if(!file_exists($image)) {
-                    return ajax($image,5);
-                }
-                $val['cover'] = rename_file($image,'static/uploads/req/');
-            }else {
-                return ajax('请传入图片',3);
-            }
-            $val['deadline'] = date('Y-m-d 23:59:59',strtotime($val['deadline']));
-            $val['vote_time'] = date('Y-m-d 23:59:59',strtotime($val['vote_time']));
-            $val['end_time'] = date('Y-m-d 23:59:59',strtotime($val['end_time']));
-            $val['status'] = 0;
-            Db::table('mp_req')->where($where)->update($val);
-        }catch (\Exception $e) {
-            if(isset($val['cover']) && $val['cover'] != $exist['cover']) {
-                @unlink($val['cover']);
-            }
-            return ajax($e->getMessage(),-1);
-        }
-        if(isset($val['cover']) && $val['cover'] != $exist['cover']) {
-            @unlink($exist['cover']);
-        }
-        return ajax();
-    }
     /*------ 博物馆独有接口 END ------*/
 
 
@@ -295,33 +217,52 @@ class My extends Common {
         $val['desc'] = input('post.desc');
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
-        $val['type'] = 1;
         $val['create_time'] = time();
-        $image = input('post.pics',[]);
-        if(is_array($image) && !empty($image)) {
-            if(count($image) > 9) {
-                return ajax('最多上传9张图片',8);
+        $user = $this->myinfo;
+        $image = input('post.pics', []);
+        if(!$this->msgSecCheck($val['title'])) {
+            return ajax('标题包含敏感词',63);
+        }
+        if(!$this->msgSecCheck($val['desc'])) {
+            return ajax('内容包含敏感词',64);
+        }
+        if (is_array($image) && !empty($image)) {
+            if (count($image) > 9) {
+                return ajax('最多上传9张图片', 67);
             }
-            foreach ($image as $v) {
-                if(!file_exists($v)) {
-                    return ajax($v,5);
-                }
-            }
-        }else {
-            return ajax('请传入图片',3);
+        } else {
+            return ajax('请传入图片', 3);
         }
         try {
+            if ($user['role'] != 2 || $user['role_check'] != 2) {
+                return ajax('只有认证设计师可以投稿', 28);
+            }
+            if (!$user['user_auth']) {
+                return ajax('用户未授权', 56);
+            }
+            //七牛云上传多图
             $image_array = [];
             foreach ($image as $v) {
-                $image_array[] = rename_file($v,'static/uploads/work/');
+                $qiniu_exist = $this->qiniuFileExist($v);
+                if($qiniu_exist !== true) {
+                    return ajax('图片已失效请重新上传',66);
+                }
+            }
+            foreach ($image as $v) {
+                $qiniu_move = $this->moveFile($v,'upload/showworks/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],101);
+                }
             }
             $val['pics'] = serialize($image_array);
-            Db::table('mp_req_works')->insert($val);
-        }catch (\Exception $e) {
+            Db::table('mp_show_works')->insert($val);
+        } catch (\Exception $e) {
             foreach ($image_array as $v) {
-                @unlink($v);
+                $this->rs_delete($v);
             }
-            return ajax($e->getMessage(),-1);
+            return ajax($e->getMessage(), -1);
         }
         return ajax();
     }
@@ -331,19 +272,17 @@ class My extends Common {
         $perpage = input('post.perpage',10);
         try {
             $where = [
-                ['type','=',1],
                 ['uid','=',$this->myinfo['id']]
             ];
-            $list = Db::table('mp_req_works')
+            $list = Db::table('mp_show_works')
                 ->where($where)
-                ->field("id,title,pics")
+                ->field("id,title,desc,pics")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
         foreach ($list as &$v) {
-            $v['cover'] = unserialize($v['pics'])[0];
-            unset($v['pics']);
+            $v['pics'] = unserialize($v['pics']);
         }
         return ajax($list);
     }
@@ -353,19 +292,18 @@ class My extends Common {
         $perpage = input('post.perpage',10);
         try {
             $where = [
-                ['type','=',2],
-                ['uid','=',$this->myinfo['id']]
+                ['w.uid','=',$this->myinfo['id']]
             ];
-            $list = Db::table('mp_req_works')
+            $list = Db::table('mp_req_works')->alias('w')
+                ->join('mp_req r','w.req_id=r.id','left')
                 ->where($where)
-                ->field("id,title,req_id,vote,pics")
+                ->field("w.id,w.title,w.req_id,w.vote,w.bid_num,w.pics,r.title AS req_title,r.org")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
         foreach ($list as &$v) {
-            $v['cover'] = unserialize($v['pics'])[0];
-            unset($v['pics']);
+            $v['pics'] = unserialize($v['pics']);
         }
         return ajax($list);
     }

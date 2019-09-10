@@ -233,7 +233,7 @@ class Api extends Common
         }
         if (is_array($image) && !empty($image)) {
             if (count($image) > 9) {
-                return ajax('最多上传9张图片', 8);
+                return ajax('最多上传9张图片', 67);
             }
         } else {
             return ajax('请传入图片', 3);
@@ -284,26 +284,18 @@ class Api extends Common
             }
             //七牛云上传多图
             $image_array = [];
-            $limit = 9;
-            if(is_array($image) && !empty($image)) {
-                if(count($image) > $limit) {
-                    return ajax('最多上传'.$limit.'张图片',-1);
+            foreach ($image as $v) {
+                $qiniu_exist = $this->qiniuFileExist($v);
+                if($qiniu_exist !== true) {
+                    return ajax('图片已失效请重新上传',66);
                 }
-                foreach ($image as $v) {
-                    $qiniu_exist = $this->qiniuFileExist($v);
-                    if($qiniu_exist !== true) {
-                        return ajax('图片已失效请重新上传',-1);
-                    }
-                }
-            }else {
-                return ajax('请上传商品图片',-1);
             }
             foreach ($image as $v) {
                 $qiniu_move = $this->moveFile($v,'upload/works/');
                 if($qiniu_move['code'] == 0) {
                     $image_array[] = $qiniu_move['path'];
                 }else {
-                    return ajax($qiniu_move['msg'],-2);
+                    return ajax($qiniu_move['msg'],101);
                 }
             }
             $val['pics'] = serialize($image_array);
