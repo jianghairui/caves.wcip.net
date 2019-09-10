@@ -144,7 +144,7 @@ class Api extends Common
             $list = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_user u','i.uid=u.id','left')
                 ->where($where)
-                ->field('i.id,i.title,i.content,i.works_num,i.vote,u.nickname,u.avatar')
+                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
@@ -153,6 +153,28 @@ class Api extends Common
         }
         return ajax($list);
     }
+    //创意详情
+    public function ideaDetail() {
+        $val['idea_id'] = input('post.idea_id');
+        checkPost($val);
+        try {
+            $whereIdea = [
+                ['i.id','=',$val['idea_id']]
+            ];
+            $info = Db::table('mp_req_idea')->alias('i')
+                ->join('mp_user u','i.uid=u.id','left')
+                ->where($whereIdea)
+                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar')
+                ->find();
+            if(!$info) {
+                return ajax('invalid idea_id',-4);
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($info);
+    }
+
     //我要参加
     public function takePartIn() {
         $val['req_id'] = input('post.req_id');
@@ -290,6 +312,7 @@ class Api extends Common
     //获取参赛作品列表
     public function worksList() {
         $val['req_id'] = input('post.req_id');
+        $val['idea_id'] = input('post.idea_id');
         $val['order'] = input('post.order',1);
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
@@ -297,6 +320,9 @@ class Api extends Common
         try {
             if($val['req_id']) {
                 $where[] = ['w.req_id', '=', $val['req_id']];
+            }
+            if($val['idea_id']) {
+                $where[] = ['w.idea_id', '=', $val['idea_id']];
             }
             if($val['order'] == 1) {
                 $order = ['w.id'=>'DESC'];
