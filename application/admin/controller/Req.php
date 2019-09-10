@@ -292,6 +292,7 @@ class Req extends Base {
                 return ajax('非法操作',-1);
             }
             Db::table('mp_req')->where($map)->update(['status'=>1]);
+            //todo  奖励用户积分
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -475,6 +476,7 @@ class Req extends Base {
                 return ajax('非法操作',-1);
             }
             Db::table('mp_req_idea')->where($map)->update(['status'=>1]);
+            //todo  奖励用户积分
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }

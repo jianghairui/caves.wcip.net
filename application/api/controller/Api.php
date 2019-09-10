@@ -320,7 +320,9 @@ class Api extends Common
         $val['order'] = input('post.order',1);
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        $where = [];
+        $where = [
+            ['w.status','=',1]
+        ];
         try {
             if($val['req_id']) {
                 $where[] = ['w.req_id', '=', $val['req_id']];
@@ -360,7 +362,7 @@ class Api extends Common
                 ->join("mp_req_idea i", "w.idea_id=i.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($whereWorks)
-                ->field("w.id,w.title,w.desc,w.pics,w.vote,w.bid_num,w.req_id,w.create_time,u.avatar,u.nickname,i.title AS idea_title,i.vote AS idea_vote")
+                ->field("w.id,w.uid,w.title,w.desc,w.pics,w.vote,w.bid_num,w.req_id,w.create_time,w.status,u.avatar,u.nickname,i.title AS idea_title,i.vote AS idea_vote")
                 ->find();
             if (!$exist) {
                 return ajax($val['id'], -4);

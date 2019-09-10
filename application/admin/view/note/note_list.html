@@ -44,7 +44,7 @@
                 </td>
                 <td>{$li.title}</td>
                 <td>{$li.nickname}</td>
-                <td>{$li.create_time|strtotime|date="Y-m-d H:i"}</td>
+                <td>{$li.create_time|date="Y-m-d H:i"}</td>
                 <th class="td-status">
                     {if $li['status'] == '0'}
                     <span class="label label-warning radius">待审核</span>

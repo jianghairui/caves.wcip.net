@@ -290,14 +290,18 @@ class My extends Common {
     public function getMyReqWorks() {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
+        $status = input('post.status','');
         try {
             $where = [
                 ['w.uid','=',$this->myinfo['id']]
             ];
+            if($status !== '' && !is_null($status)) {
+                $where[] = ['w.status','=',$status];
+            }
             $list = Db::table('mp_req_works')->alias('w')
                 ->join('mp_req r','w.req_id=r.id','left')
                 ->where($where)
-                ->field("w.id,w.title,w.req_id,w.vote,w.bid_num,w.pics,r.title AS req_title,r.org")
+                ->field("w.id,w.title,w.req_id,w.vote,w.bid_num,w.pics,w.status,w.reason,r.title AS req_title,r.org")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -306,6 +310,74 @@ class My extends Common {
             $v['pics'] = unserialize($v['pics']);
         }
         return ajax($list);
+    }
+    //修改我的设计作品
+    public function myReqWorksMod() {
+        $val['work_id'] = input('post.work_id');
+        $val['title'] = input('post.title');
+        $val['desc'] = input('post.desc');
+        checkPost($val);
+        $image = input('post.pics', []);
+        if(!$this->msgSecCheck($val['title'])) {
+            return ajax('标题包含敏感词',63);
+        }
+        if(!$this->msgSecCheck($val['desc'])) {
+            return ajax('内容包含敏感词',64);
+        }
+        if (is_array($image) && !empty($image)) {
+            if (count($image) > 9) {
+                return ajax('最多上传9张图片', 67);
+            }
+        } else {
+            return ajax('请传入图片', 3);
+        }
+        try {
+            $whereWork = [
+                ['id','=',$val['work_id']],
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $work_exist = Db::table('mp_req_works')->where($whereWork)->find();
+            if(!$work_exist) {
+                return ajax('invalid work_id',-4);
+            }
+            if($work_exist['status'] !== 2) {
+                return ajax('当前状态无法提交审核',62);
+            }
+            $old_pics = unserialize($work_exist['pics']);
+            //七牛云上传多图
+            $image_array = [];
+            foreach ($image as $v) {
+                $qiniu_exist = $this->qiniuFileExist($v);
+                if($qiniu_exist !== true) {
+                    return ajax('图片已失效请重新上传',66);
+                }
+            }
+            foreach ($image as $v) {
+                $qiniu_move = $this->moveFile($v,'upload/works/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],101);
+                }
+            }
+            $val['pics'] = serialize($image_array);
+            unset($val['work_id']);
+            $val['status'] = 0;
+            Db::table('mp_req_works')->where($whereWork)->update($val);
+        } catch (\Exception $e) {
+            foreach ($image_array as $v) {
+                if(!in_array($v,$old_pics)) {
+                    $this->rs_delete($v);
+                }
+            }
+            return ajax($e->getMessage(), -1);
+        }
+        foreach ($old_pics as $v) {
+            if(!in_array($v,$image_array)) {
+                $this->rs_delete($v);
+            }
+        }
+        return ajax();
     }
     /*------ 设计师独有接口 END ------*/
 
