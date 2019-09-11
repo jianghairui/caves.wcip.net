@@ -546,7 +546,7 @@ class Req extends Base {
         $perpage = input('param.perpage',10);
 
         $where = [
-            ['r.del','=',0]
+            ['w.del','=',0]
         ];
         if(!is_null($param['status']) && $param['status'] !== '') {
             $where[] = ['r.status','=',$param['status']];
@@ -688,6 +688,23 @@ class Req extends Base {
             return ajax($e->getMessage(),-1);
         }
         return ajax([],1);
+    }
+
+    //作品审核-拒绝
+    public function workDel() {
+        $map = [
+            ['id','=',input('post.id',0)]
+        ];
+        try {
+            $exist = Db::table('mp_req_works')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_works')->where($map)->update(['del'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
     }
 
 

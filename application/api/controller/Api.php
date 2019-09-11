@@ -180,10 +180,26 @@ class Api extends Common
                 ->join('mp_user u','i.uid=u.id','left')
                 ->join('mp_req r','i.req_id=r.id','left')
                 ->where($whereIdea)
-                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar,i.req_id,r.title AS req_title,r.cover,r.org')
+                ->field('i.id,i.uid,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar,i.req_id,r.title AS req_title,r.cover,r.org')
                 ->find();
             if(!$info) {
                 return ajax('invalid idea_id',-4);
+            }
+            $myvote = Db::table('mp_idea_vote')->where('uid','=',$this->myinfo['id'])->column('idea_id');
+            if(in_array($info['id'],$myvote)) {
+                $info['if_vote'] = true;
+            }else {
+                $info['if_vote'] = false;
+            }
+            $whereFocus = [
+                ['uid','=',$this->myinfo['id']],
+                ['to_uid','=',$info['uid']]
+            ];
+            $exist = Db::table('mp_user_focus')->where($whereFocus)->find();
+            if($exist) {
+                $info['ifocus'] = true;
+            }else {
+                $info['ifocus'] = false;
             }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -385,19 +401,25 @@ class Api extends Common
             if (!$exist) {
                 return ajax($val['id'], -4);
             }
+            $myvote = Db::table('mp_works_vote')->where('uid','=',$this->myinfo['id'])->column('work_id');
+            if(in_array($exist['id'],$myvote)) {
+                $exist['if_vote'] = true;
+            }else {
+                $exist['if_vote'] = false;
+            }
             $bidding_exist = Db::table('mp_bidding')->where([
                 ['work_id', '=', $val['id']],
                 ['uid', '=', $this->myinfo['id']]
             ])->find();
             if ($bidding_exist) {
-                $exist['bidding_btn'] = true;
+                $exist['bidding_btn'] = false;
                 $where_req = [['id','=',$exist['req_id']]];
                 $req_exist = Db::table('mp_req')->where($where_req)->find();
                 if ($req_exist['end_time'] <= time()) {
-                    $exist['bidding_btn'] = false;
+                    $exist['bidding_btn'] = true;
                 }
             } else {
-                $exist['bidding_btn'] = false;
+                $exist['bidding_btn'] = true;
             }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -630,7 +652,7 @@ class Api extends Common
                 ->join('mp_req r','f.req_id=r.id','left')
                 ->join('mp_req_idea i','f.idea_id=i.id','left')
                 ->join('mp_req_works w','f.work_id=w.id','left')
-                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.uid,w.title AS work_title,w.desc AS work_detail,w.pics AS works_pics,f.desc,f.content')
+                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,f.req_id,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.uid,w.title AS work_title,w.desc AS work_detail,w.pics AS works_pics,f.desc,f.content')
                 ->where($where)->find();
             $whereUser = [
                 ['id','=',$info['uid']]
