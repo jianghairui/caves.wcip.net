@@ -155,6 +155,14 @@ class Api extends Common
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
+            $myvote = Db::table('mp_idea_vote')->where('uid','=',$this->myinfo['id'])->column('idea_id');
+            foreach ($list as &$v) {
+                if(in_array($v['id'],$myvote)) {
+                    $v['if_vote'] = true;
+                }else {
+                    $v['if_vote'] = false;
+                }
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -344,6 +352,14 @@ class Api extends Common
                 ->field("w.id,w.title,w.vote,w.pics,w.bid_num,w.desc,w.create_time,u.nickname,u.avatar")
                 ->order($order)
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
+            $myvote = Db::table('mp_works_vote')->where('uid','=',$this->myinfo['id'])->column('work_id');
+            foreach ($list as &$v) {
+                if(in_array($v['id'],$myvote)) {
+                    $v['if_vote'] = true;
+                }else {
+                    $v['if_vote'] = false;
+                }
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -655,27 +671,42 @@ class Api extends Common
     }
     //众筹商品详情
     public function fundingPurchase() {
-        $val['num'] = input('post.num');
-        $val['goods_id'] = input('post.goods_id');
+        $val['funding_id'] = input('post.funding_id');
         checkPost($val);
-        if(!if_int($val['num'])) {
-            return ajax('非法参数num',-4);
-        }
+        $val['goods_id'] = input('post.goods_id','');
+        $val['num'] = input('post.num');
+        $val['receiver'] = input('post.receiver');
+        $val['tel'] = input('post.tel');
+        $val['address'] = input('post.address');
+        $val['desc'] = input('post.desc');
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
         $val['pay_order_sn'] = create_unique_number('F');
 
         try {
+            $whereFunding = [
+                ['id','=',$val['funding_id']]
+            ];
+            $funding_exist = Db::table('mp_funding')->where($whereFunding)->find();
+            if($funding_exist['start_time'] > time()) {
+                return ajax('众筹未开始',59);
+            }
+            if($funding_exist['end_time'] < time()) {
+                return ajax('众筹已结束',60);
+            }
             if($val['goods_id']) {
-                $val['receiver'] = input('post.receiver');
-                $val['tel'] = input('post.tel');
-                $val['address'] = input('post.address');
-                checkPost($val);
                 $val['type'] = 1;
-                if(!is_tel($val['tel'])) {
-                    return ajax('无效的手机号',6);
+                $postArray['num'] = $val['num'];
+                $postArray['receiver'] = $val['receiver'];
+                $postArray['tel'] = $val['tel'];
+                $postArray['address'] = $val['address'];
+                foreach ($postArray as $value) {
+                    if (is_null($value) || $value === '') {
+                        return ajax($postArray,-2);
+                    }
                 }
-
+                if(!if_int($val['num'])) {return ajax('非法参数num',-4);}
+                if(!is_tel($val['tel'])) {return ajax('无效的手机号',6);}
                 $whereGoods = [
                     ['id','=',$val['goods_id']],
                     ['del','=',0]
@@ -684,15 +715,8 @@ class Api extends Common
                 if(!$goods_exist) {
                     return ajax('非法参数goods_id',-4);
                 }
-                $whereFunding = [
-                    ['id','=',$goods_exist['funding_id']]
-                ];
-                $funding_exist = Db::table('mp_funding')->where($whereFunding)->find();
-                if($funding_exist['start_time'] > time()) {
-                    return ajax('众筹未开始',59);
-                }
-                if($funding_exist['end_time'] < time()) {
-                    return ajax('众筹已结束',60);
+                if($goods_exist['funding_id'] != $val['funding_id']) {
+                    return ajax('goods_id does not match the funding_id',-4);
                 }
                 $val['unit_price'] = $goods_exist['price'];
                 $val['pay_price'] = $goods_exist['price']*$val['num'];
@@ -700,18 +724,21 @@ class Api extends Common
             }else {
                 $val['goods_id'] = 0;
                 $val['pay_price'] = input('post.pay_price');
-                if(!is_currency($val['pay_price'])) {
-                    return ajax('无效的手机号',6);
-                }
                 $val['total_price'] = $val['pay_price'];
+                if(!$val['pay_price']) {
+                    return ajax(['pay_price'=>$val['pay_price']],-2);
+                }
+                if(!is_currency($val['pay_price'])) {
+                    return ajax('无效的金额',70);
+                }
                 $val['type'] = 2;
             }
-
             Db::table('mp_funding_order')->insert($val);
         } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
+            return ajax($e->getMessage(), -1999);
         }
         return ajax($val['pay_order_sn']);
+
     }
 
 

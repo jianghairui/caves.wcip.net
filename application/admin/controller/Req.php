@@ -513,6 +513,25 @@ class Req extends Base {
         }
         return ajax([],1);
     }
+    //创意审核-拒绝
+    public function ideaDel() {
+        $val['id'] = input('post.id','');
+        checkInput($val);
+        $map = [
+            ['id','=',$val['id']]
+        ];
+        try {
+            $exist = Db::table('mp_req_idea')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_req_idea')->where($map)->delete();
+            Db::table('mp_req')->where('id','=',$exist['req_id'])->setDec('idea_num',1);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
+    }
     //作品列表
     public function workList() {
         $param['status'] = input('param.status','');

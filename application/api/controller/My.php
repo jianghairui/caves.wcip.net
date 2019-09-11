@@ -327,7 +327,7 @@ class My extends Common {
             $list = Db::table('mp_req_works')->alias('w')
                 ->join('mp_req r','w.req_id=r.id','left')
                 ->where($where)
-                ->field("w.id,w.title,w.req_id,w.vote,w.bid_num,w.pics,w.status,w.reason,r.title AS req_title,r.org")
+                ->field("w.id,w.title,w.desc,w.req_id,w.vote,w.bid_num,w.pics,w.status,w.reason,r.title AS req_title,r.org")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -455,17 +455,15 @@ class My extends Common {
         }
         try {
             $list = Db::table('mp_funding_order')->alias('o')
-                ->join('mp_funding_goods g','o.goods_id=g.id','left')
+                ->join('mp_funding f','o.funding_id=f.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.status,o.create_time,g.name AS goods_name,g.pics')
+                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.status,o.create_time,o.type,f.title AS funding_title,f.cover')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        foreach ($list as &$v) {
-            $v['pics'] = unserialize($v['pics']);
-        }
+
         return ajax($list);
     }
     //众筹售后列表
@@ -488,9 +486,9 @@ class My extends Common {
         }
         try {
             $list = Db::table('mp_funding_order')->alias('o')
-                ->join('mp_funding_goods g','o.goods_id=g.id','left')
+                ->join('mp_funding f','o.funding_id=f.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.type,o.refund_apply,o.status,o.create_time,g.name AS goods_name,g.pics')
+                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.type,o.refund_apply,o.status,o.create_time,o.type,f.title AS funding_title,f.cover')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
@@ -513,8 +511,9 @@ class My extends Common {
             ];
             $info = Db::table('mp_funding_order')->alias('o')
                 ->join('mp_funding_goods g','o.goods_id=g.id','left')
+                ->join('mp_funding f','o.funding_id=f.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.trans_id,o.pay_price,o.unit_price,o.num,o.receiver,o.tel,o.address,o.type,o.refund_apply,o.reason,o.status,o.create_time,o.pay_time,o.send_time,o.finish_time,o.refund_time,o.tracking_name,o.tracking_num,g.name AS goods_name,g.pics')
+                ->field('o.id,o.pay_order_sn,o.trans_id,o.pay_price,o.unit_price,o.num,o.receiver,o.tel,o.address,o.type,o.refund_apply,o.reason,o.status,o.create_time,o.pay_time,o.send_time,o.finish_time,o.refund_time,o.tracking_name,o.tracking_num,g.name AS goods_name,g.pics,f.title AS funding_title,f.cover')
                 ->find();
             if(!$info) {
                 return ajax('invalid order_id',4);

@@ -189,8 +189,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '山洞文创众筹',
                 'out_trade_no' => $val['pay_order_sn'],
-//                'total_fee' => 1,
-                'total_fee' => floatval($total_price)*100,
+                'total_fee' => 1,
+//                'total_fee' => floatval($total_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/funding_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']
