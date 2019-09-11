@@ -381,6 +381,7 @@ class Req extends Base {
         $param['status'] = input('param.status','');
         $param['req_id'] = input('param.req_id');
         $param['search'] = input('param.search');
+        $param['sort'] = input('param.sort');
 
         $page['query'] = http_build_query(input('param.'));
 
@@ -390,7 +391,6 @@ class Req extends Base {
         $where = [
             ['r.del','=',0]
         ];
-
         if(!is_null($param['status']) && $param['status'] !== '') {
             $where[] = ['i.status','=',$param['status']];
         }
@@ -398,10 +398,18 @@ class Req extends Base {
         if($param['req_id']) {
             $where[] = ['i.req_id','=',$param['req_id']];
         }
-
         if($param['search']) {
             $where[] = ['i.title','like',"%{$param['search']}%"];
         }
+
+        switch ($param['sort']) {
+            case '1':$order = ['i.vote'=>'DESC'];break;
+            case '2':$order = ['i.vote'=>'ASC'];break;
+            case '3':$order = ['i.works_num'=>'DESC'];break;
+            case '4':$order = ['i.works_num'=>'ASC'];break;
+            default:$order = ['i.id'=>'DESC'];
+        }
+
         try {
             $count = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_req r','i.req_id=r.id','left')
@@ -411,10 +419,12 @@ class Req extends Base {
             $page['totalPage'] = ceil($count/$perpage);
             $list = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_req r','i.req_id=r.id','left')
-                ->field('i.*,r.title AS req_title,r.org')
-                ->order(['r.id'=>'DESC'])
-                ->where($where)
-                ->order(['r.id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+                ->field('i.*,r.title AS req_title,r.org')->where($where)
+                ->order($order)->limit(($curr_page - 1)*$perpage,$perpage)->select();
+            $whereReq = [
+                ['del','=',0]
+            ];
+            $reqlist = Db::table('mp_req')->where($whereReq)->field('id,title')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
@@ -422,6 +432,7 @@ class Req extends Base {
         $this->assign('list',$list);
         $this->assign('page',$page);
         $this->assign('param',$param);
+        $this->assign('reqlist',$reqlist);
         return $this->fetch();
     }
     //创意详情
@@ -508,6 +519,7 @@ class Req extends Base {
         $param['req_id'] = input('param.req_id');
         $param['idea_id'] = input('param.idea_id');
         $param['search'] = input('param.search');
+        $param['sort'] = input('param.sort');
 
         $page['query'] = http_build_query(input('param.'));
 
@@ -517,18 +529,21 @@ class Req extends Base {
         $where = [
             ['r.del','=',0]
         ];
-
         if(!is_null($param['status']) && $param['status'] !== '') {
             $where[] = ['r.status','=',$param['status']];
         }
         if($param['req_id']) {
             $where[] = ['w.req_id','=',$param['req_id']];
         }
-        if($param['req_id']) {
-            $where[] = ['i.idea_id','=',$param['idea_id']];
-        }
         if($param['search']) {
             $where[] = ['w.title','like',"%{$param['search']}%"];
+        }
+        switch ($param['sort']) {
+            case '1':$order = ['w.vote'=>'DESC'];break;
+            case '2':$order = ['w.vote'=>'ASC'];break;
+            case '3':$order = ['w.bid_num'=>'DESC'];break;
+            case '4':$order = ['w.bid_num'=>'ASC'];break;
+            default:$order = ['w.id'=>'DESC'];
         }
         try {
             $count = Db::table('mp_req_works')->alias('w')
@@ -542,15 +557,19 @@ class Req extends Base {
                 ->join('mp_req r','w.req_id=r.id','left')
                 ->join('mp_req_idea i','w.idea_id=i.id','left')
                 ->field('w.*,r.title AS req_title,r.org,i.title AS idea_title')
-                ->order(['w.id'=>'DESC'])
                 ->where($where)
-                ->order(['r.id'=>'DESC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+                ->order($order)->limit(($curr_page - 1)*$perpage,$perpage)->select();
+            $whereReq = [
+                ['del','=',0]
+            ];
+            $reqlist = Db::table('mp_req')->where($whereReq)->field('id,title')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('list',$list);
         $this->assign('page',$page);
         $this->assign('param',$param);
+        $this->assign('reqlist',$reqlist);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
