@@ -674,11 +674,11 @@ class Api extends Common
         $val['funding_id'] = input('post.funding_id');
         checkPost($val);
         $val['goods_id'] = input('post.goods_id','');
-        $val['num'] = input('post.num');
-        $val['receiver'] = input('post.receiver');
-        $val['tel'] = input('post.tel');
-        $val['address'] = input('post.address');
-        $val['desc'] = input('post.desc');
+        $val['num'] = input('post.num',0);
+        $val['receiver'] = input('post.receiver','');
+        $val['tel'] = input('post.tel','');
+        $val['address'] = input('post.address','');
+        $val['desc'] = input('post.desc','');
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
         $val['pay_order_sn'] = create_unique_number('F');

@@ -229,11 +229,17 @@ class Pay extends Common {
                     $order_exist = Db::table('mp_funding_order')->where($map)->find();
                     if($order_exist) {
                         $update_data = [
-                            'status' => 1,
                             'trans_id' => $data['transaction_id'],
                             'pay_time' => time()
                         ];
+                        if($order_exist['type'] == 1) {
+                            $update_data['status'] = 1;
+                        }else {
+                            $update_data['status'] = 3;
+                        }
                         Db::table('mp_funding_order')->where('pay_order_sn','=',$data['out_trade_no'])->update($update_data);
+                        Db::table('mp_funding')->where('id','=',$order_exist['funding_id'])->setInc('curr_money',$order_exist['total_price']);
+                        Db::table('mp_funding')->where('id','=',$order_exist['funding_id'])->setInc('order_num',1);
                     }
                 }catch (\Exception $e) {
                     $this->log($this->cmd,$e->getMessage());

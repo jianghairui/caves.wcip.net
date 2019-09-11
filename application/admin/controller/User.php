@@ -15,7 +15,7 @@ class User extends Base {
 
     //会员列表
     public function userList() {
-        $param['status'] = input('param.status','');
+        $param['role_check'] = input('param.role_check','');
         $param['datemin'] = input('param.datemin');
         $param['datemax'] = input('param.datemax');
         $param['search'] = input('param.search');
@@ -27,8 +27,8 @@ class User extends Base {
 
         $where = [];
 
-        if(!is_null($param['status']) && $param['status'] !== '') {
-            $where[] = ['status','=',$param['status']];
+        if(!is_null($param['role_check']) && $param['role_check'] !== '') {
+            $where[] = ['role_check','=',$param['role_check']];
         }
         if($param['datemin']) {
             $where[] = ['create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
@@ -41,18 +41,21 @@ class User extends Base {
         if($param['search']) {
             $where[] = ['nickname|tel','like',"%{$param['search']}%"];
         }
+        $order = ['id'=>'DESC'];
         try {
             $count = Db::table('mp_user')->where($where)->count();
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_user')->where($where)->order(['id'=>'ASC'])->limit(($curr_page - 1)*$perpage,$perpage)->select();
+            $list = Db::table('mp_user')->where($where)
+                ->order($order)
+                ->limit(($curr_page - 1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
         $this->assign('list',$list);
         $this->assign('page',$page);
-        $this->assign('status',$param['status']);
+        $this->assign('param',$param);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }

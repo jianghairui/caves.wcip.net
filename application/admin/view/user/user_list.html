@@ -8,12 +8,20 @@
     <section id="formAjax">
         <div class="text-c">
             <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
-            日期范围：
+            注册时间：
             <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'datemax\')||\'%y-%M-%d\' }' })" id="datemin" value="{$Think.get.datemin}" class="input-text Wdate" style="width:120px;">
             -
             <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'datemin\') }' })" id="datemax" value="{$Think.get.datemax}" class="input-text Wdate" style="width:120px;">
             <input type="text" name="search" value="{$Think.get.search}" id="search" placeholder=" 用户名称或手机号" style="width:250px" class="input-text">
             <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找用户</button>
+            <span class="select-box inline" style="width: 120px;">
+                <select name="role_check" id="role_check" class="select">
+                    <option value="">全部</option>
+                    <option value="1" {if $param['role_check'] === '1'}selected{/if}>审核中</option>
+                    <option value="2" {if $param['role_check'] === '2'}selected{/if}>已认证</option>
+                    <option value="3" {if $param['role_check'] === '3'}selected{/if}>未通过</option>
+                </select>
+            </span>
         </div>
     </section>
     <div class="cl pd-5 bg-1 bk-gray mt-20">
@@ -128,7 +136,7 @@
         laypage({
             cont: 'page', //容器。值支持id名、原生dom对象，jquery对象。
             pages: '{$page.totalPage}', //通过后台拿到的总页数
-            skip: false, //是否开启跳页
+            skip: true, //是否开启跳页
             skin: '#5a98de',
             curr: curr || 1, //当前页
             jump: function(obj, first){ //触发分页后的回调
@@ -144,6 +152,7 @@
         var datemin = $("#formAjax").find("#datemin").val();
         var datemax = $("#formAjax").find("#datemax").val();
         var search = $("#formAjax").find("#search").val();
+        var role_check = $("#formAjax").find("#role_check").val();
         var str = '';
         if(datemin.length != '') {
             str += '&datemin=' + datemin
@@ -153,6 +162,9 @@
         }
         if(search.length != '') {
             str += '&search=' + search
+        }
+        if(role_check.length != '') {
+            str += '&role_check=' + role_check
         }
         window.location.href = '{:url("User/userList")}' + '?' + str;
     });

@@ -117,7 +117,7 @@
                 <td colspan="6">
                     {foreach $li['child'] as $vv}
                     <div style="display: inline-flex">
-                        <div id="cover" class="goods_pics" style="background-image: url('/{$vv.cover}');"></div>
+                        <div id="cover" class="goods_pics" style="background-image: url('{$qiniu_weburl}{$vv.cover}');"></div>
                         <div style="margin: 0 10px;">
                             <div><span class="order-font-b">{$vv.goods_name}</span></div>
                             <div>规格: <span class="order-font">{$vv.attr}</span></div>

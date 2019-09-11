@@ -628,6 +628,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $this->assign('param',$param);
         $this->assign('list',$newlist);
         $this->assign('page',$page);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
 //订单发货
@@ -698,7 +699,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             $arr = [
                 'appid' => $this->config['app_id'],
                 'mch_id'=> $this->config['mch_id'],
-                'nonce_str'=>$this->randomkeys(32),
+                'nonce_str'=>randomkeys(32),
                 'sign_type'=>'MD5',
                 'transaction_id'=> $exist['trans_id'],
                 'out_trade_no'=> $pay_order_sn,
@@ -713,9 +714,11 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
 
             $arr['sign'] = getSign($arr);
             $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
-            $res = $this->curl_post_datas($url,array2xml($arr),true);
-            if($res && $res['return_code'] == 'SUCCESS') {
-                if($res['result_code'] == 'SUCCESS') {
+            $res = curl_post_data($url,array2xml($arr),true);
+
+            $result = xml2array($res);
+            if($result && $result['return_code'] == 'SUCCESS') {
+                if($result['result_code'] == 'SUCCESS') {
                     $update_data = [
                         'refund_apply' => 2,
                         'refund_time' => time()
