@@ -478,6 +478,9 @@ class Api extends Common
     public function biddingList() {
         $val['work_id'] = input('post.work_id');
         checkPost($val);
+        if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
+            return ajax('只有认证的博物馆可以操作此项',72);
+        }
         try {
             $where = [
                 ['b.work_id', '=', $val['work_id']]

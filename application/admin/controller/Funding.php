@@ -598,12 +598,13 @@ class Funding extends Base {
                 ['id','=',$val['id']],
                 ['status','in',[1,2,3]]
             ];
-            $exist = Db::table('mp_order')->where($where)->find();
+            $exist = Db::table('mp_funding_order')->where($where)->find();
             if(!$exist) {
                 return ajax('订单不存在或状态已改变',-1);
             }
             $pay_order_sn = $exist['pay_order_sn'];
-//            $exist['pay_price'] = 0.01;
+
+            $exist['pay_price'] = 0.01;
             $arr = [
                 'appid' => $this->config['app_id'],
                 'mch_id'=> $this->config['mch_id'],
@@ -625,16 +626,17 @@ class Funding extends Base {
             $res = curl_post_data($url,array2xml($arr),true);
 
             $result = xml2array($res);
+//            $this->refundLog($this->cmd,var_export($result,true));
             if($result && $result['return_code'] == 'SUCCESS') {
                 if($result['result_code'] == 'SUCCESS') {
                     $update_data = [
                         'refund_apply' => 2,
                         'refund_time' => time()
                     ];
-                    Db::table('mp_order')->where($where)->update($update_data);
+                    Db::table('mp_funding_order')->where($where)->update($update_data);
                     return ajax();
                 }else {
-                    return ajax($res['err_code_des'],-1);
+                    return ajax($result['err_code_des'],-1);
                 }
             }else {
                 return ajax('退款通知失败',-1);

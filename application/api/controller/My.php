@@ -27,17 +27,13 @@ class My extends Common {
         $val['realname'] = input('post.realname');
         $val['sex'] = input('post.sex');
         $val['age'] = input('post.age');
-        $val['tel'] = input('post.tel');
         checkPost($val);
         $val['sign'] = input('post.sign','');
         $user = $this->myinfo;
-        if(!is_tel($val['tel'])) {
-            return ajax('无效的手机号',6);
-        }
         if(!$this->msgSecCheck($val['nickname'])) {
             return ajax('昵称包含敏感词',68);
         }
-        if(!$this->msgSecCheck($val['sign'])) {
+        if(!$val['sign'] && !$this->msgSecCheck($val['sign'])) {
             return ajax('签名包含敏感词',69);
         }
         try {
@@ -210,29 +206,59 @@ class My extends Common {
     /*------ 博物馆独有接口 START ------*/
     //我发布的需求
     public function myReqList() {
-        $curr_page = input('post.page',1);
-        $perpage = input('post.perpage',10);
-        $uid = $this->myinfo['id'];
+        $curr_page = input('post.page', 1);
+        $perpage = input('post.perpage', 10);
+        $where = [
+            ['uid','=',$this->myinfo['id']],
+            ['status', '=', 1],
+            ['show', '=', 1],
+            ['del', '=', 0]
+        ];
         try {
-            $user = $this->myinfo;
-            if($user['role_check'] != 2 || $user['role'] != 1) {
-                return ajax([]);
-            }
-            $whereReq = [
-                ['r.del','=',0],
-                ['r.uid','=',$uid]
-            ];
-            $list = Db::table('mp_req')->alias('r')
-                ->join("mp_user u","r.uid=u.id","left")
-                ->where($whereReq)->order(['r.id'=>'DESC'])
-                ->field("r.id,r.title,r.cover,r.org,r.works_num,r.idea_num,r.status,r.start_time,r.end_time")
-                ->limit(($curr_page-1)*$perpage,$perpage)
+            $list = Db::table('mp_req')
+                ->where($where)->order(['start_time' => 'ASC'])
+                ->field("id,title,works_num,idea_num,cover,org,start_time,end_time")
+                ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->select();
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
         }
         return ajax($list);
     }
+    //工厂接单处理
+    public function biddingWorksList() {
+        $curr_page = input('post.page', 1);
+        $perpage = input('post.perpage', 10);
+        try {
+            $whereReq = [
+                ['uid','=',$this->myinfo['id']],
+                ['del','=',0]
+            ];
+            $req_ids = Db::table('mp_req')->where($whereReq)->column('id');
+            if(empty($req_ids)) {
+                return ajax([]);
+            }
+            $order = ['w.id'=>'DESC'];
+            $whereWorks = [
+                ['w.id','IN',$req_ids],
+                ['w.bid_num','>',0]
+            ];
+            $workslist = Db::table('mp_req_works')->alias('w')
+                ->join("mp_req r", "w.req_id=r.id", "left")
+                ->join("mp_user u", "w.uid=u.id", "left")
+                ->where($whereWorks)
+                ->field("w.id,w.title,w.vote,w.pics,w.bid_num,w.factory_id,w.desc,w.create_time,u.nickname,u.avatar,r.title AS req_title")
+                ->order($order)
+                ->limit(($curr_page - 1) * $perpage, $perpage)->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        foreach ($workslist as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        return ajax($workslist);
+    }
+
     /*------ 博物馆独有接口 END ------*/
 
 

@@ -231,7 +231,7 @@
             if(click_lock) {
                 click_lock = false;
                 $.ajax({
-                    url:"{:url('Shop/modAddress')}",
+                    url:"{:url('Funding/modAddress')}",
                     type:'post',
                     dataType:'json',
                     data:{id:id,address:address},
@@ -270,7 +270,7 @@
             if(click_lock) {
                 click_lock = false;
                 $.ajax({
-                    url:"{:url('Shop/modPrice')}",
+                    url:"{:url('Funding/modPrice')}",
                     type:'post',
                     dataType:'json',
                     data:{id:id,pay_price:pay_price},
@@ -296,7 +296,7 @@
     function refund(obj,id) {
         layer.confirm('确认要退款吗？',function(index){
             $.ajax({
-                url: "{:url('Shop/orderRefund')}",
+                url: "{:url('Funding/orderRefund')}",
                 type: 'POST',
                 dataType: 'json',
                 data:{id:id},
