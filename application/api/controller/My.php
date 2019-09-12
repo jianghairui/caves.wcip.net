@@ -456,14 +456,17 @@ class My extends Common {
         try {
             $list = Db::table('mp_funding_order')->alias('o')
                 ->join('mp_funding f','o.funding_id=f.id','left')
+                ->join('mp_funding_goods g','o.goods_id=g.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.status,o.create_time,o.type,f.title AS funding_title,f.cover')
+                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.status,o.create_time,o.type,f.title AS funding_title,f.cover,g.name AS goods_name,g.pics')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
         return ajax($list);
     }
     //众筹售后列表
@@ -487,8 +490,9 @@ class My extends Common {
         try {
             $list = Db::table('mp_funding_order')->alias('o')
                 ->join('mp_funding f','o.funding_id=f.id','left')
+                ->join('mp_funding_goods g','o.goods_id=g.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.type,o.refund_apply,o.status,o.create_time,o.type,f.title AS funding_title,f.cover')
+                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.type,o.refund_apply,o.status,o.create_time,o.type,f.title AS funding_title,f.cover,g.name AS goods_name,g.pics')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {

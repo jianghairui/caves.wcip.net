@@ -25,7 +25,7 @@ class Pay extends Common {
         try {
             $order_exist = Db::table('mp_vip_order')->where($where)->find();
             if(!$order_exist) {
-                return ajax('',4);
+                return ajax('order_sn',4);
             }
             $result = $app->order->unify([
                 'body' => 'VIP充值',
@@ -111,7 +111,7 @@ class Pay extends Common {
         try {
             $order_exist = Db::table('mp_order')->where($where)->find();
             if(!$order_exist) {
-                return ajax($val['pay_order_sn'],-4);
+                return ajax($val['pay_order_sn'],4);
             }
             $total_price = $order_exist['pay_price'];
             $result = $app->order->unify([
@@ -183,7 +183,7 @@ class Pay extends Common {
         try {
             $order_exist = Db::table('mp_funding_order')->where($where)->find();
             if(!$order_exist) {
-                return ajax($val['pay_order_sn'],-4);
+                return ajax($val['pay_order_sn'],4);
             }
             $total_price = $order_exist['pay_price'];
             $result = $app->order->unify([
@@ -199,6 +199,8 @@ class Pay extends Common {
             $this->log($this->cmd . '-1',$e->getMessage());
             return ajax($e->getMessage(),-1);
         }
+        $this->log($this->cmd,var_export($result,true));
+
         if($result['return_code'] != 'SUCCESS' || $result['result_code'] != 'SUCCESS') {
             return ajax($result['err_code_des'],-1);
         }
