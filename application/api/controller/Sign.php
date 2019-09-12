@@ -16,8 +16,8 @@ class Sign extends Controller {
     public $appsecret;
 
     public function initialize() {
-        $this->appid = '';
-        $this->appsecret = '';
+        $this->appid = config('wx_appid');
+        $this->appsecret = config('wx_appsecret');
     }
 
     public function index() {
