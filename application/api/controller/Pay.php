@@ -196,6 +196,7 @@ class Pay extends Common {
                 'openid' => $this->myinfo['openid']
             ]);
         }catch (\Exception $e) {
+            $this->log($this->cmd . '-1',$e->getMessage());
             return ajax($e->getMessage(),-1);
         }
         if($result['return_code'] != 'SUCCESS' || $result['result_code'] != 'SUCCESS') {
@@ -209,6 +210,7 @@ class Pay extends Common {
             $sign['package'] = 'prepay_id=' . $result['prepay_id'];
             $sign['paySign'] = getSign($sign);
         }catch (\Exception $e) {
+            $this->log($this->cmd . '-2',$e->getMessage());
             return ajax($e->getMessage(),-1);
         }
         return ajax($sign);

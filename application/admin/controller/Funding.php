@@ -484,6 +484,211 @@ class Funding extends Base {
     }
 
 
+    public function orderList() {
+        $param['search'] = input('param.search','');
+        $param['status'] = input('param.status','');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
+        $param['refund_apply'] = input('param.refund_apply','');
+        $page['query'] = http_build_query(input('param.'));
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+
+        $where = [
+            ['o.del','=',0]
+        ];
+        if($param['status'] !== '') {
+            $where[] = ['o.status','=',$param['status']];
+        }
+        if($param['refund_apply']) {
+            $where[] = ['o.refund_apply','=',$param['refund_apply']];
+        }
+        if($param['datemin']) {
+            $where[] = ['o.create_time','>=',strtotime($param['datemin'])];
+        }
+        if($param['datemax']) {
+            $where[] = ['o.create_time','<',strtotime($param['datemax'])];
+        }
+        if($param['search']) {
+            $where[] = ['o.pay_order_sn|o.tel','LIKE',"%{$param['search']}%"];
+        }
+        try {
+            $count = Db::table('mp_funding_order')->alias('o')->where($where)->count();
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_funding_order')->alias('o')
+                ->join('mp_funding_goods g','o.goods_id=g.id','left')
+                ->join('mp_funding f','o.funding_id=f.id','left')
+                ->where($where)
+                ->field('o.*,g.name AS goods_name,g.pics,f.title AS funding_title')
+                ->limit(($curr_page-1)*$perpage,$perpage)
+                ->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        $this->assign('param',$param);
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        return $this->fetch();
+    }
+
+    //订单发货
+    public function orderSend() {
+        $id = input('param.id');
+        try {
+            $where = [
+                ['del','=',0]
+            ];
+            $list = Db::table('mp_tracking')->where($where)->select();
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('list',$list);
+        $this->assign('id',$id);
+        return $this->fetch();
+    }
+//确认发货
+    public function deliver() {
+        $val['tracking_name'] = input('post.tracking_name');
+        $val['tracking_num'] = input('post.tracking_num');
+        $val['id'] = input('post.id');
+        checkInput($val);
+        try {
+            $where = [
+                ['id','=',$val['id']],
+                ['status','=',1]
+            ];
+            $exist = Db::table('mp_order')->where($where)->find();
+            if(!$exist) {
+                return ajax('订单不存在或状态已改变',-1);
+            }
+            $update_data = [
+                'status' => 2,
+                'send_time' => time(),
+                'tracking_name' => $val['tracking_name'],
+                'tracking_num' => $val['tracking_num']
+            ];
+            Db::table('mp_order')->where($where)->update($update_data);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+//订单详情
+    public function orderDetail() {
+        die('还没写');
+    }
+//订单修改
+    public function orderModPost() {
+
+    }
+//退款
+    public function orderRefund() {
+        $val['id'] = input('post.id');
+        checkInput($val);
+        try {
+            $where = [
+                ['id','=',$val['id']],
+                ['status','in',[1,2,3]]
+            ];
+            $exist = Db::table('mp_order')->where($where)->find();
+            if(!$exist) {
+                return ajax('订单不存在或状态已改变',-1);
+            }
+            $pay_order_sn = $exist['pay_order_sn'];
+//            $exist['pay_price'] = 0.01;
+            $arr = [
+                'appid' => $this->config['app_id'],
+                'mch_id'=> $this->config['mch_id'],
+                'nonce_str'=>randomkeys(32),
+                'sign_type'=>'MD5',
+                'transaction_id'=> $exist['trans_id'],
+                'out_trade_no'=> $pay_order_sn,
+                'out_refund_no'=> 'r' . $pay_order_sn,
+                'total_fee'=> floatval($exist['pay_price'])*100,
+                'refund_fee'=> floatval($exist['pay_price'])*100,
+                'refund_fee_type'=> 'CNY',
+                'refund_desc'=> '订单退款',
+                'notify_url'=> $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'].'/wxRefundNotify',
+                'refund_account' => 'REFUND_SOURCE_UNSETTLED_FUNDS'
+            ];
+
+            $arr['sign'] = getSign($arr);
+            $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
+            $res = curl_post_data($url,array2xml($arr),true);
+
+            $result = xml2array($res);
+            if($result && $result['return_code'] == 'SUCCESS') {
+                if($result['result_code'] == 'SUCCESS') {
+                    $update_data = [
+                        'refund_apply' => 2,
+                        'refund_time' => time()
+                    ];
+                    Db::table('mp_order')->where($where)->update($update_data);
+                    return ajax();
+                }else {
+                    return ajax($res['err_code_des'],-1);
+                }
+            }else {
+                return ajax('退款通知失败',-1);
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+    }
+//删除订单
+    public function orderDel() {
+
+    }
+
+    public function modAdress() {
+        $val['address'] = input('post.address');
+        $val['id'] = input('post.id');
+        checkInput($val);
+        try {
+            $where = [
+                ['id','=',$val['id']]
+            ];
+            $exist = Db::table('mp_order')->where($where)->find();
+            if(!$exist) {
+                return ajax('订单不存在或状态已改变',-1);
+            }
+            $update_data = [
+                'address' => $val['address']
+            ];
+            Db::table('mp_order')->where($where)->update($update_data);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+
+    public function modPrice() {
+        $val['pay_price'] = input('post.pay_price');
+        $val['id'] = input('post.id');
+        checkInput($val);
+        try {
+            $where = [
+                ['id','=',$val['id']]
+            ];
+            $exist = Db::table('mp_order')->where($where)->find();
+            if(!$exist) {
+                return ajax('订单不存在或状态已改变',-1);
+            }
+            $update_data = [
+                'pay_price' => $val['pay_price']
+            ];
+            Db::table('mp_order')->where($where)->update($update_data);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
 
 
 
