@@ -690,7 +690,7 @@ class Req extends Base {
         return ajax([],1);
     }
 
-    //作品审核-拒绝
+    //作品删除-拒绝
     public function workDel() {
         $map = [
             ['id','=',input('post.id',0)]

@@ -480,12 +480,10 @@ class My extends Common {
             ['o.uid','=',$this->myinfo['id']],
             ['o.del','=',0]
         ];
-        if($type !== '') {
-            switch ($type) {
-                case '1':$where[] = ['o.refund_apply','=',1];break;
-                case '2':$where[] = ['o.refund_apply','=',2];break;
-                default:$where[] = ['o.refund_apply','IN',[1,2]];
-            }
+        switch ($type) {
+            case '1':$where[] = ['o.refund_apply','=',1];break;
+            case '2':$where[] = ['o.refund_apply','=',2];break;
+            default:$where[] = ['o.refund_apply','IN',[1,2]];
         }
         try {
             $list = Db::table('mp_funding_order')->alias('o')

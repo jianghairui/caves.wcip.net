@@ -347,7 +347,8 @@ class Api extends Common
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         $where = [
-            ['w.status','=',1]
+            ['w.status','=',1],
+            ['w.del','=',0]
         ];
         try {
             if($val['req_id']) {
@@ -518,8 +519,14 @@ class Api extends Common
                 ['id', '=', $workExist['req_id']]
             ];
             $req_exist = Db::table('mp_req')->where($whereReq)->find();
+            if ($req_exist['start_time'] > time()) {
+                return ajax('活动未开始', 26);
+            }
             if ($req_exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
+            }
+            if($req_exist['deadline'] > time()) {
+                return ajax('创意期间不可投票',71);
             }
             if ($req_exist['vote_time'] <= time()) {
                 return ajax('投票时间已结束', 30);
@@ -566,8 +573,14 @@ class Api extends Common
                 ['id', '=', $ideaExist['req_id']]
             ];
             $req_exist = Db::table('mp_req')->where($whereReq)->find();
+            if ($req_exist['start_time'] > time()) {
+                return ajax('活动未开始', 26);
+            }
             if ($req_exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
+            }
+            if($req_exist['deadline'] > time()) {
+                return ajax('创意期间不可投票',71);
             }
             if ($req_exist['vote_time'] <= time()) {
                 return ajax('投票时间已结束', 30);

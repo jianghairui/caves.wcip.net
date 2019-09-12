@@ -497,6 +497,7 @@ class Funding extends Base {
         $where = [
             ['o.del','=',0]
         ];
+        $order = ['o.id'=>'DESC'];
         if($param['status'] !== '') {
             $where[] = ['o.status','=',$param['status']];
         }
@@ -522,6 +523,7 @@ class Funding extends Base {
                 ->join('mp_funding f','o.funding_id=f.id','left')
                 ->where($where)
                 ->field('o.*,g.name AS goods_name,g.pics,f.title AS funding_title')
+                ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
         } catch (\Exception $e) {
