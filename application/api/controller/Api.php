@@ -608,9 +608,9 @@ class Api extends Common
         $val['bidding_id'] = input('post.bidding_id');
         checkPost($val);
         try {
-            if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
-                return ajax('只有认证的博物馆可以操作此项',72);
-            }
+//            if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
+//                return ajax('只有认证的博物馆可以操作此项',72);
+//            }
             $myreqids = Db::table('mp_req')->where('uid','=',$this->myinfo['id'])->column('id');
             $whereBidding = [
                 ['id','=',$val['bidding_id']]
@@ -619,9 +619,9 @@ class Api extends Common
             if(!$exist) {
                 return ajax('invalid bidding_id',-4);
             }
-            if(!in_array($exist['req_id'],$myreqids)) {
-                return ajax('无权操作此活动流程',74);
-            }
+//            if(!in_array($exist['req_id'],$myreqids)) {
+//                return ajax('无权操作此活动流程',74);
+//            }
             $whereWork = [
                 ['id','=',$exist['work_id']]
             ];
@@ -630,6 +630,7 @@ class Api extends Common
                 return ajax('此作品已有接单工厂',73);
             }
             Db::table('mp_req_works')->where($whereWork)->update(['factory_id'=>$exist['uid']]);
+            Db::table('mp_bidding')->where($whereBidding)->update(['choose'=>1]);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
