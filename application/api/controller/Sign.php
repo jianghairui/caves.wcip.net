@@ -9,19 +9,76 @@ namespace app\api\controller;
 
 use think\Controller;
 use think\Db;
-
+use wx\Jssdk;
 class Sign extends Controller {
 
-    public $appid;
-    public $appsecret;
+    protected $appid;
+    protected $appsecret;
+    protected $cmd;
 
     public function initialize() {
         $this->appid = config('wx_appid');
         $this->appsecret = config('wx_appsecret');
+        $this->cmd = request()->controller() . '/' . request()->action();
+        $allow = [
+            'Sign/auth'
+        ];
+        if(!in_array($this->cmd,$allow)) {
+            if(!session('userinfo')) {
+                $query = http_build_query(input('param.'));
+                $url = $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/auth?' . $query;
+                $url = $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/auth?' . $query;
+                header("Location:".$url);exit;
+            }
+        }
+
     }
 
+
     public function index() {
-        echo 'HEELOO';
+        $userinfo = session('userinfo');
+        if(request()->isPost()) {
+            $val['company'] = input('post.company');
+            $val['address'] = input('post.address');
+            $val['name'] = input('post.name');
+            $val['tel'] = input('post.tel');
+            $val['job'] = input('post.job');
+            $val['referer_id'] = input('post.referer_id');
+            checkPost($val);
+            $val['sign_time'] = time();
+            if(!is_tel($val['tel'])) {
+                return ajax('无效的手机号',-1);
+            }
+            try {
+                Db::table('mp_sign')->where('openid','=',$userinfo['openid'])->update($val);
+            } catch (\Exception $e) {
+                return ajax($e->getMessage(), -1);
+            }
+            return ajax();
+        }
+        try {
+            $info = Db::table('mp_sign')->where('openid','=',$userinfo['openid'])->find();
+            if(!$info) {
+                die('系统异常');
+            }
+            $list = Db::table('mp_sign_referer')->select();
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $jssdk = new Jssdk($this->appid, $this->appsecret);
+        $data = $jssdk->getSignPackage();
+        $share_data = [
+            'title' => '山海文化邀请函',
+            'desc' => '山洞文创平台工厂入驻问答会谈',
+            'link' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/index',
+            'imgUrl' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/static/src/image/shlogo.png'
+        ];
+        $this->assign('data',$data);
+        $this->assign('share_data',$share_data);
+        $this->assign('userinfo',$userinfo);
+        $this->assign('info',$info);
+        $this->assign('list',$list);
+        return $this->fetch();
     }
 
     /**
@@ -46,14 +103,17 @@ class Sign extends Controller {
                     'nickname' => $data_all['nickname'],
                     'avatar' => $data_all['headimgurl']
                 ];
-                $user_exist = Db::table('user')->where('openid',$data_all['openid'])->find();
 
                 try {
+                    $whereUser = [
+                        ['openid','=',$data_all['openid']]
+                    ];
+                    $user_exist = Db::table('mp_sign')->where($whereUser)->find();
                     if($user_exist) {
-                        Db::table('user')->where('openid',$data_all['openid'])->update($insert_data);
+                        Db::table('mp_sign')->where($whereUser)->update($insert_data);
                     }else {
                         $insert_data['create_time'] = time();
-                        Db::table('user')->insert($insert_data);
+                        Db::table('mp_sign')->insert($insert_data);
                     }
                 }catch (\Exception $e) {
                     die('系统错误,请联系管理员 :' . $e->getMessage());
@@ -62,7 +122,7 @@ class Sign extends Controller {
                 session('userinfo',$data_all);
             }
         }
-        $url = $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/card?' . $query;
+        $url = $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/index?' . $query;
         header("Location:".$url);exit;
 
     }

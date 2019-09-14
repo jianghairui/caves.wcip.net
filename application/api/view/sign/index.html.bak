@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>信息登记</title>
+  <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      height: 49px;
+      line-height: 49px;
+      text-align: center;
+      width: 100%;
+      background-color: #000000;
+      font-size: 18px;
+      color: #cccccc;
+    }
+
+    .content .cont {
+      overflow: hidden;
+      border-top: 1px solid #ff7e00;
+      margin: 12px 9px;
+      background-color: #ffffff;
+      box-shadow: 0 1px 35px 0 rgba(213, 213, 213, 0.75);
+    }
+
+    .ipt-box {
+      margin: 20px 15px;
+    }
+
+    .ipt-box label {
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 21px;
+      color: #333333;
+    }
+
+    .ipt-box .input {
+      margin-top: 10px;
+      height: 40px;
+      border-radius: 2px;
+      border: solid 1px #aaa;
+      overflow: hidden;
+    }
+
+    .ipt-box .input .smoll-box {
+      height: 100%;
+      margin: 0 10px;
+    }
+
+    .ipt-box .input .smoll-box input {
+      display: block;
+      font-size: 16px;
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+    }
+
+    .ipt-box .recommend-people {
+      border: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ipt-box .recommend-people .people {
+      width: 31%;
+      height: 100%;
+      text-align: center;
+      line-height: 40px;
+      background-color: #cccccc;
+      border-radius: 2px;
+      font-size: 16px;
+      color: #ffffff;
+    }
+
+    .ipt-box .recommend-people .on {
+      background-color: #ff7e00;
+    }
+
+    .separator {
+      width: 100%;
+    }
+
+    .separator img {
+      width: 100%;
+      display: block;
+    }
+
+    .bottom-cont .address {
+      border: none;
+      height: 30px;
+      line-height: 30px;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+      color: #999999;
+    }
+
+    .bottom-cont .company-brief {
+      text-indent: 2em;
+      text-align: justify;
+      overflow: unset;
+      height: auto;
+      padding-bottom: 10px;
+    }
+
+    .btn-box {
+      background-color: #ff7e00;
+      margin: 45px 15px 30px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      border-radius: 2px;
+      color: #ffffff;
+    }
+
+    .logo {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logo .logo-box {
+      margin-right: 10px;
+      width: 15px;
+      height: 15px;
+    }
+
+    .logo .logo-box img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .logo p {
+      font-size: 12px;
+      color: #cccccc;
+    }
+  </style>
+</head>
+<script type="text/javascript">
+    wx.config({
+        debug: false,
+        appId: '{$data["appId"]}',
+        timestamp: '{$data["timestamp"]}',
+        nonceStr: '{$data["nonceStr"]}',
+        signature: '{$data["signature"]}',
+        jsApiList: [
+            'checkJsApi',
+            'onMenuShareTimeline',
+            'onMenuShareAppMessage'
+        ]
+    });
+    wx.ready(function () {
+        wx.onMenuShareTimeline({
+            title: '{$share_data.title}', // 分享标题
+            desc: '{$share_data.desc}',
+            link: '{$share_data.link}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '{$share_data.imgUrl}', // 分享图标
+            success: function () {
+                // 用户点击了分享后执行的回调函数
+                //alert('分享成功')
+            }
+        });
+        wx.onMenuShareAppMessage({
+            title: '{$share_data.title}', // 分享标题
+            desc: '{$share_data.desc}', // 分享描述
+            link: '{$share_data.link}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '{$share_data.imgUrl}', // 分享图标
+            type: '', // 分享类型,music、video或link，不填默认为link
+            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+            success: function () {
+                //alert('分享成功')
+            }
+        });
+
+    });
+
+</script>
+<body>
+
+<div class="header">信息登记</div>
+<div class="content">
+  <div class="cont">
+
+    <form id="formAjax">
+    <div class="ipt-box">
+      <label for="company">公司名称</label>
+      <div class="input">
+        <div class="smoll-box"><input id="company" type="text" name="company" value="{$info.company}" maxlength="50"></div>
+      </div>
+    </div>
+    <div class="ipt-box">
+      <label for="company">公司地址</label>
+      <div class="input">
+        <div class="smoll-box"><input id="address" type="text" name="address" value="{$info.address}" maxlength="255"></div>
+      </div>
+    </div>
+    <div class="ipt-box">
+      <label for="name">本人姓名</label>
+      <div class="input">
+        <div class="smoll-box"><input id="name" type="text" name="name" value="{$info.name}" maxlength="20"></div>
+      </div>
+    </div>
+    <div class="ipt-box">
+      <label for="tel">联系电话</label>
+      <div class="input">
+        <div class="smoll-box"><input id="tel" type="text" name="tel" value="{$info.tel}"  maxlength="15"></div>
+      </div>
+    </div>
+    <div class="ipt-box">
+      <label for="job">当前职务</label>
+      <div class="input">
+        <div class="smoll-box"><input id="job" type="text" name="job" value="{$info.job}" maxlength="30"></div>
+      </div>
+    </div>
+    <div class="ipt-box">
+      <label>推荐人</label>
+      <input type="hidden" id="referer_id" name="referer_id" value="{$info['referer_id']}">
+      <div class="input recommend-people">
+        {foreach $list as $li}
+        <div class="people {if $info['referer_id'] == $li['id']}on{/if}" title="{$li.id}">{$li.name}</div>
+        {/foreach}
+      </div>
+    </div>
+    <div class="separator">
+      <img src="/static/src/image/bg-img.png"/>
+    </div>
+    <div class="ipt-box bottom-cont">
+      <label>与会地址</label>
+      <div class="input address">
+        天津市西青区海泰绿色产业基地K1座6号楼2层
+      </div>
+    </div>
+    <div class="ipt-box bottom-cont">
+      <label>推荐人联系方式</label>
+      <div class="input address">
+        18776554629
+      </div>
+    </div>
+    <div class="ipt-box bottom-cont">
+      <label>公司简介</label>
+      <div class="input address company-brief">
+        <p>
+          山海文化有限公司是一家兼具文化特质、科技情怀、艺术气质的创新型综合性文化公司。公司倡导并践行“文化沿袭，创新传承”的理念，立足于已被提升至国家战略性产业层面的文化创意产业，持守创新与工匠精神，专注于文创产品的研发设计推广、文化类展馆设计施工、文化交流与展览策划、文化艺术教育信息咨询、美术馆运营、品牌公关策划、文化行业平台交流等，深具国际视野与时尚品位。</p>
+        <p>公司主营业务有：品牌VI设计策划、文创衍生品设计开发、展览展示服务、文化交流活动、ip资源整合平台。</p>
+      </div>
+    </div>
+      <button type="submit" name="提交" id="submit" style="display: none"></button>
+      {if $info['tel']}
+      <div class="btn-box" onclick="alert('不可重复登记')">已登记</div>
+      {else /}
+      <div class="btn-box" onclick="$('#submit').click()">提交</div>
+      {/if}
+    </form>
+    <div class="logo">
+      <div class="logo-box">
+        <img src="/static/src/image/shlogo.png" alt="山海文化有限公司">
+      </div>
+      <p>山海文化有限公司</p>
+    </div>
+  </div>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script type="text/javascript" src="/lib/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="/lib/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/messages_zh.js"></script>
+
+<!--/_footer 作为公共模版分离出去-->
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+
+    $(function() {
+        var isclick = true;
+        var rule_tel = /^1[34578]\d{9}$/;
+
+        $("#formAjax").validate({
+            rules:{
+                company:{
+                    required:true,
+                    maxlength:50
+                },
+                address:{
+                    required:true,
+                    maxlength:255
+                },
+                name:{
+                    required:true,
+                    maxlength:20
+                },
+                tel:{
+                    required:true,
+                    maxlength:15,
+                },
+                job:{
+                    required:true,
+                    maxlength:30
+                },
+            },
+            onkeyup:false,
+            focusCleanup:true,
+            success:"valid",
+            submitHandler:function(form){
+                if(!rule_tel.test($("#tel").val())) {
+                    layer.msg('无效的手机号',{time:1000},function () {
+                        isclick = true;
+                    });
+                    return;
+                }
+                if($("#referer_id").val() == '0') {
+                    layer.msg('请选择推荐人',{time:1000},function () {
+                        isclick = true;
+                    });
+                    return;
+                }
+                if(isclick === true) {
+                    isclick = false;
+                    $(form).ajaxSubmit({
+                        type: 'post',
+                        url: "{:url('Sign/index')}" ,
+                        success: function(data){
+                            // console.log(data);isclick = true;return;
+                            // alert(JSON.stringify(data));
+                            if(data.code == 1) {
+                                layer.msg('提交成功!',{icon:1,time:1000},function () {
+                                    window.location.reload();
+                                    isclick = true;
+                                });
+                            }else {
+                                layer.msg(data.data,{icon:2,time:1000});
+                                isclick = true
+                            }
+                        },
+                        error: function(XmlHttpRequest, textStatus, errorThrown){
+                            layer.msg('接口请求错误!',{icon:5,time:1000});
+                            isclick = true
+                        }
+                    });
+                }
+            }
+        });
+
+
+        $(".people").click(function () {
+            $(this).addClass('on');
+            $(this).siblings('.people').removeClass('on');
+            var referer_id = $(this).attr('title');
+            $("#referer_id").val(referer_id)
+        })
+
+    })
+
+</script>
+
+
+
+
+</body>
+</html>

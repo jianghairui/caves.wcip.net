@@ -382,4 +382,63 @@ class User extends Base {
     }
 
 
+    //会员列表
+    public function signList() {
+        $param['contact'] = input('param.contact','');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
+        $param['search'] = input('param.search');
+
+        $page['query'] = http_build_query(input('param.'));
+
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+
+        $where = [];
+
+        if(!is_null($param['contact']) && $param['contact'] !== '') {
+            $where[] = ['contact','=',$param['contact']];
+        }
+        if($param['datemin']) {
+            $where[] = ['create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
+        }
+
+        if($param['datemax']) {
+            $where[] = ['create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
+        }
+
+        if($param['search']) {
+            $where[] = ['nickname|tel','like',"%{$param['search']}%"];
+        }
+        $order = ['id'=>'DESC'];
+        try {
+            $count = Db::table('mp_sign')->where($where)->count();
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_sign')->where($where)
+                ->order($order)
+                ->limit(($curr_page - 1)*$perpage,$perpage)->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        $this->assign('param',$param);
+        return $this->fetch();
+    }
+
+    public function signContact() {
+        $id = input('post.id');
+        try {
+            $where = [
+                ['id','=',$id]
+            ];
+            Db::table('mp_sign')->where($where)->update(['contact'=>1]);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+
 }
