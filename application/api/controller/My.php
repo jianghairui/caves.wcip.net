@@ -65,6 +65,178 @@ class My extends Common {
         return ajax();
 
     }
+
+    //查看签到状态
+    public function checkSign() {
+        try {
+            //判断昨天是否签到
+            $whereYesterday = [
+                ['uid','=',$this->myinfo['id']],
+                ['sign_date','=',date('Y-m-d',strtotime('-1 day'))]
+            ];
+            $yesterday = Db::table('mp_user_sign')->where($whereYesterday)->find();
+            //判断今天是否签到
+            $whereToday = [
+                ['uid','=',$this->myinfo['id']],
+                ['sign_date','=',date('Y-m-d')]
+            ];
+            $today = Db::table('mp_user_sign')->where($whereToday)->find();
+            //$data['days']进度条天数
+            if($yesterday) {
+                //昨天是第7天
+                if($yesterday['days'] == 7) {
+                    $data['days'] = 0;
+                    if($today) {    //昨天是第7天,今天已经签到了
+                        $data['days'] = 1;
+                        $data['today'] = true;
+                        $data['list'] = Db::table('mp_user_sign')
+                            ->where('uid','=',$this->myinfo['id'])
+                            ->order(['id'=>'DESC'])
+                            ->limit(0,1)
+                            ->select();
+                    }else {     //昨天是第7天,今天未签到
+                        $data['today'] = false;
+                        $data['list'] = [];
+                    }
+                }else {
+                    $data['days'] = $yesterday['days'];
+                    //昨天不是第7天
+                    $data['days'] = $data['days'] + 1;
+                    if($today) {    //今天已经签到了
+                        $data['today'] = true;
+                    }else {         //今天未签到
+                        $data['today'] = false;
+                    }
+                    $data['list'] = Db::table('mp_user_sign')
+                        ->where('uid','=',$this->myinfo['id'])
+                        ->order(['id'=>'DESC'])
+                        ->limit(0,$data['days'])
+                        ->select();
+                }
+            }else {
+                //昨天未签到
+                $data['days'] = 0;
+                if($today) {
+                    $data['days'] = 1;
+                    $data['today'] = true;
+                    $data['list'] = Db::table('mp_user_sign')
+                        ->where('uid','=',$this->myinfo['id'])
+                        ->order(['id'=>'DESC'])
+                        ->limit(0,1)
+                        ->select();
+                }else {
+                    $data['today'] = false;
+                    $data['list'] = [];
+                }
+            }
+
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($data);
+    }
+    //签到
+    public function userSign() {
+        try {
+            $whereToday = [
+                ['uid','=',$this->myinfo['id']],
+                ['sign_date','=',date('Y-m-d')]
+            ];
+            $today = Db::table('mp_user_sign')->where($whereToday)->find();
+            if($today) {
+                return ajax('今日已签到',75);
+            }
+
+            $where = [
+                ['uid','=',$this->myinfo['id']],
+                ['sign_date','=',date('Y-m-d',strtotime('-1 day'))]
+            ];
+            $yesterday = Db::table('mp_user_sign')->where($where)->find();
+            /*----查看昨天有没有签到记录----*/
+            if($yesterday) {
+                $val['days'] = $yesterday['days'] + 1;
+                if($yesterday['days'] == 7) {
+                    $val['days'] = 1;
+                }
+                if($yesterday['days'] == 6) {
+                    $score = 100;
+                    $val['score'] = $score;
+                    $val['desc'] = '+'.$score.'积分';
+                    /*---获得积分记录日志修改用户积分---*/
+                    Db::table('mp_score_log')->insert([
+                        'uid' => $this->myinfo['id'],
+                        'score' => $score,
+                        'desc' => '连续签到7天',
+                        'type' => 2
+                    ]);
+                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('integral',$score);
+                }else {
+                    $score = 10;
+                    $val['score'] = $score;
+                    $val['desc'] = '+'.$score.'积分';
+                    /*---获得积分记录日志修改用户积分---*/
+                    Db::table('mp_score_log')->insert([
+                        'uid' => $this->myinfo['id'],
+                        'score' => $score,
+                        'desc' => '签到',
+                        'type' => 2
+                    ]);
+                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('integral',$score);
+                }
+            }else {
+                $val['days'] = 1;
+                $score = 10;
+                $val['score'] = $score;
+                $val['desc'] = '+'.$score.'积分';
+                /*---获得积分记录日志修改用户积分---*/
+                Db::table('mp_score_log')->insert([
+                    'uid' => $this->myinfo['id'],
+                    'score' => $score,
+                    'desc' => '签到',
+                    'type' => 2
+                ]);
+                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('integral',$score);
+            }
+            $val['uid'] = $this->myinfo['id'];
+            $val['sign_date'] = date('Y-m-d');
+            $val['sign_time'] = time();
+            Db::table('mp_user_sign')->insert($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $data['days'] = $val['days'];
+        return ajax($data);
+    }
+    //最近30天签到记录
+    public function signLog() {
+        try {
+            $where = [
+                ['uid','=',$this->myinfo['id']],
+                ['sign_date','>=',date('Y-m-d',strtotime('-29 days'))]
+            ];
+            $sign_list = Db::table('mp_user_sign')->where($where)->column('sign_date');
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $date_arr = [];
+        for($i=0;$i<=29;$i++) {
+            $date_arr[] = date('Y-m-d',strtotime('-'.$i.' days'));
+        }
+
+        $list = [];
+        foreach ($date_arr as $v) {
+            $data = [];
+            $data['sign_date'] = $v;
+            if(in_array($v,$sign_list)) {
+                $data['sign'] = true;
+            }else {
+                $data['sign'] = false;
+            }
+            $list[] = $data;
+        }
+        return ajax($list);
+    }
+    
     //获取我发的笔记列表
     public function getMyNoteList()
     {
