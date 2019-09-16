@@ -54,7 +54,8 @@ class Common extends Controller {
             'Pay/order_notify',
             'Pay/funding_notify',
             'Activity/test',
-            'Message/index'
+            'Message/index',
+            'Message/fundingorder'
 //            'Activity/getqrcode'
         ];
         if (in_array(request()->controller() . '/' . request()->action(), $noneed)) {
@@ -82,38 +83,6 @@ class Common extends Controller {
             }
         }
 
-    }
-
-    //Exception日志
-    protected function log($cmd,$str) {
-        $file= ROOT_PATH . '/exception_api.txt';
-        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
-        if(false !== fopen($file,'a+')){
-            file_put_contents($file,$text,FILE_APPEND);
-        }else{
-            echo '创建失败';
-        }
-    }
-    //支付回调日志
-    protected function paylog($cmd,$str) {
-        $file= ROOT_PATH . '/notify.txt';
-        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
-        if(false !== fopen($file,'a+')){
-            file_put_contents($file,$text,FILE_APPEND);
-        }else{
-            echo '创建失败';
-        }
-    }
-
-
-    public function qiniuLog($cmd,$str) {
-        $file= ROOT_PATH . '/qiniu_error.log';
-        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
-        if(false !== fopen($file,'a+')){
-            file_put_contents($file,$text,FILE_APPEND);
-        }else{
-            echo '创建失败';
-        }
     }
 
     //七牛云判断文件是否存在
@@ -196,6 +165,49 @@ class Common extends Controller {
             throw new HttpResponseException(ajax($e->getMessage(),-1));
         }
         return $audit;
+    }
+
+
+    //Exception日志
+    protected function log($cmd,$str) {
+        $file= ROOT_PATH . '/log/exception_api.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+    //支付回调日志
+    protected function paylog($cmd,$str) {
+        $file= ROOT_PATH . '/log/notify.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+    //七牛云日志
+    public function qiniuLog($cmd,$str) {
+        $file= ROOT_PATH . '/log/qiniu_error.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+    //Exception日志
+    protected function msglog($cmd,$str) {
+        $file= ROOT_PATH . '/log/message.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
     }
 
 

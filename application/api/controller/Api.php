@@ -60,7 +60,7 @@ class Api extends Common
                 ['id', '=', $val['req_id']],
             ];
             $info = Db::table('mp_req')
-                ->field('id,uid,title,cover,theme,explain,desc,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num')
+                ->field('id,uid,title,cover,theme,explain,desc,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num,use_video,video_url')
                 ->where($where)->find();
             if (!$info) {
                 return ajax($val['req_id'], -4);
