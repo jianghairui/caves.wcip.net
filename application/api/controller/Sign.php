@@ -27,7 +27,6 @@ class Sign extends Controller {
             if(!session('userinfo')) {
                 $query = http_build_query(input('param.'));
                 $url = $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/auth?' . $query;
-                $url = $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/auth?' . $query;
                 header("Location:".$url);exit;
             }
         }
@@ -57,9 +56,12 @@ class Sign extends Controller {
             return ajax();
         }
         try {
-            $info = Db::table('mp_sign')->where('openid','=',$userinfo['openid'])->find();
+            $info = Db::table('mp_sign')->alias('s')
+                ->join('mp_sign_referer r','s.referer_id=r.id','left')
+                ->where('openid','=',$userinfo['openid'])
+                ->field('s.*,r.name,r.tel AS referer_tel')->find();
             if(!$info) {
-                die('系统异常');
+                return $this->fetch('error');
             }
             $list = Db::table('mp_sign_referer')->select();
         } catch (\Exception $e) {
@@ -68,8 +70,8 @@ class Sign extends Controller {
         $jssdk = new Jssdk($this->appid, $this->appsecret);
         $data = $jssdk->getSignPackage();
         $share_data = [
-            'title' => '山海文化邀请函',
-            'desc' => '山洞文创平台工厂入驻问答会谈',
+            'title' => '山洞文创平台工厂采购交流会',
+            'desc' => '山洞文创平台工厂采购交流会',
             'link' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/index',
             'imgUrl' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/static/src/image/shlogo.png'
         ];
