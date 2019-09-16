@@ -236,14 +236,31 @@ class Pay extends Common {
                             'trans_id' => $data['transaction_id'],
                             'pay_time' => time()
                         ];
-                        if($order_exist['type'] == 1) {
-                            $update_data['status'] = 1;
-                        }else {
-                            $update_data['status'] = 3;
+                        $whereFunding = [
+                            ['id','=',$order_exist['funding_id']]
+                        ];
+                        $funding_exist = Db::table('mp_funding')->where($whereFunding)->find();
+                        if(!$funding_exist) {
+                            $this->paylog($this->cmd,$data['out_trade_no'] . '未找到此众筹项目');
+                            exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
                         }
+                        $funding_data['curr_money'] = $funding_exist['curr_money'] + $order_exist['total_price'];
+                        $funding_data['order_num'] = $funding_exist['order_num'] + 1;
+                        if($order_exist['type'] == 1) {//有偿订单
+                            $update_data['status'] = 1;
+                            $funding_data['paid_money'] = $funding_exist['paid_money'] + $order_exist['total_price'];
+                            $whereGoods = [
+                                ['id','=',$order_exist['goods_id']]
+                            ];
+                            //商品+销量
+                            Db::table('mp_funding_goods')->where($whereGoods)->setInc('sales',$order_exist['num']);//销量+1
+                        }else {                         //无偿订单
+                            $update_data['status'] = 3;
+                            $funding_data['free_money'] = $funding_exist['free_money'] + $order_exist['total_price'];
+                        }
+                        //修改订单状态,众筹金额增加
                         Db::table('mp_funding_order')->where('pay_order_sn','=',$data['out_trade_no'])->update($update_data);
-                        Db::table('mp_funding')->where('id','=',$order_exist['funding_id'])->setInc('curr_money',$order_exist['total_price']);
-                        Db::table('mp_funding')->where('id','=',$order_exist['funding_id'])->setInc('order_num',1);
+                        Db::table('mp_funding')->where($whereFunding)->update($funding_data);
                     }
                 }catch (\Exception $e) {
                     $this->log($this->cmd,$e->getMessage());

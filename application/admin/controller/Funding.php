@@ -500,6 +500,7 @@ class Funding extends Base {
         $order = ['o.id'=>'DESC'];
         if($param['status'] !== '') {
             $where[] = ['o.status','=',$param['status']];
+            $where[] = ['o.refund_apply','=',0];
         }
         if($param['refund_apply']) {
             $where[] = ['o.refund_apply','=',$param['refund_apply']];
@@ -565,7 +566,7 @@ class Funding extends Base {
                 ['id','=',$val['id']],
                 ['status','=',1]
             ];
-            $exist = Db::table('mp_order')->where($where)->find();
+            $exist = Db::table('mp_funding_order')->where($where)->find();
             if(!$exist) {
                 return ajax('订单不存在或状态已改变',-1);
             }
@@ -575,7 +576,7 @@ class Funding extends Base {
                 'tracking_name' => $val['tracking_name'],
                 'tracking_num' => $val['tracking_num']
             ];
-            Db::table('mp_order')->where($where)->update($update_data);
+            Db::table('mp_funding_order')->where($where)->update($update_data);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -585,36 +586,42 @@ class Funding extends Base {
     public function orderDetail() {
         die('还没写');
     }
-//订单修改
-    public function orderModPost() {
-
-    }
 //退款
     public function orderRefund() {
         $val['id'] = input('post.id');
         checkInput($val);
         try {
-            $where = [
+            $whereOrder = [
                 ['id','=',$val['id']],
                 ['status','in',[1,2,3]]
             ];
-            $exist = Db::table('mp_funding_order')->where($where)->find();
-            if(!$exist) {
+            $order_exist = Db::table('mp_funding_order')->where($whereOrder)->find();
+            if(!$order_exist) {
                 return ajax('订单不存在或状态已改变',-1);
             }
-            $pay_order_sn = $exist['pay_order_sn'];
+            $whereFunding = [
+                ['id','=',$order_exist['funding_id']]
+            ];
+            $funding_exist = Db::table('mp_funding')->where($whereFunding)->find();
+            if(!$funding_exist) {
+                return ajax('未找到此项众筹',-1);
+            }
+            $whereGoods = [
+                ['id','=',$order_exist['goods_id']]
+            ];
+            $pay_order_sn = $order_exist['pay_order_sn'];
 
-            $exist['pay_price'] = 0.01;
+            $order_exist['pay_price'] = 0.01;
             $arr = [
                 'appid' => $this->config['app_id'],
                 'mch_id'=> $this->config['mch_id'],
                 'nonce_str'=>randomkeys(32),
                 'sign_type'=>'MD5',
-                'transaction_id'=> $exist['trans_id'],
+                'transaction_id'=> $order_exist['trans_id'],
                 'out_trade_no'=> $pay_order_sn,
                 'out_refund_no'=> 'r' . $pay_order_sn,
-                'total_fee'=> floatval($exist['pay_price'])*100,
-                'refund_fee'=> floatval($exist['pay_price'])*100,
+                'total_fee'=> floatval($order_exist['pay_price'])*100,
+                'refund_fee'=> floatval($order_exist['pay_price'])*100,
                 'refund_fee_type'=> 'CNY',
                 'refund_desc'=> '订单退款',
                 'notify_url'=> $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'].'/wxRefundNotify',
@@ -633,8 +640,22 @@ class Funding extends Base {
                         'refund_apply' => 2,
                         'refund_time' => time()
                     ];
-                    Db::table('mp_funding_order')->where($where)->update($update_data);
-                    return ajax();
+                    Db::table('mp_funding_order')->where($whereOrder)->update($update_data);
+                    if($order_exist['type'] == 1) {
+                        $funding_data = [
+                            'curr_money' => $funding_exist['curr_money'] - $order_exist['total_price'],
+                            'paid_money' => $funding_exist['paid_money'] - $order_exist['total_price'],
+                            'order_num' => $funding_exist['order_num'] - 1
+                        ];
+                        Db::table('mp_funding_goods')->where($whereGoods)->setDec('sales',$order_exist['num']);
+                    }else {
+                        $funding_data = [
+                            'curr_money' => $funding_exist['curr_money'] - $order_exist['total_price'],
+                            'free_money' => $funding_exist['free_money'] - $order_exist['total_price'],
+                            'order_num' => $funding_exist['order_num'] - 1
+                        ];
+                    }
+                    Db::table('mp_funding')->where($whereFunding)->update($funding_data);
                 }else {
                     return ajax($result['err_code_des'],-1);
                 }
@@ -644,6 +665,7 @@ class Funding extends Base {
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
+        return ajax();
     }
 //删除订单
     public function orderDel() {
@@ -656,16 +678,17 @@ class Funding extends Base {
         checkInput($val);
         try {
             $where = [
-                ['id','=',$val['id']]
+                ['id','=',$val['id']],
+                ['status','=',0]
             ];
-            $exist = Db::table('mp_order')->where($where)->find();
+            $exist = Db::table('mp_funding_order')->where($where)->find();
             if(!$exist) {
                 return ajax('订单不存在或状态已改变',-1);
             }
             $update_data = [
                 'address' => $val['address']
             ];
-            Db::table('mp_order')->where($where)->update($update_data);
+            Db::table('mp_funding_order')->where($where)->update($update_data);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -678,16 +701,17 @@ class Funding extends Base {
         checkInput($val);
         try {
             $where = [
-                ['id','=',$val['id']]
+                ['id','=',$val['id']],
+                ['status','=',0]
             ];
-            $exist = Db::table('mp_order')->where($where)->find();
+            $exist = Db::table('mp_funding_order')->where($where)->find();
             if(!$exist) {
                 return ajax('订单不存在或状态已改变',-1);
             }
             $update_data = [
                 'pay_price' => $val['pay_price']
             ];
-            Db::table('mp_order')->where($where)->update($update_data);
+            Db::table('mp_funding_order')->where($where)->update($update_data);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

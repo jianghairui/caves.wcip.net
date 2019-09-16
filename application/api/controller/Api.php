@@ -608,9 +608,9 @@ class Api extends Common
         $val['bidding_id'] = input('post.bidding_id');
         checkPost($val);
         try {
-//            if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
-//                return ajax('只有认证的博物馆可以操作此项',72);
-//            }
+            if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
+                return ajax('只有认证的博物馆可以操作此项',72);
+            }
             $myreqids = Db::table('mp_req')->where('uid','=',$this->myinfo['id'])->column('id');
             $whereBidding = [
                 ['id','=',$val['bidding_id']]
@@ -619,9 +619,9 @@ class Api extends Common
             if(!$exist) {
                 return ajax('invalid bidding_id',-4);
             }
-//            if(!in_array($exist['req_id'],$myreqids)) {
-//                return ajax('无权操作此活动流程',74);
-//            }
+            if(!in_array($exist['req_id'],$myreqids)) {
+                return ajax('无权操作此活动流程',74);
+            }
             $whereWork = [
                 ['id','=',$exist['work_id']]
             ];
@@ -702,7 +702,7 @@ class Api extends Common
                 ->join('mp_req r','f.req_id=r.id','left')
                 ->join('mp_req_idea i','f.idea_id=i.id','left')
                 ->join('mp_req_works w','f.work_id=w.id','left')
-                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,f.req_id,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.uid,w.title AS work_title,w.desc AS work_detail,w.pics AS works_pics,f.desc,f.content')
+                ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,f.req_id,f.idea_id,f.work_id,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.uid,w.title AS work_title,w.desc AS work_detail,w.pics AS works_pics,f.desc,f.content')
                 ->where($where)->find();
             $whereUser = [
                 ['id','=',$info['uid']]

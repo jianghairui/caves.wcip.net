@@ -108,7 +108,7 @@ class Note extends Common {
             $info = Db::table('mp_note')->alias('n')
                 ->join('mp_user u','n.uid=u.id','left')
                 ->where('n.id','=',$val['note_id'])
-                ->field('n.id,n.uid,n.title,n.content,n.pics,n.like,n.status,u.nickname,u.avatar')
+                ->field('n.id,n.uid,n.title,n.content,n.pics,n.like,n.status,n.reason,u.nickname,u.avatar')
                 ->find();
             if(!$info) {
                 return ajax('invalid id',-4);

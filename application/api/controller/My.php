@@ -169,7 +169,7 @@ class My extends Common {
                         'desc' => '连续签到7天',
                         'type' => 2
                     ]);
-                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('integral',$score);
+                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('score',$score);
                 }else {
                     $score = 10;
                     $val['score'] = $score;
@@ -181,7 +181,7 @@ class My extends Common {
                         'desc' => '签到',
                         'type' => 2
                     ]);
-                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('integral',$score);
+                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('score',$score);
                 }
             }else {
                 $val['days'] = 1;
@@ -195,7 +195,7 @@ class My extends Common {
                     'desc' => '签到',
                     'type' => 2
                 ]);
-                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('integral',$score);
+                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('score',$score);
             }
             $val['uid'] = $this->myinfo['id'];
             $val['sign_date'] = date('Y-m-d');
@@ -272,35 +272,50 @@ class My extends Common {
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
         $image = input('post.pics',[]);
+        if(!$this->msgSecCheck($val['title'])) {
+            return ajax('标题包含敏感词',63);
+        }
+        if(!$this->msgSecCheck($val['content'])) {
+            return ajax('内容包含敏感词',64);
+        }
+        if(is_array($image) && !empty($image)) {
+            if(count($image) > 9) {
+                return ajax('最多上传9张图片',8);
+            }
+            //验证图片是否存在
+            foreach ($image as $v) {
+                $qiniu_exist = $this->qiniuFileExist($v);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'] . ' :'.$v,5);
+                }
+            }
+        }else {
+            return ajax('请传入图片',3);
+        }
 
-        $where = [
-            ['id','=',$val['id']],
-            ['uid','=',$this->myinfo['id']]
-        ];
         try {
+            $where = [
+                ['id','=',$val['id']],
+                ['uid','=',$this->myinfo['id']]
+            ];
             $exist = Db::table('mp_note')->where($where)->find();
             if(!$exist) {
                 return ajax($val['id'],-4);
             }
-            if($exist['status'] == 0) {
+            if($exist['status'] != 2) {
                 return ajax('当前状态无法修改',34);
             }
             $old_pics = unserialize($exist['pics']);
-            if(is_array($image) && !empty($image)) {
-                if(count($image) > 9) {
-                    return ajax('最多上传9张图片',8);
-                }
-                foreach ($image as $v) {
-                    if(!file_exists($v)) {
-                        return ajax($v,5);
-                    }
-                }
-            }else {
-                return ajax('请传入图片',3);
-            }
+
             $image_array = [];
+            //转移七牛云图片
             foreach ($image as $v) {
-                $image_array[] = rename_file($v);
+                $qiniu_move = $this->moveFile($v,'upload/note/');
+                if($qiniu_move['code'] == 0) {
+                    $image_array[] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'] .' :' . $v . '',-1);
+                }
             }
             $val['pics'] = serialize($image_array);
             $val['status'] = 0;
@@ -308,14 +323,14 @@ class My extends Common {
         }catch (\Exception $e) {
             foreach ($image_array as $v) {
                 if(!in_array($v,$old_pics)) {
-                    @unlink($v);
+                    $this->rs_delete($v);
                 }
             }
             return ajax($e->getMessage(),-1);
         }
         foreach ($old_pics as $v) {
             if(!in_array($v,$image_array)) {
-                @unlink($v);
+                $this->rs_delete($v);
             }
         }
         return ajax();
@@ -646,7 +661,8 @@ class My extends Common {
 
         $where = [
             ['o.uid','=',$this->myinfo['id']],
-            ['o.del','=',0]
+            ['o.del','=',0],
+            ['o.refund_apply','=',0]
         ];
         if($status !== '') {
             $where[] = ['o.status','=',$status];

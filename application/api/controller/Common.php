@@ -54,6 +54,7 @@ class Common extends Controller {
             'Pay/order_notify',
             'Pay/funding_notify',
             'Activity/test',
+            'Message/index'
 //            'Activity/getqrcode'
         ];
         if (in_array(request()->controller() . '/' . request()->action(), $noneed)) {

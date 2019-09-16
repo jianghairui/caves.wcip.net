@@ -183,9 +183,9 @@
                             dataType:'json',
                             data:{id:id,reason:reason},
                             success:function(data) {
-                                console.log(data)
+                                console.log(data);
                                 if(data.code == 1) {
-                                    $(obj).parents("tr").find(".td-status").html('<span class="label label-defaunt radius">未通过</span>');
+                                    $(obj).parents("tr").find(".td-status").html('<span class="label label-danger radius">未通过</span>');
                                     $(obj).parent().html('<span class="btn btn-link radius"></span>');
                                     layer.msg('未通过', {icon:1,time:1000});
                                     click_lock = true
