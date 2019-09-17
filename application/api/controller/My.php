@@ -21,27 +21,19 @@ class My extends Common {
         }
         return ajax($info);
     }
-    //点击头像编辑个人资料
-    public function modMyInfo() {
-        $val['nickname'] = input('post.nickname');
-        $val['realname'] = input('post.realname');
-        $val['sex'] = input('post.sex');
-        $val['age'] = input('post.age');
-        checkPost($val);
-        $val['sign'] = input('post.sign','');
+    //修改头像
+    public function modAvatar() {
         $user = $this->myinfo;
-        if(!$this->msgSecCheck($val['nickname'])) {
-            return ajax('昵称包含敏感词',68);
-        }
-        if(!$val['sign'] && !$this->msgSecCheck($val['sign'])) {
-            return ajax('签名包含敏感词',69);
-        }
         try {
             $avatar = input('post.avatar');
             if($avatar) {
                 if (substr($avatar,0,4) == 'http') {
                     $val['avatar'] = $avatar;
                 }else {
+                    $qiniu_exist = $this->qiniuFileExist($avatar);
+                    if($qiniu_exist !== true) {
+                        return ajax($qiniu_exist['msg'] . ' :'.$avatar,5);
+                    }
                     $qiniu_move = $this->moveFile($avatar,'upload/avatar/');
                     if($qiniu_move['code'] == 0) {
                         $val['avatar'] = $qiniu_move['path'];
@@ -52,7 +44,7 @@ class My extends Common {
             }else {
                 return ajax('请上传头像',61);
             }
-            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+            Db::table('mp_user')->where('id','=',$user['id'])->update($val);
         } catch (\Exception $e) {
             if ($val['avatar'] != $user['avatar'] &&  substr($val['avatar'],0,4) != 'http') {
                 $this->rs_delete($val['avatar']);
@@ -64,6 +56,60 @@ class My extends Common {
         }
         return ajax();
 
+    }
+    //修改昵称
+    public function modNickname() {
+        $val['nickname'] = input('post.nickname');
+        checkPost($val);
+        if(!$this->msgSecCheck($val['nickname'])) {
+            return ajax('昵称包含敏感词',68);
+        }
+        try {
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    //修改真实姓名
+    public function modRealname() {
+        $val['realname'] = input('post.realname');
+        checkPost($val);
+        try {
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    //修改性别 1 男 2 女
+    public function modSex() {
+        $val['sex'] = input('post.sex');
+        checkPost($val);
+        $val['sex'] = intval($val['sex']);
+        if(!in_array($val['sex'],[0,1,2], true)) {
+            return ajax('非法参数sex',-4);
+        }
+        try {
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    //修改个人简介
+    public function modDesc() {
+        $val['sign'] = input('post.sign','');
+        checkPost($val);
+        if(!$this->msgSecCheck($val['sign'])) {
+            return ajax('内容包含敏感词',64);
+        }
+        try {
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
     }
 
     //查看签到状态
@@ -101,8 +147,8 @@ class My extends Common {
                 }else {
                     $data['days'] = $yesterday['days'];
                     //昨天不是第7天
-                    $data['days'] = $data['days'] + 1;
                     if($today) {    //今天已经签到了
+                        $data['days'] = $data['days'] + 1;
                         $data['today'] = true;
                     }else {         //今天未签到
                         $data['today'] = false;
@@ -205,6 +251,7 @@ class My extends Common {
             return ajax($e->getMessage(), -1);
         }
         $data['days'] = $val['days'];
+        $data['score'] = $val['score'];
         return ajax($data);
     }
     //最近30天签到记录

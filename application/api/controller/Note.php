@@ -355,7 +355,7 @@ WHERE c.note_id=?",[$val['note_id']]);
         }
         return ajax($like);
     }
-    //收藏/取消收藏
+    //关注/取消关注
     public function iFocus() {
         $val['to_uid'] = input('post.to_uid');
         checkPost($val);
@@ -376,13 +376,14 @@ WHERE c.note_id=?",[$val['note_id']]);
             if($exist) {
                 Db::table('mp_user_focus')->where($map)->delete();
                 Db::table('mp_user')->where('id',$val['to_uid'])->setDec('focus',1);
+                Db::table('mp_user')->where('id',$val['uid'])->setDec('ifocus',1);
                 return ajax(false);
             }else {
                 Db::table('mp_user_focus')->insert($val);
                 Db::table('mp_user')->where('id',$val['to_uid'])->setInc('focus',1);
+                Db::table('mp_user')->where('id',$val['uid'])->setInc('ifocus',1);
                 return ajax(true);
             }
-
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }

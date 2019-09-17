@@ -33,6 +33,9 @@ class Message extends Common {
     public function collectFormid() {
         $val['formid'] = input('post.formid');
         checkPost($val);
+        if($val['formid'] == 'the formId is a mock one') {
+            return ajax();
+        }
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
         try {
@@ -45,11 +48,11 @@ class Message extends Common {
     //众筹订单支付通知
     public function fundingOrder() {
         $order_id = input('param.order_id','');
-        $order_id = 6;
         if(!$order_id) {
             die('DIE');
         }
         try {
+            //订单是否存在
             $whereOrder = [
                 ['id','=',$order_id]
             ];
@@ -57,6 +60,7 @@ class Message extends Common {
             if(!$order_exist) {
                 die('DIE');
             }
+            //formid是否存在
             $whereFormid = [
                 ['uid','=',$order_exist['uid']],
                 ['create_time','>',time()-(7200*24*7+7200*2)]
@@ -67,6 +71,7 @@ class Message extends Common {
                 die('not found formid');
             }
             $formid = $formid_exist['formid'];
+            //查找用户openid
             $whereUser = [
                 ['id','=',$order_exist['uid']]
             ];
@@ -75,6 +80,7 @@ class Message extends Common {
                 $this->msglog($this->cmd,'user not found , openid:' . $order_exist['uid']);
                 die('user not found');
             }
+            //发送消息
             $app = Factory::miniProgram($this->mp_config);
 
             if($order_exist['type'] == 1) {
@@ -122,6 +128,33 @@ class Message extends Common {
         }
         halt($res);
     }
+    //博物馆选择工厂时给工厂发送消息
+    public function chooseFactory() {
+
+    }
+
+    //作品未通过审核时给设计师发送消息
+    public function worksReject() {
+
+    }
+
+    //笔记未通过审核时给发布人发送消息
+    public function noteReject() {
+
+    }
+
+    //商城订单支付成功给用户发送消息
+    public function order() {
+
+    }
+
+    //申请平台角色未过审,给用户发送消息
+    public function roleReject() {
+
+    }
+
+
+
 
 
 

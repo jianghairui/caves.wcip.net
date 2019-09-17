@@ -106,7 +106,7 @@ class Login extends Common {
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        @unlink($user['avatar']);
+        $this->rs_delete($user['avatar']);
         return ajax('保存成功',1);
     }
 
