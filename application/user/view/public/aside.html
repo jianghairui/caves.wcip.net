@@ -1,0 +1,84 @@
+<aside class="Hui-aside">
+    <div class="menu_dropdown bk_2">
+    {if session('username')===config('superman')}
+        <dl id="menu-banner">
+            <dt><i class="Hui-iconfont">&#xe625;</i> 首页设置<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Banner/slideList')}" data-title="轮播图" href="javascript:;">轮播图设置</a></li>
+                    <li><a data-href="{:url('Banner/videoList')}" data-title="宣传视频" href="javascript:;">宣传视频</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-activity">
+            <dt><i class="Hui-iconfont">&#xe70a;</i> 活动管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Req/reqList')}" data-title="活动列表" href="javascript:void(0)">活动列表</a></li>
+                    <li><a data-href="{:url('Req/workList')}" data-title="设计作品" href="javascript:void(0)">设计作品</a></li>
+                    <li><a data-href="{:url('Req/ideaList')}" data-title="用户创意" href="javascript:void(0)">用户创意</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-funding">
+            <dt><i class="Hui-iconfont">&#xe63a;</i> 众筹管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Funding/fundingList')}" data-title="众筹管理" href="javascript:void(0)">众筹管理</a></li>
+                    <li><a data-href="{:url('Funding/goodsList')}" data-title="回报商品" href="javascript:void(0)">回报商品</a></li>
+                    <li><a data-href="{:url('Funding/orderList')}" data-title="众筹订单" href="javascript:void(0)">众筹订单</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-note">
+            <dt><i class="Hui-iconfont">&#xe70c;</i> 笔记管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Note/noteList')}" data-title="笔记列表" href="javascript:void(0)">笔记列表</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-member">
+            <dt><i class="Hui-iconfont">&#xe60d;</i> 会员管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('User/userList')}" data-title="会员列表" href="javascript:void(0);">会员列表</a></li>
+                    <li><a data-href="{:url('User/rechargeList')}" data-title="充值记录" href="javascript:void(0);">充值记录</a></li>
+                    <li><a data-href="{:url('User/vipList')}" data-title="充值记录" href="javascript:void(0);">充值设置</a></li>
+                    <li><a data-href="{:url('User/signList')}" data-title="签到记录" href="javascript:void(0);">签到记录</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-shop">
+            <dt><i class="Hui-iconfont">&#xe66a;</i> 商城管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Shop/goodsList')}" data-title="商品列表" href="javascript:void(0);">商品列表</a></li>
+                    <li><a data-href="{:url('Shop/cateList')}" data-title="商品分类" href="javascript:void(0);">商品分类</a></li>
+                    <li><a data-href="{:url('Shop/orderList')}" data-title="订单管理" href="javascript:void(0);">订单管理</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-admin">
+            <dt><i class="Hui-iconfont">&#xe62d;</i> 管理员管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Admin/adminlist')}" data-title="管理员列表" href="javascript:void(0)">管理员列表</a></li>
+                    <li><a data-href="{:url('Admin/grouplist')}" data-title="角色管理" href="javascript:void(0)">角色管理</a></li>
+                    <li><a data-href="{:url('Admin/rulelist')}" data-title="权限管理" href="javascript:void(0)">权限管理</a></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl id="menu-system">
+            <dt><i class="Hui-iconfont">&#xe62e;</i> 系统管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <!--<li><a data-href="{:url('System/setting')}" data-title="系统设置" href="javascript:void(0)">系统设置</a></li>-->
+                    <li><a data-href="{:url('System/syslog')}" data-title="系统日志" href="javascript:void(0)">系统日志</a></li>
+                </ul>
+            </dd>
+        </dl>
+    {/if}
+
+    </div>
+</aside>
