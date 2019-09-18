@@ -30,18 +30,18 @@
             <div class="row cl">
                 <label class="form-label col-xs-3"><i class="Hui-iconfont">&#xe60d;</i></label>
                 <div class="formControls col-xs-8">
-                    <input id="username" name="username" maxlength="32" type="text" placeholder="账户" value="{$data.mp_username}" class="input-text size-L">
+                    <input id="username" name="username" maxlength="32" type="text" placeholder="账户" value="{$data.mp_username}" class="input-text size-L" required>
                 </div>
             </div>
             <div class="row cl">
                 <label class="form-label col-xs-3"><i class="Hui-iconfont">&#xe60e;</i></label>
                 <div class="formControls col-xs-8">
-                    <input id="password" name="password" maxlength="32" type="password" placeholder="密码" value="{$data.mp_password}" class="input-text size-L">
+                    <input id="password" name="password" maxlength="32" type="password" placeholder="密码" value="{$data.mp_password}" class="input-text size-L" required>
                 </div>
             </div>
             <div class="row cl">
                 <div class="formControls col-xs-8 col-xs-offset-3">
-                    <input class="input-text size-L" type="text" name="login_vcode" placeholder="验证码" style="width:150px;">
+                    <input class="input-text size-L" type="text" name="login_vcode" placeholder="验证码" style="width:150px;" required>
                     <img src="{:url('Login/vcode')}" id="img" onclick="Code()">
                 </div>
             </div>

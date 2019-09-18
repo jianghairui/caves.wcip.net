@@ -18,25 +18,26 @@ class Shop extends Base {
 
         $curr_page = input('param.page',1);
         $perpage = input('param.perpage',10);
-        $where = [];
+        $where = [
+            ['uid','=',$this->userinfo['id']]
+        ];
+        $order = ['id'=>'DESC'];
         if($param['search']) {
             $where[] = ['name','like',"%{$param['search']}%"];
         }
-        $count = Db::table('mp_goods')->where($where)->count();
 
-        $page['count'] = $count;
-        $page['curr'] = $curr_page;
-        $page['totalPage'] = ceil($count/$perpage);
         try {
+            $count = Db::table('mp_goods')->where($where)->count();
             $list = Db::table('mp_goods')
                 ->where($where)
                 ->limit(($curr_page - 1)*$perpage,$perpage)
-                ->order(['id'=>'DESC'])
-                ->select();
+                ->order($order)->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
-
+        $page['count'] = $count;
+        $page['curr'] = $curr_page;
+        $page['totalPage'] = ceil($count/$perpage);
         $this->assign('list',$list);
         $this->assign('page',$page);
         return $this->fetch();
@@ -77,15 +78,14 @@ class Shop extends Base {
         try {
             $wherecate = [
                 ['pid','=',0],
-                ['del','=',0]
+                ['del','=',0],
+                ['uid','=',$this->userinfo['id']]
             ];
             $info = Db::table('mp_goods')->where('id','=',$id)->find();
             if(!$info) {
                 die('非法参数');
             }
-
             $list = Db::table('mp_goods_cate')->where($wherecate)->select();
-
             $wherepcate = [
                 ['pid','=',$info['pcate_id']],
                 ['del','=',0]
@@ -128,6 +128,7 @@ class Shop extends Base {
         checkInput($val);
         $val['detail'] = input('post.detail');
         $val['use_attr'] = input('post.use_attr','');
+        $val['uid'] = $this->userinfo['id'];
         if($val['use_attr']) {
             $attr1 = input('post.attr1',[]);
             $attr2 = input('post.attr2',[]);
@@ -340,212 +341,65 @@ class Shop extends Base {
     }
 //下架
     public function goodsHide() {
-        $id = input('post.id','0');
+        $val['id'] = input('post.id','');
+        checkInput($val);
         $map = [
-            ['id','=',$id],
-            ['status','=',1]
+            ['id','=',$val['id']],
+            ['status','=',1].
+            ['uid','=',$this->userinfo['id']]
         ];
         try {
-            $res = Db::table('mp_goods')->where($map)->update(['status'=>0]);
+            $goods_exist = Db::table('mp_goods')->where($map)->find();
+            if(!$goods_exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_goods')->where($map)->update(['status'=>0]);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        if($res) {
-            return ajax();
-        }else {
-            return ajax('共修改0条记录',-1);
-        }
+        return ajax();
     }
 //上架
     public function goodsShow() {
-        $id = input('post.id','0');
+        $val['id'] = input('post.id','');
+        checkInput($val);
         $map = [
-            ['id','=',$id],
-            ['status','=',0]
+            ['id','=',$val['id']],
+            ['status','=',1].
+            ['uid','=',$this->userinfo['id']]
         ];
         try {
-            $res = Db::table('mp_goods')->where($map)->update(['status'=>1]);
+            $goods_exist = Db::table('mp_goods')->where($map)->find();
+            if(!$goods_exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_goods')->where($map)->update(['status'=>1]);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        if($res) {
-            return ajax();
-        }else {
-            return ajax('共修改0条记录',-1);
-        }
+        return ajax();
     }
 //删除商品
     public function goodsDel() {
-        $id = input('post.id','0');
-        $map = [
-            ['id','=',$id]
-        ];
-        try {
-            $res = Db::table('mp_goods')->where($map)->update(['del'=>1]);
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        if($res) {
-            return ajax();
-        }else {
-            return ajax('共修改0条记录',-1);
-        }
-    }
-//分类列表
-    public function cateList() {
-        $pid = input('param.pid',0);
-        $where = [
-            ['pid','=',$pid],
-            ['del','=',0]
-        ];
-        try {
-            $list = Db::table('mp_goods_cate')->where($where)->select();
-            $pcate_name = Db::table('mp_goods_cate')->where('id',$pid)->value('cate_name');
-        }catch (\Exception $e) {
-            die($e->getMessage());
-        }
-        $this->assign('pcate_name',$pcate_name);
-        $this->assign('pid',$pid);
-        $this->assign('list',$list);
-        $this->assign('qiniu_weburl',config('qiniu_weburl'));
-        return $this->fetch();
-    }
-//添加分类
-    public function cateAdd() {
-        $pid = input('param.pid',0);
-        try {
-            $list = Db::table('mp_goods_cate')->where('pid',0)->select();
-        }catch (\Exception $e) {
-            die($e->getMessage());
-        }
-        $this->assign('list',$list);
-        $this->assign('pid',$pid);
-        return $this->fetch();
-    }
-//添加分类POST
-    public function cateAddPost() {
-        $val['cate_name'] = input('post.cate_name');
-        $val['pid'] = input('post.pid',0);
+        $val['id'] = input('post.id','');
         checkInput($val);
-        $icon = input('post.icon');
         try {
-            if($icon) {
-                $qiniu_exist = $this->qiniuFileExist($icon);
-                if($qiniu_exist !== true) {
-                    return ajax($qiniu_exist['msg'],-1);
-                }
-                $qiniu_move = $this->moveFile($icon,'upload/goodscate/');
-                if($qiniu_move['code'] == 0) {
-                    $val['icon'] = $qiniu_move['path'];
-                }else {
-                    return ajax($qiniu_move['msg'],-2);
-                }
-            }
-            Db::table('mp_goods_cate')->insert($val);
-        }catch (\Exception $e) {
-            if(isset($val['icon'])) {
-                $this->rs_delete($val['icon']);
-            }
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax([]);
-    }
-//分类详情
-    public function cateDetail() {
-        $id = input('param.id');
-        try {
-            $info = Db::table('mp_goods_cate')->where('id',$id)->find();
-            $list = Db::table('mp_goods_cate')->where('pid',0)->select();
-        }catch (\Exception $e) {
-            die($e->getMessage());
-        }
-        $this->assign('info',$info);
-        $this->assign('list',$list);
-        $this->assign('qiniu_weburl',config('qiniu_weburl'));
-        return $this->fetch();
-    }
-//修改分类POST
-    public function cateModPost() {
-        $val['cate_name'] = input('post.cate_name');
-        $val['pid'] = input('post.pid',0);
-        $val['id'] = input('post.id',0);
-        checkInput($val);
-        $icon = input('post.icon');
-
-        try {
-            $where = [
-                ['id','=',$val['id']]
+            $map = [
+                ['id','=',$val['id']],
+                ['uid','=',$this->userinfo['id']]
             ];
-            $exist = Db::table('mp_goods_cate')->where($where)->find();
-            if(!$exist) {
-                return ajax('非法参数',-1);
+            $goods_exist = Db::table('mp_goods')->where($map)->find();
+            if(!$goods_exist) {
+                return ajax('非法操作',-1);
             }
-            if($icon) {
-                $qiniu_exist = $this->qiniuFileExist($icon);
-                if($qiniu_exist !== true) {
-                    return ajax($qiniu_exist['msg'],-1);
-                }
-                $qiniu_move = $this->moveFile($icon,'upload/goodscate/');
-                if($qiniu_move['code'] == 0) {
-                    $val['icon'] = $qiniu_move['path'];
-                }else {
-                    return ajax($qiniu_move['msg'],-2);
-                }
-            }
-            Db::table('mp_goods_cate')->where($where)->update($val);
-        }catch (\Exception $e) {
-            if(isset($val['icon']) && $val['icon'] != $exist['icon']) {
-                $this->rs_delete($val['icon']);
-            }
-            return ajax($e->getMessage(),-1);
-        }
-        if(isset($val['icon']) && $val['icon'] != $exist['icon']) {
-            $this->rs_delete($exist['icon']);
-        }
-        return ajax([]);
-    }
-//隐藏分类
-    public function cateHide() {
-        $id = input('post.id');
-        try {
-            $exist = Db::table('mp_goods_cate')->where('id',$id)->find();
-            if(!$exist) {
-                return ajax('非法参数',-1);
-            }
-            Db::table('mp_goods_cate')->where('id',$id)->update(['status'=>0]);
+            Db::table('mp_goods')->where($map)->update(['del'=>1]);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
         return ajax();
     }
-//显示分类
-    public function cateShow() {
-        $id = input('post.id');
-        try {
-            $exist = Db::table('mp_goods_cate')->where('id',$id)->find();
-            if(!$exist) {
-                return ajax('非法参数',-1);
-            }
-            Db::table('mp_goods_cate')->where('id',$id)->update(['status'=>1]);
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax();
-    }
-//删除分类
-    public function cateDel() {
-        $id = input('post.id');
-        try {
-            $exist = Db::table('mp_goods_cate')->where('id',$id)->find();
-            if(!$exist) {
-                return ajax('非法参数',-1);
-            }
-            Db::table('mp_goods_cate')->where('id',$id)->update(['del'=>1]);
-        }catch (\Exception $e) {
-            return ajax($e->getMessage(),-1);
-        }
-        return ajax();
-    }
+
+/*------  订单管理 START  ------*/
 //订单列表
     public function orderList() {
         $param['search'] = input('param.search','');
@@ -784,5 +638,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         }
         return ajax();
     }
+    /*------  订单管理 END  ------*/
+
 
 }

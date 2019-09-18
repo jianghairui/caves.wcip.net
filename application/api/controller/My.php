@@ -1485,6 +1485,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             if($role_exist) {
                 Db::table('mp_user_role')->where('uid',$val['uid'])->update($val);
             }else {
+                $val['create_time'] = time();
                 Db::table('mp_user_role')->insert($val);
             }
             Db::table('mp_user')->where('id',$val['uid'])->update([

@@ -43,19 +43,13 @@ class Login extends Base {
             }catch (\Exception $e) {
                 $this->error($e->getMessage(),url('Login/index'));
             }
+
             if($result) {
-                session('login_vcode',null);
-                if($result['status'] == 0 && $result['username'] !== config('superman')) {
+                if($result['status'] == 2 && $result['username'] !== config('superman')) {
                     exit($this->fetch('frozen'));
                 }
-                try {
-                    Db::table('mp_user')->where($where)->setInc('login_times');
-                    Db::table('mp_user')->where($where)->update(['last_login_time'=>time(),'last_login_ip'=>$this->getip()]);
-                }catch (\Exception $e) {
-                    $this->error($e->getMessage(),url('Login/index'));
-                }
-                session('mploginstatus',md5(input('post.username') . config('login_key')));
-                session('username',$result['username']);
+                session('userinfo',$result);
+                session('login_vcode',null);
 
                 if(input('post.remember_pwd') == 1) {
                     cookie('mp_username',input('post.username'),3600*24*7);
