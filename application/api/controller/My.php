@@ -9,6 +9,7 @@ namespace app\api\controller;
 use my\Sendsms;
 use think\Db;
 class My extends Common {
+
     //获取个人信息
     public function mydetail() {
         $map = [
@@ -283,7 +284,8 @@ class My extends Common {
         }
         return ajax($list);
     }
-    
+
+
     //获取我发的笔记列表
     public function getMyNoteList()
     {
@@ -386,16 +388,21 @@ class My extends Common {
     public function getMyCollectedNoteList() {
         $page = input('page',1);
         $perpage = input('perpage',10);
-        $where = [
-            ['c.uid','=',$this->myinfo['id']]
-        ];
         try {
-            $ret['count'] = Db::table('mp_note_collect')->alias('c')->where($where)->count();
-            $list = Db::table('mp_note_collect')->alias('c')
-                ->join('mp_note n','c.note_id=n.id','left')
+            $whereCollect = [
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $note_ids = Db::table('mp_note_collect')->where($whereCollect)->column('note_id');
+            if(empty($note_ids)) {
+                return ajax([]);
+            }
+            $whereNote = [
+                ['n.id','IN',$note_ids]
+            ];
+            $list = Db::table('mp_note')->alias('n')
                 ->join('mp_user u','n.uid=u.id','left')
-                ->where($where)
-                ->field('n.id,n.title,n.pics,n.width,n.height,u.nickname,u.avatar,n.like')
+                ->where($whereNote)
+                ->field('n.id,n.title,n.pics,n.like,n.width,n.height,u.nickname,u.avatar')
                 ->order(['n.create_time'=>'DESC'])
                 ->limit(($page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
@@ -404,9 +411,9 @@ class My extends Common {
         foreach ($list as &$v) {
             $v['pics'] = unserialize($v['pics']);
         }
-        $ret['list'] = $list;
-        return ajax($ret);
+        return ajax($list);
     }
+
     //我的创意列表
     public function myIdeaList() {
         $val['order'] = input('post.order',1);
@@ -435,7 +442,49 @@ class My extends Common {
         return ajax($list);
     }
 
-
+    /*------ 店铺设置 START ------*/
+    //设置账号密码
+    public function setAccount() {
+        $val['username'] = input('post.username');
+        $val['password'] = input('post.password');
+        checkPost($val);
+        try {
+            if(!is_string($val['username']) || !preg_match('/^[_0-9a-zA-Z]{6,32}$/',$val['username'])) {
+                return ajax('账号只能为6-32数字或字母下划线组合',76);
+            }
+            if(!is_string($val['password']) || !preg_match('/^[_0-9a-zA-Z]{6,32}$/',$val['password'])) {
+                return ajax('密码只能为6-32数字或字母下划线组合',77);
+            }
+            $val['password'] = md5($val['password'] . config('login_key'));
+            $where = [
+                ['username','=',$val['username']]
+            ];
+            $exist = Db::table('mp_user')->where($where)->find();
+            if($exist) {
+                return ajax('此账号已被占用',78);
+            }
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    //修改密码
+    public function setPasswd() {
+        $val['password'] = input('post.password');
+        checkPost($val);
+        try {
+            if(!is_string($val['password']) || !preg_match('/^[_0-9a-zA-Z]{6,32}$/',$val['password'])) {
+                return ajax('密码只能为6-32数字或字母下划线组合',77);
+            }
+            $val['password'] = md5($val['password'] . config('login_key'));
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
+    /*------ 店铺设置 END ------*/
 
     /*------ 博物馆独有接口 START ------*/
     //我发布的需求

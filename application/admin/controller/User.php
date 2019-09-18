@@ -64,7 +64,7 @@ class User extends Base {
     public function userDetail() {
         $id = input('param.id');
         $where = [
-            ['id','=',$id]
+            ['u.id','=',$id]
         ];
         try {
             $info = Db::table('mp_user')->alias('u')

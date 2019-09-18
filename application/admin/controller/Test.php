@@ -33,7 +33,17 @@ class Test extends Base {
     public function roletest() {
         $uid = 2;
         try {
+
             $info = Db::table('mp_user_role')->where('uid','=',$uid)->find();
+            if(!$info) {
+                die('无角色');
+            }
+            $update_data = [
+                'role' => 0,
+                'role_check' => 0
+            ];
+            Db::table('mp_user')->where('id','=',$uid)->update($update_data);
+            Db::table('mp_user_role')->where('uid','=',$uid)->delete();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -42,17 +52,16 @@ class Test extends Base {
         $pics[] = $info['id_front'];
         $pics[] = $info['id_back'];
         $pics[] = $info['license'];
-//        foreach ($pics as $v) {
-//            $this->rs_delete($v);
-//        }
-//        foreach ($pics as $v) {
-//            if($this->qiniuFileExist($v) === true) {
-//                echo $v . 'YES<br>';
-//            }else {
-//                echo $v . 'NONE<br>';
-//            }
-//        }
-//        halt($pics);
+        foreach ($pics as $v) {
+            $this->rs_delete($v);
+        }
+        foreach ($pics as $v) {
+            if($this->qiniuFileExist($v) === true) {
+                echo $v . ' EXISTS<br>';
+            }else {
+                echo $v . ' DELETED<br>';
+            }
+        }
 
     }
 
