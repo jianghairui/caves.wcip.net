@@ -730,7 +730,7 @@ class Api extends Common
                 ['del','=',0]
             ];
             $list = Db::table('mp_funding_goods')->where($where)
-                ->field('id,price,name,desc,pics,sales')
+                ->field('id,price,name,desc,pics,sales,funding_id')
                 ->limit(($curr_page - 1)*$perpage,$perpage)
                 ->order(['id'=>'DESC'])->select();
         }catch (\Exception $e) {

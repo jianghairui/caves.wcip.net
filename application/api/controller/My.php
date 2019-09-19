@@ -754,7 +754,6 @@ class My extends Common {
         $perpage = input('post.perpage',10);
         $status = input('post.status','');
         $order = ['o.id'=>'DESC'];
-
         $where = [
             ['o.uid','=',$this->myinfo['id']],
             ['o.del','=',0],
@@ -768,7 +767,7 @@ class My extends Common {
                 ->join('mp_funding f','o.funding_id=f.id','left')
                 ->join('mp_funding_goods g','o.goods_id=g.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.status,o.create_time,o.type,f.title AS funding_title,f.cover,g.name AS goods_name,g.pics')
+                ->field('o.id,o.pay_order_sn,o.pay_price,o.unit_price,o.num,o.status,o.create_time,o.type,f.title AS funding_title,f.cover,f.id AS funding_id,g.name AS goods_name,g.pics')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
@@ -825,7 +824,7 @@ class My extends Common {
                 ->join('mp_funding_goods g','o.goods_id=g.id','left')
                 ->join('mp_funding f','o.funding_id=f.id','left')
                 ->where($where)
-                ->field('o.id,o.pay_order_sn,o.trans_id,o.pay_price,o.unit_price,o.num,o.receiver,o.tel,o.address,o.type,o.refund_apply,o.reason,o.status,o.create_time,o.pay_time,o.send_time,o.finish_time,o.refund_time,o.tracking_name,o.tracking_num,g.name AS goods_name,g.pics,f.title AS funding_title,f.cover')
+                ->field('o.id,o.pay_order_sn,o.trans_id,o.pay_price,o.unit_price,o.num,o.receiver,o.tel,o.address,o.type,o.refund_apply,o.reason,o.status,o.create_time,o.pay_time,o.send_time,o.finish_time,o.refund_time,o.tracking_name,o.tracking_num,g.name AS goods_name,g.pics,f.id AS funding_id,f.title AS funding_title,f.cover')
                 ->find();
             if(!$info) {
                 return ajax('invalid order_id',4);

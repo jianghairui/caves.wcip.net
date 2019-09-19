@@ -13,11 +13,22 @@ class Test extends Common {
 
     public function index() {
         $start = microtime(true);
-        $param = [
-            'order_id' => 4
-        ];
-        @$this->asyn_tpl_send($param);
-        echo 'YAHOOO<br>';
+        try {
+            $insert_data = [
+                'uid' => 10,
+                'shop_id' => 1
+            ];
+//            Db::startTrans();
+//            $order_id = Db::table('mp_order')->insertGetId($insert_data);
+//            $data = [
+//                'id' => $order_id
+//            ];
+//            Db::table('mp_order_detail')->insertGetId($data);
+//            Db::commit();
+        } catch (\Exception $e) {
+            Db::rollback();
+            die($e->getMessage());
+        }
         $end = microtime(true);
         echo $end-$start;
 
