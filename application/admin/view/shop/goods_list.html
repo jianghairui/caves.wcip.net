@@ -45,31 +45,31 @@
         <thead>
         <tr class="text-c">
             <th width="25">#</th>
-            <th width="80">排序</th>
-            <th width="100">商品图片</th>
-            <th>商品名</th>
-            <th width="90">商品价格</th>
-            <th width="90">库存</th>
-            <th width="120">商户名</th>
+            <th width="50">排序</th>
+            <th width="80">商品图片</th>
+            <th width="80">商品价格</th>
+            <th width="80">库存</th>
+            <th width="80">销量</th>
+            <th>商户名</th>
+            <th width="120">上市日期</th>
             <th width="60">审核状态</th>
             <th width="60">审核</th>
-            <th width="60">状态</th>
-            <th width="100">操作</th>
+            <th width="80">操作</th>
         </tr>
         </thead>
         <tbody>
         <form id="multi-check">
             {foreach $list as $li}
             <tr class="text-c userinfo">
-                <td>{$li.id}</td>
+                <td rowspan="2">{$li.id}</td>
                 <td>{$li.sort}</td>
                 <td>
                     <?php $image = unserialize($li['pics'])[0];?>
-                    <div style="width: 100px;height: 100px;background-image: url('<?php echo config('qiniu_weburl');?>{$image}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
+                    <div style="width: 80px;height: 80px;background-image: url('<?php echo config('qiniu_weburl');?>{$image}');background-position: center;background-repeat: no-repeat;background-size: 100%"></div>
                 </td>
-                <td>{$li.name}</td>
                 <td>{$li.price}</td>
                 <td>{$li.stock}</td>
+                <td>{$li.sales}</td>
                 <td>
                     {if $li['shop_id']}
                     {if $li['role'] == 2}
@@ -89,6 +89,7 @@
                     自主平台
                     {/if}
                 </td>
+                <td>{$li.create_time|date='Y年m月d日'}</td>
                 <th class="td-check">
                     {switch $li['check']}
                     {case 0}<span class="label label-warning radius">待审核</span>{/case}
@@ -104,15 +105,7 @@
                     <span class="btn btn-link radius"></span>
                     {/if}
                 </td>
-                <td class="td-status">
-                    {if $li['status'] == '1'}
-                    <span class="label label-success radius">已上架</span>
-                    {/if}
-                    {if $li['status'] == '0'}
-                    <span class="label label-defaunt radius">已下架</span>
-                    {/if}
-                </td>
-                <td class="td-manage">
+                <td class="td-manage" rowspan="2">
                     {if $li['status'] == '1'}
                     <a style="text-decoration:none" onClick="goods_hide(this,{$li.id})" href="javascript:;" title="下架">
                         <i class="Hui-iconfont">&#xe6de;</i>
@@ -127,11 +120,25 @@
                     </a>
                 </td>
             </tr>
+            <tr class="text-c">
+                <td colspan="9" class="text-l"><b>商品名称</b> : {$li.name}
+                    (
+                    <span class="td-status">
+                    {if $li['status'] == '1'}
+                    <span class="label label-success radius">已上架</span>
+                    {/if}
+                    {if $li['status'] == '0'}
+                    <span class="label label-defaunt radius">已下架</span>
+                    {/if}
+                    </span>
+                    )
+                </td>
+            </tr>
             {/foreach}
         </form>
 
         <tr>
-            <td colspan="9" id="page" class="text-r"></td>
+            <td colspan="12" id="page" class="text-r"></td>
         </tr>
         </tbody>
     </table>
@@ -148,7 +155,7 @@
         laypage({
             cont: 'page', //容器。值支持id名、原生dom对象，jquery对象。
             pages: totalPage, //通过后台拿到的总页数
-            skip: false, //是否开启跳页
+            skip: true, //是否开启跳页
             skin: '#5a98de',
             curr: curr || 1, //当前页
             jump: function(obj, first){ //触发分页后的回调
@@ -194,9 +201,9 @@
                 dataType:'json',
                 data:{id:id},
                 success:function(data) {
-                    console.log(data)
+                    console.log(data);
                     if(data.code == 1) {
-                        $(obj).parents("tr").find(".td-status").html('<span class="label label-defaunt radius">已下架</span>');
+                        $(obj).parents("tr").next().find(".td-status").html('<span class="label label-defaunt radius">已下架</span>');
                         $(obj).parents("tr").find(".td-manage").prepend('<a style="text-decoration:none" onClick="goods_show(this,'+id+')" href="javascript:;" title="上架"><i class="Hui-iconfont">&#xe603;</i></a>');
                         $(obj).remove();
                         layer.msg('已下架!',{icon: 1,time:1000});
@@ -222,7 +229,7 @@
                 success:function(data) {
                     console.log(data);
                     if(data.code == 1) {
-                        $(obj).parents("tr").find(".td-status").html('<span class="label label-success radius">已上架</span>');
+                        $(obj).parents("tr").next().find(".td-status").html('<span class="label label-success radius">已上架</span>');
                         $(obj).parents("tr").find(".td-manage").prepend('<a style="text-decoration:none" onClick="goods_hide(this,'+id+')" href="javascript:;" title="下架"><i class="Hui-iconfont">&#xe6de;</i></a>');
                         $(obj).remove();
                         layer.msg('已上架!',{icon: 1,time:1000});
