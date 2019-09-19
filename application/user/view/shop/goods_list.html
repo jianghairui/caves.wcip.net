@@ -26,9 +26,10 @@
             <th>商品名</th>
             <th width="90">商品价格</th>
             <th width="90">库存</th>
-            <th width="80">排序</th>
-            <th width="80">是否热销</th>
-            <th width="80">状态</th>
+            <th width="60">排序</th>
+            <th width="60">是否热销</th>
+            <th width="60">审核状态</th>
+            <th width="60">状态</th>
             <th width="100">操作</th>
         </tr>
         </thead>
@@ -46,12 +47,20 @@
                 <td>{$li.stock}</td>
                 <td>{$li.sort}</td>
                 <td>{$li.hot}</td>
+                <th class="td-check">
+                    {switch $li['check']}
+                    {case 0}<span class="label label-warning radius">待审核</span>{/case}
+                    {case 1} <span class="label label-success radius">已通过</span> {/case}
+                    {case 2} <span class="label label-danger radius">未通过</span> {/case}
+                    {default /}
+                    {/switch}
+                </th>
                 <td class="td-status">
                     {if $li['status'] == '1'}
                     <span class="label label-success radius">已上架</span>
                     {/if}
                     {if $li['status'] == '0'}
-                    <span class="label label-defaunt radius">已下架</span>
+                    <span class="label label-defaunt radius">未上架</span>
                     {/if}
                 </td>
                 <td class="td-manage">
@@ -73,7 +82,7 @@
         </form>
 
         <tr>
-            <td colspan="9" id="page" class="text-r"></td>
+            <td colspan="12" id="page" class="text-r"></td>
         </tr>
         </tbody>
     </table>
@@ -134,10 +143,10 @@
                 success:function(data) {
                     console.log(data)
                     if(data.code == 1) {
-                        $(obj).parents("tr").find(".td-status").html('<span class="label label-defaunt radius">已下架</span>');
+                        $(obj).parents("tr").find(".td-status").html('<span class="label label-defaunt radius">未上架</span>');
                         $(obj).parents("tr").find(".td-manage").prepend('<a style="text-decoration:none" onClick="goods_show(this,'+id+')" href="javascript:;" title="上架"><i class="Hui-iconfont">&#xe603;</i></a>');
                         $(obj).remove();
-                        layer.msg('已下架!',{icon: 1,time:1000});
+                        layer.msg('未上架!',{icon: 1,time:1000});
                     }else {
                         layer.msg(data.data,{icon:2,time:1000})
                     }

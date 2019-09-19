@@ -11,7 +11,7 @@ use think\Loader;
 class Login extends Base {
 
     public function index() {
-        if(session('username') && session('mploginstatus') && session('mploginstatus') == md5(session('username') . config('login_key'))) {
+        if(session('userinfo')) {
             $this->redirect('Index/index');
             exit();
         }
@@ -68,7 +68,7 @@ class Login extends Base {
     }
 
     public function logout() {
-        session(null);
+        session('userinfo',null);
         $this->redirect('Login/index');
     }
 

@@ -19,7 +19,7 @@ class Shop extends Base {
         $curr_page = input('param.page',1);
         $perpage = input('param.perpage',10);
         $where = [
-            ['uid','=',$this->userinfo['id']]
+            ['shop_id','=',$this->userinfo['id']]
         ];
         $order = ['id'=>'DESC'];
         if($param['search']) {
@@ -76,15 +76,18 @@ class Shop extends Base {
     public function goodsDetail() {
         $id = input('param.id');
         try {
-            $wherecate = [
-                ['pid','=',0],
-                ['del','=',0],
-                ['uid','=',$this->userinfo['id']]
+            $whereGoods = [
+                ['shop_id','=',$this->userinfo['id']],
+                ['id','=',$id]
             ];
-            $info = Db::table('mp_goods')->where('id','=',$id)->find();
+            $info = Db::table('mp_goods')->where($whereGoods)->find();
             if(!$info) {
                 die('非法参数');
             }
+            $wherecate = [
+                ['pid','=',0],
+                ['del','=',0]
+            ];
             $list = Db::table('mp_goods_cate')->where($wherecate)->select();
             $wherepcate = [
                 ['pid','=',$info['pcate_id']],
@@ -116,19 +119,18 @@ class Shop extends Base {
         $val['stock'] = input('post.stock');
         $val['sort'] = input('post.sort');
         $val['hot'] = input('post.hot');
-        $val['sales'] = input('post.sales');
-        $val['status'] = input('post.status');
         $val['unit'] = input('post.unit');
         $val['carriage'] = input('post.carriage');
 //        $val['reduction'] = input('post.reduction');
         $val['service'] = input('post.service');
-        $val['desc'] = input('post.desc');
-        $val['status'] = input('post.status');
         $val['create_time'] = time();
         checkInput($val);
+        $val['status'] = 0;
+        $val['check'] = 0;
+        $val['desc'] = input('post.desc');
         $val['detail'] = input('post.detail');
         $val['use_attr'] = input('post.use_attr','');
-        $val['uid'] = $this->userinfo['id'];
+        $val['shop_id'] = $this->userinfo['id'];
         if($val['use_attr']) {
             $attr1 = input('post.attr1',[]);
             $attr2 = input('post.attr2',[]);
@@ -216,17 +218,16 @@ class Shop extends Base {
         $val['stock'] = input('post.stock');
         $val['sort'] = input('post.sort');
         $val['hot'] = input('post.hot');
-        $val['sales'] = input('post.sales');
-        $val['status'] = input('post.status');
         $val['unit'] = input('post.unit');
         $val['carriage'] = input('post.carriage');
 //            $val['reduction'] = input('post.reduction');
         $val['service'] = input('post.service');
-        $val['desc'] = input('post.desc');
-        $val['status'] = input('post.status');
         $val['id'] = input('post.id');
         $val['create_time'] = time();
         checkInput($val);
+        $val['desc'] = input('post.desc');
+        $val['status'] = 0;
+        $val['check'] = 0;
         $val['detail'] = input('post.detail');
         $val['use_attr'] = input('post.use_attr','');
         if($val['use_attr']) {
@@ -263,7 +264,8 @@ class Shop extends Base {
         try {
             $map = [
                 ['id','=',$val['id']],
-                ['del','=',0]
+                ['del','=',0],
+                ['shop_id','=',$this->userinfo['id']]
             ];
             $exist = Db::table('mp_goods')->where($map)->find();
             if(!$exist) {
@@ -345,13 +347,16 @@ class Shop extends Base {
         checkInput($val);
         $map = [
             ['id','=',$val['id']],
-            ['status','=',1].
-            ['uid','=',$this->userinfo['id']]
+            ['status','=',1],
+            ['shop_id','=',$this->userinfo['id']]
         ];
         try {
             $goods_exist = Db::table('mp_goods')->where($map)->find();
             if(!$goods_exist) {
                 return ajax('非法操作',-1);
+            }
+            if($goods_exist['check'] != 1) {
+                return ajax('商品未通过审核,无法操作',-1);
             }
             Db::table('mp_goods')->where($map)->update(['status'=>0]);
         }catch (\Exception $e) {
@@ -365,13 +370,16 @@ class Shop extends Base {
         checkInput($val);
         $map = [
             ['id','=',$val['id']],
-            ['status','=',1].
-            ['uid','=',$this->userinfo['id']]
+            ['status','=',0],
+            ['shop_id','=',$this->userinfo['id']]
         ];
         try {
             $goods_exist = Db::table('mp_goods')->where($map)->find();
             if(!$goods_exist) {
                 return ajax('非法操作',-1);
+            }
+            if($goods_exist['check'] != 1) {
+                return ajax('商品未通过审核,无法操作',-1);
             }
             Db::table('mp_goods')->where($map)->update(['status'=>1]);
         }catch (\Exception $e) {
@@ -386,7 +394,7 @@ class Shop extends Base {
         try {
             $map = [
                 ['id','=',$val['id']],
-                ['uid','=',$this->userinfo['id']]
+                ['shop_id','=',$this->userinfo['id']]
             ];
             $goods_exist = Db::table('mp_goods')->where($map)->find();
             if(!$goods_exist) {

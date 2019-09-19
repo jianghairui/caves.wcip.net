@@ -82,7 +82,13 @@ class Login extends Base {
     }
 
     public function logout() {
-        session(null);
+        session('mploginstatus',null);
+        session('admin_id',null);
+        session('username',null);
+        session('realname',null);
+        session('login_times',null);
+        session('last_login_time',null);
+        session('last_login_ip',null);
         $this->redirect('Login/index');
     }
 

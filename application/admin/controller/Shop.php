@@ -12,6 +12,7 @@ use think\facade\Request;
 class Shop extends Base {
 //商品列表
     public function goodsList() {
+        $param['shop_id'] = input('param.shop_id','');
         $param['search'] = input('param.search');
         $page['query'] = http_build_query(input('param.'));
 
@@ -19,24 +20,34 @@ class Shop extends Base {
         $perpage = input('param.perpage',10);
         $where = [];
         if($param['search']) {
-            $where[] = ['name','like',"%{$param['search']}%"];
+            $where[] = ['g.name','like',"%{$param['search']}%"];
         }
-        $count = Db::table('mp_goods')->where($where)->count();
+        if($param['shop_id'] !== '') {
+            $where[] = ['g.shop_id','=',$param['shop_id']];
+        }
 
-        $page['count'] = $count;
-        $page['curr'] = $curr_page;
-        $page['totalPage'] = ceil($count/$perpage);
         try {
-            $list = Db::table('mp_goods')
+            $count = Db::table('mp_goods')->alias('g')->where($where)->count();
+
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_goods')->alias('g')
+                ->join('mp_user_role r','g.shop_id=r.uid','left')
                 ->where($where)
+                ->field('g.*,r.name AS role_name,r.org,r.role')
                 ->limit(($curr_page - 1)*$perpage,$perpage)
-                ->order(['id'=>'DESC'])
+                ->order(['g.id'=>'DESC'])
                 ->select();
+            $whereRole = [];
+            $shoplist = Db::table('mp_user_role')->where($whereRole)->field('uid,role,name,org')->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
 
+        $this->assign('shoplist',$shoplist);
         $this->assign('list',$list);
+        $this->assign('param',$param);
         $this->assign('page',$page);
         return $this->fetch();
     }
@@ -125,6 +136,7 @@ class Shop extends Base {
         $val['status'] = input('post.status');
         $val['create_time'] = time();
         checkInput($val);
+        $val['check'] = 1;
         $val['detail'] = input('post.detail');
         $val['use_attr'] = input('post.use_attr','');
         if($val['use_attr']) {
@@ -390,6 +402,57 @@ class Shop extends Base {
             return ajax('共修改0条记录',-1);
         }
     }
+
+    //商品审核通过
+    public function goodsPass() {
+        $val['id'] = input('post.id');
+        checkInput($val);
+        $map = [
+            ['check','=',0],
+            ['id','=',$val['id']]
+        ];
+        try {
+            $exist = Db::table('mp_goods')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_goods')->where($map)->update(['check'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+    //商品审核拒绝
+    public function goodsReject() {
+        $val['id'] = input('post.id');
+        $val['reason'] = input('post.reason');
+        checkInput($val);
+        $map = [
+            ['check','=',0],
+            ['id','=',$val['id']]
+        ];
+        try {
+            $exist = Db::table('mp_goods')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_goods')->where($map)->update(['check'=>2,'reason'=>$val['reason']]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+
+
+
+
+
+
+
+
+
+
+
 //分类列表
     public function cateList() {
         $pid = input('param.pid',0);

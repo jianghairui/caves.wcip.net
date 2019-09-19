@@ -28,20 +28,32 @@ class Shop extends Common {
     public function goodsList() {
         $pcate_id = input('post.pcate_id',0);
         $cate_id = input('post.cate_id',0);
+        $shop_id = input('post.shop_id',0);
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
+
         $where = [
             ['status','=',1],
+            ['check','=',1],
             ['del','=',0]
         ];
+        $order = ['id'=>'DESC'];
         if($pcate_id) {
             $where[] = ['pcate_id','=',$pcate_id];
         }
         if($cate_id) {
             $where[] = ['cate_id','=',$cate_id];
         }
+        if($shop_id) {
+            $order = ['sort'=>'ASC','id'=>'DESC'];
+            $where[] = ['shop_id','=',$shop_id];
+        }
         try {
-            $list = Db::table('mp_goods')->where($where)->field("id,name,origin_price,price,sales,desc,pics,width,height")->limit(($curr_page-1)*$perpage,$perpage)->select();
+            $list = Db::table('mp_goods')
+                ->where($where)
+                ->field("id,name,origin_price,price,sales,desc,pics,width,height")
+                ->order($order)
+                ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
