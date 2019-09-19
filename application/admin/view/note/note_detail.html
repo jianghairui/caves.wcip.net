@@ -1,5 +1,9 @@
 <style>
     .thumbnail{ width:256px;height: 256px;background-size: cover;background-position: center;position: relative}
+    .comment-box{margin-top: 20px}
+    .comment-box .form-label{
+        text-align: right;
+    }
 </style>
 <link href="/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
 <article class="page-container">
@@ -60,6 +64,12 @@
         </div>
         <input type="hidden" name="id" value="{$info.id}">
     </form>
+    <div class="row cl comment-box">
+        <label class="form-label col-xs-4 col-sm-2">评论内容：</label>
+        <div class="formControls col-xs-8 col-sm-9">
+            <div class="comment">评论内容</div>
+        </div>
+    </div>
 </article>
 
 
