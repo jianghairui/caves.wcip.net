@@ -1,8 +1,8 @@
 <link href="/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
 <style>
-    .image-del {
-        position: absolute;z-index: +9;font-size: 20px;cursor: pointer;
-    }
+    .image-del {cursor: pointer;position: absolute;height: 30px;z-index: +9;font-size: 18px;width: 30px;line-height: 30px;background-color: rgba(0,0,0,0.3);color: #efefef;text-align: center;border-bottom-right-radius: 4px;}
+  .my-style li .picbox{width: 100%;height: 100%;display: block;}
+  .my-style li .picbox a{display: block;width: 100%;height: 100%;background-size: cover;background-repeat: no-repeat;background-position: center;}
 </style>
 <article class="page-container">
     <form class="form form-horizontal" id="form-article-add">
@@ -36,7 +36,7 @@
                 <span id="btn-star1" class="btn btn-primary btn-uploadstar radius ml-10"  onclick="document.getElementById('qiniu-file').click()">上传图片</span>
             </label>
             <div class="formControls col-xs-8 col-sm-9">
-                <ul class="cl portfolio-area" id="fileList">
+                <ul class="cl portfolio-area my-style" id="fileList">
                     <?php $images = unserialize($info['pics']);?>
                     {if $images}
                     {foreach $images as $v}
@@ -44,7 +44,7 @@
                         <div class="portfoliobox">
                             <span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span>
                             <div class="picbox">
-                                <a href="{$qiniu_weburl}{$v}" data-lightbox="gallery" data-title=""><img src="{$qiniu_weburl}{$v}"></a>
+                                <a href="{$qiniu_weburl}{$v}" data-lightbox="gallery" data-title="" style="background-image: url('{$qiniu_weburl}{$v}')"></a>
                             </div>
                             <input type="hidden" value="{$v}" name="pic_url[]"/>
                         </div>
@@ -397,7 +397,8 @@
                             complete(res){                       //成功后
                                 // console.log(res,'---upload success');
                                 var src = result.data.weburl + result.data.filename;
-                                var html = '<li class="item"><div class="portfoliobox"><span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span><div class="picbox"><a href="'+src+'" data-lightbox="gallery" data-title=""><img src="'+src+'"></a></div><input type="hidden" value="'+result.data.filename+'" name="pic_url[]"/></div></li>';
+                                var html = '<li class="item"><div class="portfoliobox"><span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span><div class="picbox"><a href="'+src+'" data-lightbox="gallery" data-title="" style="background-image: url('+src+')"></a></div><input type="hidden" value="'+result.data.filename+'" name="pic_url[]"/></div></li>';
+                                // var html = '<li class="item"><div class="portfoliobox"><span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span><div class="picbox"><a href="'+src+'" data-lightbox="gallery" data-title=""><img src="'+src+'"></a></div><input type="hidden" value="'+result.data.filename+'" name="pic_url[]"/></div></li>';
                                 $("#fileList").append(html);
                                 // layer.alert('上传成功',{icon:6});
                                 layer.close(load);

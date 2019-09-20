@@ -98,27 +98,97 @@ class Pay extends Common {
         exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
 
     }
-    //订单支付
-    public function orderPay() {
-        $val['pay_order_sn'] = input('post.pay_order_sn');
-        checkPost($val);
-        $where = [
-            ['pay_order_sn','=',$val['pay_order_sn']],
+    //支付单号支付
+    public function orderIdPay() {
+        $order_id = input('post.order_id',[]);
+        if(!is_array($order_id) || empty($order_id)) {
+            return ajax('请选择要支付的订单',79);
+        }
+        $whereOrder = [
+            ['id','IN',$order_id],
             ['status','=',0],
             ['uid','=',$this->myinfo['id']]
         ];
-        $app = Factory::payment($this->mp_config);
         try {
-            $order_exist = Db::table('mp_order')->where($where)->find();
-            if(!$order_exist) {
-                return ajax($val['pay_order_sn'],4);
+            $pay_price = 0;
+            $order_list = Db::table('mp_order')->where($whereOrder)->select();
+            if(!$order_list || count($order_list) !== count($order_id)) {
+                return ajax($order_id,4);
             }
-            $total_price = $order_exist['pay_price'];
+            foreach ($order_list as $v) {
+                $pay_price += $v['pay_price'];
+            }
+            $pay_order_sn = create_unique_number('');
+            $insert_data = [
+                'uid' => $this->myinfo['id'],
+                'pay_order_sn' => $pay_order_sn,
+                'pay_price' => $pay_price,
+                'order_ids' => implode(',',$order_id),
+                'status' => 0,
+                'create_time' => time()
+            ];
+            Db::table('mp_order_unite')->insert($insert_data);
+            Db::table('mp_order')->where($whereOrder)->update(['pay_order_sn' => $pay_order_sn]);
+            $app = Factory::payment($this->mp_config);
             $result = $app->order->unify([
                 'body' => '山洞文创产品',
-                'out_trade_no' => $val['pay_order_sn'],
-//                'total_fee' => 1,
-                'total_fee' => floatval($total_price)*100,
+                'out_trade_no' => $pay_order_sn,
+                'total_fee' => 1,
+//                'total_fee' => floatval($pay_price)*100,
+                'notify_url' => $this->weburl . 'api/pay/order_notify',
+                'trade_type' => 'JSAPI',
+                'openid' => $this->myinfo['openid']
+            ]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        if($result['return_code'] != 'SUCCESS' || $result['result_code'] != 'SUCCESS') {
+            return ajax($result['err_code_des'],-1);
+        }
+        try {
+            $sign['appId'] = $result['appid'];
+            $sign['timeStamp'] = strval(time());
+            $sign['nonceStr'] = $result['nonce_str'];
+            $sign['signType'] = 'MD5';
+            $sign['package'] = 'prepay_id=' . $result['prepay_id'];
+            $sign['paySign'] = getSign($sign);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($sign);
+    }
+    //订单号支付
+    public function orderSnPay() {
+        $pay_order_sn = input('post.pay_order_sn');
+        if(!$pay_order_sn) {
+            return ajax('请选择要支付的订单',-2);
+        }
+        $whereUnite = [
+            ['pay_order_sn','=',$pay_order_sn],
+            ['status','=',0],
+            ['uid','=',$this->myinfo['id']]
+        ];
+        $whereOrder = [
+            ['pay_order_sn','=',$pay_order_sn],
+            ['status','=',0],
+            ['uid','=',$this->myinfo['id']]
+        ];
+        try {
+            $unite_exist =  Db::table('mp_order_unite')->where($whereUnite)->find();
+            if(!$unite_exist) {
+                return ajax($whereUnite,4);
+            }
+            $order_ids = explode(',',$unite_exist['order_ids']);
+            $order_list = Db::table('mp_order')->where($whereOrder)->column('id');
+            if(!$order_list || count($order_list) !== count($order_ids)) {
+                return ajax($order_ids,4);
+            }
+            $app = Factory::payment($this->mp_config);
+            $result = $app->order->unify([
+                'body' => '山洞文创产品',
+                'out_trade_no' => $pay_order_sn,
+                'total_fee' => 1,
+//                'total_fee' => floatval($pay_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/order_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']
@@ -149,19 +219,22 @@ class Pay extends Common {
         $this->paylog($this->cmd,var_export($data,true));
         if($data) {
             if($data['return_code'] == 'SUCCESS' && $data['result_code'] == 'SUCCESS') {
-                $map = [
+                $whereUnite = [
                     ['pay_order_sn','=',$data['out_trade_no']],
                     ['status','=',0]
                 ];
                 try {
-                    $order_exist = Db::table('mp_order')->where($map)->find();
-                    if($order_exist) {
+                    $unite_exist = Db::table('mp_order_unite')->where($whereUnite)->find();
+                    if($unite_exist) {
                         $update_data = [
                             'status' => 1,
                             'trans_id' => $data['transaction_id'],
                             'pay_time' => time()
                         ];
-                        Db::table('mp_order')->where('pay_order_sn','=',$data['out_trade_no'])->update($update_data);
+                        Db::table('mp_order_unite')->where($whereUnite)->update($update_data);
+                        Db::table('mp_order')->where($whereUnite)->update($update_data);
+                        //todo 发送模板消息
+                        //todo 变更商品销量
                     }
                 }catch (\Exception $e) {
                     $this->log($this->cmd,$e->getMessage());

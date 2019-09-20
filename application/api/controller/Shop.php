@@ -188,7 +188,7 @@ class Shop extends Common {
     public function cartList() {
         try {
             $where = [
-                ['uid','=',$this->myinfo['id']]
+                ['c.uid','=',$this->myinfo['id']]
             ];
             $list = Db::table('mp_cart')->alias('c')
                 ->join("mp_goods g","c.goods_id=g.id","left")
@@ -367,17 +367,21 @@ class Shop extends Common {
                 $order_detail['attr_id'] = 0;
                 $order_detail['attr'] = '默认';
             }
-            $insert_data['uid'] = $this->myinfo['id'];
-            $insert_data['shop_id'] = $shop_id;
-            $insert_data['pay_order_sn'] = $pay_order_sn;
-            $insert_data['order_sn'] = create_unique_number('');
-            $insert_data['total_price'] = $unit_price * $data['num'] + $goods_exist['carriage'];
-            $insert_data['pay_price'] = $insert_data['total_price'];
-            $insert_data['carriage'] = $goods_exist['carriage'];
-            $insert_data['receiver'] = $data['receiver'];
-            $insert_data['tel'] = $data['tel'];
-            $insert_data['address'] = $data['address'];
-            $insert_data['create_time'] = $time;
+
+            $total_price = $unit_price * $data['num'] + $goods_exist['carriage'];
+            $insert_data = [
+                'uid' => $this->myinfo['id'],
+                'shop_id' => $shop_id,
+                'pay_order_sn' => $pay_order_sn,
+                'order_sn' => create_unique_number(''),
+                'total_price' => $total_price,
+                'pay_price' => $total_price,
+                'carriage' => $goods_exist['carriage'],
+                'receiver' => $data['receiver'],
+                'tel' => $data['tel'],
+                'address' => $data['address'],
+                'create_time' => $time,
+            ];
 
             Db::startTrans();
             $order_id = Db::table('mp_order')->insertGetId($insert_data);//创建支付订单
@@ -392,13 +396,14 @@ class Shop extends Common {
             $order_detail['weight'] = $goods_exist['weight'];
             $order_detail['create_time'] = $time;
 
-
-            $order_unite['uid'] = $this->myinfo['id'];
-            $order_unite['pay_order_sn'] = $pay_order_sn;
-            $order_unite['pay_price'] = $insert_data['pay_price'];
-            $order_unite['order_ids'] = implode(',',[$pay_order_sn]);
-            $order_unite['status'] = 0;
-            $order_unite['create_time'] = $time;
+            $order_unite = [
+                'uid' => $this->myinfo['id'],
+                'pay_order_sn' => $pay_order_sn,
+                'pay_price' => $insert_data['pay_price'],
+                'order_ids' => implode(',',[$order_id]),
+                'status' => 0,
+                'create_time' => time()
+            ];
 
             Db::table('mp_order_detail')->insert($order_detail);//创建订单详情
             Db::table('mp_goods')->where('id', $data['goods_id'])->setDec('stock',$data['num']);
@@ -494,16 +499,19 @@ class Shop extends Common {
                     }
                 }
 
-                $order_data['uid'] = $this->myinfo['id'];
-                $order_data['pay_order_sn'] = $pay_order_sn;
-                $order_data['order_sn'] = create_unique_number('');
-                $order_data['total_price'] = $total_order_price;
-                $order_data['pay_price'] = $total_order_price;
-                $order_data['carriage'] = $carriage;
-                $order_data['receiver'] = $val['receiver'];
-                $order_data['tel'] = $val['tel'];
-                $order_data['address'] = $val['address'];
-                $order_data['create_time'] = $time;
+                $order_data = [
+                    'uid' => $this->myinfo['id'],
+                    'shop_id' => $shop_id,
+                    'pay_order_sn' => $pay_order_sn,
+                    'order_sn' => create_unique_number(''),
+                    'total_price' => $total_order_price,
+                    'pay_price' => $total_order_price,
+                    'carriage' => $carriage,
+                    'receiver' => $val['receiver'],
+                    'tel' => $val['tel'],
+                    'address' => $val['address'],
+                    'create_time' => $time,
+                ];
                 $order_data_all[] = $order_data;
                 $insert_detail_all_arr[] = $insert_detail_all;
 
@@ -530,14 +538,16 @@ class Shop extends Common {
                 $order_ids[] = $order_id;
             }
 
-            $order_unite['uid'] = $this->myinfo['id'];
-            $order_unite['pay_order_sn'] = create_unique_number('');
-            $order_unite['pay_price'] = $unite_order_price;
-            $order_unite['order_ids'] = implode(',',$order_ids);
-            $order_unite['status'] = 0;
-            $order_unite['create_time'] = time();
-
+            $order_unite = [
+                'uid' => $this->myinfo['id'],
+                'pay_order_sn' => $pay_order_sn,
+                'pay_price' => $unite_order_price,
+                'order_ids' => implode(',',$order_ids),
+                'status' => 0,
+                'create_time' => time()
+            ];
             Db::table('mp_order_unite')->insert($order_unite);
+
             foreach ($cart_list as $v) {
                 Db::table('mp_goods')->where('id',$v['goods_id'])->setDec('stock',$v['num']);
                 if($v['use_attr']) {
@@ -560,20 +570,6 @@ class Shop extends Common {
         }
         return ajax($pay_order_sn);
 
-    }
-
-    public function getDefaultAddress() {
-        $uid = $this->myinfo['id'];
-        $where = [
-            ['default','=',1],
-            ['uid','=',$uid]
-        ];
-        try {
-            $info = Db::table('mp_address')->where($where)->find();
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        return ajax($info);
     }
 
     private function recursion($array,$pid=0) {

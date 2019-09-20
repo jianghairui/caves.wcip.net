@@ -1286,6 +1286,20 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         }
         return ajax();
     }
+    //获取我的默认收货地址
+    public function getDefaultAddress() {
+        $uid = $this->myinfo['id'];
+        $where = [
+            ['default','=',1],
+            ['uid','=',$uid]
+        ];
+        try {
+            $info = Db::table('mp_address')->where($where)->find();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($info);
+    }
     /*------收货地址管理 END------*/
 
 
