@@ -312,6 +312,7 @@
 
         $(document).on("change","#qiniu-file",function(){
 
+            var load = null;
             var limit = 9;
             if($("input[name='pic_url[]']").length > (limit-1)) {
                 layer.alert('最多上传'+limit+'张图');
@@ -346,6 +347,7 @@
                 dataType:'json',
                 success: function(result){
                     if(result.code == 1){
+                        load = layer.load(2);
                         var observer = {                         //设置上传过程的监听函数
                             next(res){                        //上传中(result参数带有total字段的 object，包含loaded、total、percent三个属性)
                                 Math.floor(res.total.percent);//查看进度[loaded:已上传大小(字节);total:本次上传总大小;percent:当前上传进度(0-100)]
@@ -353,13 +355,15 @@
                             },
                             error(err){                          //失败后
                                 alert(err.message);
+                                layer.close(load);
                             },
                             complete(res){                       //成功后
                                 // console.log(res,'---upload success');
                                 var src = result.data.weburl + result.data.filename;
                                 var html = '<li class="item"><div class="portfoliobox"><span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span><div class="picbox"><a href="'+src+'" data-lightbox="gallery" data-title=""><img src="'+src+'"></a></div><input type="hidden" value="'+result.data.filename+'" name="pic_url[]"/></div></li>';
                                 $("#fileList").append(html);
-                                layer.alert('上传成功',{icon:6});
+                                // layer.alert('上传成功',{icon:6});
+                                layer.close(load);
                             }
                         };
                         var putExtra = {

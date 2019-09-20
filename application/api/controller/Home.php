@@ -109,7 +109,7 @@ class Home extends Common {
 
     }
 
-    //商品列表
+    //活动列表
     public function reqList() {
         $val['uid'] = input('post.uid');
         checkPost($val);
@@ -130,6 +130,36 @@ class Home extends Common {
             $user_exist['level_name'] = '未知称号';
         }
         return ajax($user_exist);
+    }
+
+    //商品列表
+    public function goodsList() {
+        $val['shop_id'] = input('post.shop_id');
+        checkPost($val);
+        $curr_page = input('post.page',1);
+        $perpage = input('post.perpage',10);
+        $where = [
+            ['shop_id','=',$val['shop_id']],
+            ['status','=',1],
+            ['check','=',1],
+            ['del','=',0]
+        ];
+        $order = ['sort'=>'ASC','id'=>'DESC'];
+
+        try {
+            $list = Db::table('mp_goods')
+                ->where($where)
+                ->field("id,name,origin_price,price,sales,pics")
+                ->order($order)
+                ->limit(($curr_page-1)*$perpage,$perpage)->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        foreach ($list as &$v) {
+            $v['pic'] = unserialize($v['pics'])[0];
+            unset($v['pics']);
+        }
+        return ajax($list);
     }
 
 
