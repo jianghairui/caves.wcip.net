@@ -88,15 +88,39 @@ class Api extends Common
         }
         return ajax($info);
     }
+
+    //获取创意标签
+    public function ideaTagsList() {
+        try {
+            $list = Db::table('mp_req_idea_tags')->field('id,tag_name,type')->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $types = [
+            ['type'=>1,'name'=>'功能'],
+            ['type'=>2,'name'=>'风格']
+        ];
+        foreach ($types as &$type) {
+            $type['child'] = [];
+            foreach ($list as $v) {
+                if($v['type'] == $type['type']) {
+                    $type['child'][] = $v;
+                }
+            }
+        }
+        return ajax($types);
+    }
     //提出创意
     public function createIdea() {
         $val['title'] = input('post.title');
         $val['content'] = input('post.content');
         $val['req_id'] = input('post.req_id');
         checkPost($val);
+        $val['tags'] = input('post.tags','');
         $val['uid'] = $this->myinfo['id'];
         $val['create_time'] = time();
         $val['status'] = 1;
+
         if(!$this->msgSecCheck($val['title'])) {
             return ajax('标题包含敏感词',63);
         }
@@ -123,6 +147,23 @@ class Api extends Common
             if (!$this->myinfo['user_auth']) {
                 return ajax('用户未授权', 56);
             }
+            if($val['tags']) {
+                $tags_arr = explode(',',$val['tags']);
+                if(empty($tags_arr)) {
+                    return ajax('无效的标签',80);
+                }
+                if(count($tags_arr) > 5) {
+                    return ajax('无法选择更多的标签',81);
+                }
+                $whereTag = [
+                    ['id','IN',$tags_arr]
+                ];
+                $tags_list = Db::table('mp_req_idea_tags')->where($whereTag)->select();
+                if(count($tags_list) !== count($tags_arr)) {
+                    return ajax('无效的标签',80);
+                }
+            }
+
             Db::table('mp_req')->where($whereReq)->setInc('idea_num',1);
             Db::table('mp_req_idea')->insert($val);
         } catch (\Exception $e) {
@@ -840,13 +881,13 @@ class Api extends Common
 
 
 
-//设计师列表
+    //设计师列表
     public function designerList() {
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         try {
             $where = [
-                ['role', '=', 3]
+                ['role', '=', 2]
             ];
             $whereFocus = [
                 ['uid','=',$this->myinfo['id']]
@@ -854,7 +895,7 @@ class Api extends Common
             $myFocus = Db::table('mp_user_focus')->where($whereFocus)->column('to_uid');
             $list = Db::table('mp_user')
                 ->where($where)
-                ->field("id,nickname,avatar,focus,sex,age")
+                ->field("id,nickname,avatar,idea_num,works_num,focus,level")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -868,82 +909,45 @@ class Api extends Common
         }
         return ajax($list);
     }
-//设计师参赛作品
-    public function designerReqWorkList()
-    {
-        $val['uid'] = input('post.uid');
+    //博物馆列表
+    public function bwgList() {
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        checkPost($val);
         try {
             $where = [
-                ['type', '=', 2],
-                ['uid', '=', $val['uid']]
+                ['u.role', '=', 1]
             ];
-            $list = Db::table('mp_req_works')
+            $list = Db::table('mp_user')->alias('u')
+                ->join('mp_user_role r','u.id=r.uid','left')
                 ->where($where)
-                ->field("id,title,req_id,vote,pics")
+                ->field("u.id,u.org,u.req_num,u.focus,u.level,r.cover")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        foreach ($list as &$v) {
-            $v['cover'] = unserialize($v['pics'])[0];
-            unset($v['pics']);
-        }
         return ajax($list);
     }
-//设计师展示作品
-    public function designerShowWorkList()
-    {
-        $val['uid'] = input('post.uid');
+    //工厂列表
+    public function factoryList() {
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
-        checkPost($val);
         try {
             $where = [
-                ['type', '=', 1],
-                ['uid', '=', $val['uid']]
+                ['u.role', '=', 3]
             ];
-            $list = Db::table('mp_req_works')
+            $list = Db::table('mp_user')->alias('u')
+                ->join('mp_user_role r','u.id=r.uid','left')
                 ->where($where)
-                ->field("id,title,pics")
+                ->field("u.id,u.org,u.bid_num,u.focus,u.level,r.cover")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        foreach ($list as &$v) {
-            $v['cover'] = unserialize($v['pics'])[0];
-            unset($v['pics']);
-        }
         return ajax($list);
     }
-//设计师详情
-    public function designerDetail() {
-        $val['uid'] = input('post.uid');
-        checkPost($val);
-        try {
-            $whereFocus = [
-                ['uid','=',$this->myinfo['id']]
-            ];
-            $myFocus = Db::table('mp_user_focus')->where($whereFocus)->column('to_uid');
-            $info = Db::table('mp_user')->alias('u')
-                ->join("mp_user_role r","u.id=r.uid","left")
-                ->where('u.id', $val['uid'])
-                ->field("u.id,u.nickname,u.avatar,u.sex,u.focus,u.age,r.desc")
-                ->find();
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-        if(in_array($info['id'],$myFocus)) {
-            $info['if_focus'] = true;
-        }else {
-            $info['if_focus'] = false;
-        }
-        return ajax($info);
 
-    }
-//充值类目列表
+
+    //充值类目列表
     public function getVipList() {
         $where = [
             ['status','=',1]
@@ -957,7 +961,7 @@ class Api extends Common
         }
         return ajax($list);
     }
-//充值
+    //充值
     public function recharge()
     {
         $val['vip_id'] = input('post.vip_id');

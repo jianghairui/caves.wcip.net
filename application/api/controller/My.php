@@ -285,6 +285,32 @@ class My extends Common {
         return ajax($list);
     }
 
+    //我的关注
+    public function myFocusList() {
+        $page = input('page',1);
+        $perpage = input('perpage',10);
+        try {
+            $whereFoucs = [
+                ['uid','=',$this->myinfo['id']],
+            ];
+            $ids = Db::table('mp_user_focus')->where($whereFoucs)->column('id');
+            if(empty($ids)) {
+                return ajax([]);
+            }
+            $whereUser = [
+                ['id','IN',$ids]
+            ];
+            $list = Db::table('mp_user')
+                ->where($whereUser)
+                ->field('id,nickname,avatar,role,focus,idea_num')
+                ->order(['create_time'=>'DESC'])
+                ->limit(($page-1)*$perpage,$perpage)->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($list);
+    }
+
 
     //获取我发的笔记列表
     public function getMyNoteList()

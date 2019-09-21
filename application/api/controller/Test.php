@@ -11,6 +11,10 @@ use think\Controller;
 use think\Db;
 class Test extends Common {
 
+    public function echart() {
+        return $this->fetch();
+    }
+
     public function index() {
         $start = microtime(true);
         try {
@@ -49,6 +53,8 @@ class Test extends Common {
             fclose($fp);
         }
     }
+
+
 
 
 
