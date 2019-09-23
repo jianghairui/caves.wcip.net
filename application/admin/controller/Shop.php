@@ -130,9 +130,7 @@ class Shop extends Base {
         $val['status'] = input('post.status');
         $val['unit'] = input('post.unit');
         $val['carriage'] = input('post.carriage');
-//        $val['reduction'] = input('post.reduction');
         $val['service'] = input('post.service');
-        $val['desc'] = input('post.desc');
         $val['status'] = input('post.status');
         $val['create_time'] = time();
         checkInput($val);
@@ -230,9 +228,7 @@ class Shop extends Base {
         $val['status'] = input('post.status');
         $val['unit'] = input('post.unit');
         $val['carriage'] = input('post.carriage');
-//            $val['reduction'] = input('post.reduction');
         $val['service'] = input('post.service');
-        $val['desc'] = input('post.desc');
         $val['status'] = input('post.status');
         $val['id'] = input('post.id');
         $val['create_time'] = time();

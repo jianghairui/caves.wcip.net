@@ -113,6 +113,45 @@ class My extends Common {
         return ajax();
     }
 
+    //修改角色封面
+    public function modCover() {
+        try {
+            $whereRole = [
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $role_exist = Db::table('mp_user_role')->where($whereRole)->find();
+            if(!$role_exist) {
+                return ajax('角色未认证',29);
+            }
+            $cover = input('post.cover');
+            if($cover) {
+                $qiniu_exist = $this->qiniuFileExist($cover);
+                if($qiniu_exist !== true) {
+                    return ajax($qiniu_exist['msg'] . ' :'.$cover,5);
+                }
+                $qiniu_move = $this->moveFile($cover,'upload/role/');
+                if($qiniu_move['code'] == 0) {
+                    $val['cover'] = $qiniu_move['path'];
+                }else {
+                    return ajax($qiniu_move['msg'],101);
+                }
+            }else {
+                return ajax('请上传封面',33);
+            }
+            Db::table('mp_user_role')->where($whereRole)->update($val);
+        } catch (\Exception $e) {
+            if ($val['cover'] != $role_exist['cover']) {
+                $this->rs_delete($val['cover']);
+            }
+            return ajax($e->getMessage(), -1);
+        }
+        if ($val['cover'] != $role_exist['cover']) {
+            $this->rs_delete($role_exist['cover']);
+        }
+        return ajax();
+
+    }
+
     //查看签到状态
     public function checkSign() {
         try {

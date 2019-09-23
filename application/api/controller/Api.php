@@ -431,44 +431,58 @@ class Api extends Common
         $val['id'] = input('post.id');
         checkPost($val);
         try {
+            //作品是否存在
             $whereWorks = [
                 ['w.id', '=',$val['id']]
             ];
-            $exist = Db::table('mp_req_works')->alias('w')
+            $work_exist = Db::table('mp_req_works')->alias('w')
                 ->join("mp_req_idea i", "w.idea_id=i.id", "left")
                 ->join("mp_user u", "w.uid=u.id", "left")
                 ->where($whereWorks)
                 ->field("w.id,w.uid,w.title,w.desc,w.pics,w.vote,w.bid_num,w.req_id,w.create_time,w.status,w.reason,u.avatar,u.nickname,i.title AS idea_title,i.vote AS idea_vote")
                 ->find();
-            if (!$exist) {
+            if (!$work_exist) {
                 return ajax($val['id'], -4);
             }
+            //我是否投票
             $myvote = Db::table('mp_works_vote')->where('uid','=',$this->myinfo['id'])->column('work_id');
-            if(in_array($exist['id'],$myvote)) {
-                $exist['if_vote'] = true;
+            if(in_array($work_exist['id'],$myvote)) {
+                $work_exist['if_vote'] = true;
             }else {
-                $exist['if_vote'] = false;
+                $work_exist['if_vote'] = false;
             }
+            //我是否竞标
             $bidding_exist = Db::table('mp_bidding')->where([
                 ['work_id', '=', $val['id']],
                 ['uid', '=', $this->myinfo['id']]
             ])->find();
+            $where_req = [['id','=',$work_exist['req_id']]];
+            $req_exist = Db::table('mp_req')->where($where_req)->find();
             if ($bidding_exist) {
-                $exist['bidding_btn'] = false;
-                $where_req = [['id','=',$exist['req_id']]];
-                $req_exist = Db::table('mp_req')->where($where_req)->find();
+                $work_exist['bidding_btn'] = false;
                 if ($req_exist['end_time'] <= time()) {
-                    $exist['bidding_btn'] = true;
+                    $work_exist['bidding_btn'] = true;
                 }
             } else {
-                $exist['bidding_btn'] = true;
+                $work_exist['bidding_btn'] = true;
             }
-            $exist['req_uid'] = Db::table('mp_req')->where('id','=',$exist['req_id'])->value('uid');
+            $whereFocus = [
+                ['uid','=',$this->myinfo['id']],
+                ['to_uid','=',$work_exist['uid']]
+            ];
+            $focus_exist = Db::table('mp_user_focus')->where($whereFocus)->find();
+            if($focus_exist) {
+                $work_exist['ifocus'] = true;
+            }else {
+                $work_exist['ifocus'] = false;
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        $exist['pics'] = unserialize($exist['pics']);
-        return ajax($exist);
+        $work_exist['req_uid'] = $req_exist['uid'];
+        $work_exist['req_title'] = $req_exist['title'];
+        $work_exist['pics'] = unserialize($work_exist['pics']);
+        return ajax($work_exist);
     }
     //工厂接单竞标
     public function bidding() {
@@ -520,9 +534,9 @@ class Api extends Common
     public function biddingList() {
         $val['work_id'] = input('post.work_id');
         checkPost($val);
-        if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
-            return ajax('只有认证的博物馆可以操作此项',72);
-        }
+//        if($this->myinfo['role'] != 1 || $this->myinfo['role_check'] != 2) {
+//            return ajax('只有认证的博物馆可以操作此项',72);
+//        }
         try {
             $where = [
                 ['b.work_id', '=', $val['work_id']]

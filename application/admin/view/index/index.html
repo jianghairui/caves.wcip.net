@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="/lib/Hui-iconfont/1.0.8/iconfont.css" />
     <link rel="stylesheet" type="text/css" href="/static/h-ui.admin/skin/default/skin.css" id="skin" />
     <link rel="stylesheet" type="text/css" href="/static/h-ui.admin/css/style.css" />
-
+    <script src="/lib/echarts/echarts.min.js"></script>
     <title>山海文化管理系统</title>
 </head>
 <body>
@@ -39,96 +39,160 @@
     </div>
     <div id="iframe_box" class="Hui-article">
         <div class="show_iframe">
-            <div style="display:none" class="loading"></div>
             <div class="page-container">
-                <p class="f-20 text-success">欢迎使用山洞小程序后台管理系统</p>
-                <p>登录次数：{$Think.session.login_times} </p>
-                <p>上次登录IP：{$Think.session.last_login_ip}  上次登录时间：{if (session('last_login_time'))}
-                    {$Think.session.last_login_time|date="Y-m-d H:i:s"}
-                {/if}
-                </p>
-                <table class="table table-border table-bordered table-bg mt-20">
-                    <thead>
-                    <tr>
-                        <th colspan="2" scope="col">服务器信息</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <th width="30%">服务器计算机名</th>
-                        <td><span id="lbServerName">山海文化</span></td>
-                    </tr>
-                    <tr>
-                        <td>服务器IP地址</td>
-                        <td>{$Think.server.server_addr}</td>
-                    </tr>
-                    <tr>
-                        <td>服务器域名</td>
-                        <td>{$Think.server.http_host}</td>
-                    </tr>
-                    <tr>
-                        <td>服务器端口 </td>
-                        <td>{$Think.server.server_port}</td>
-                    </tr>
-                    <tr>
-                        <td>服务器软件 </td>
-                        <td>{$Think.server.server_software}</td>
-                    </tr>
-                    <tr>
-                        <td>项目所在目录 </td>
-                        <td>{$Think.server.document_root}</td>
-                    </tr>
-                    <tr>
-                        <td>服务器操作系统 </td>
-                        <td>CentOS release 6.5 (Final)</td>
-                    </tr>
-                    <tr>
-                        <td>服务器脚本超时时间 </td>
-                        <td>60秒</td>
-                    </tr>
-                    <tr>
-                        <td>服务器当前时间 </td>
-                        <td id="clock"></td>
-                    </tr>
-                    <tr>
-                        <td>CPU 核数 </td>
-                        <td>4</td>
-                    </tr>
-                    <tr>
-                        <td>CPU 型号 </td>
-                        <td>Intel(R) Xeon(R) Platinum 8163 CPU @ 2.50GHz</td>
-                    </tr>
-                    <tr>
-                        <td>服务器内存 </td>
-                        <td>8192M</td>
-                    </tr>
-                    <tr>
-                        <td>当前系统用户名 </td>
-                        <td>{$Think.server.user}</td>
-                    </tr>
-                    </tbody>
-                </table>
+
+                <div class="row">
+                    <div id="echart-1" class="col-sm-6" style="height: 400px"></div>
+                    <div id="echart-2" class="col-sm-6" style="height: 400px"></div>
+                    <div id="echart-3" class="col-sm-6" style="height: 400px"></div>
+                </div>
+                <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+
+                <script type="text/javascript">
+                    // 基于准备好的dom，初始化echarts实例
+                    var echart_1 = echarts.init(document.getElementById('echart-1'));
+                    var echart_2 = echarts.init(document.getElementById('echart-2'));
+                    var echart_3 = echarts.init(document.getElementById('echart-3'));
+
+                    // 指定图表的配置项和数据
+                    var option1 = {
+                        title : {
+                            text: '商城订单统计',
+                            subtext: '年度统计'
+                        },
+                        tooltip : {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data:['自主品台','商户订单']
+                        },
+                        toolbox: {
+                            show : true,
+                            feature : {
+                                dataView : {show: true, readOnly: false},
+                                magicType : {show: true, type: ['line', 'bar']},
+                                restore : {show: true},
+                                saveAsImage : {show: true}
+                            }
+                        },
+                        calculable : true,
+                        xAxis : [
+                            {
+                                type : 'category',
+                                data : ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'自主品台',
+                                type:'bar',
+                                data:[20, 49, 70, 232, 256, 767, 1356, 1622, 326, 200, 64, 33]
+                            },
+                            {
+                                name:'商户订单',
+                                type:'bar',
+                                data:[26, 59, 90, 264, 287, 707, 1756, 1820, 487, 188, 60, 23]
+                            }
+                        ]
+                    };
+
+
+                    var option2 = {
+                        title : {
+                            text: '用户数量统计',
+                            subtext: 'Total : 1500',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            left: 'left',
+                            data: ['博物馆','文创机构','工厂','普通用户']
+                        },
+                        series : [
+                            {
+                                name: '访问来源',
+                                type: 'pie',
+                                radius : '55%',
+                                center: ['50%', '60%'],
+                                data:[
+                                    {value:15, name:'博物馆'},
+                                    {value:149, name:'文创机构'},
+                                    {value:78, name:'工厂'},
+                                    {value:987, name:'普通用户'}
+                                ],
+                                itemStyle: {
+                                    emphasis: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    }
+                                }
+                            }
+                        ]
+                    };
+
+
+                    var option3 = {
+                        title : {
+                            text: '众筹订单统计',
+                            subtext: '年度统计'
+                        },
+                        tooltip : {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data:['有偿众筹','无偿众筹']
+                        },
+                        toolbox: {
+                            show : true,
+                            feature : {
+                                dataView : {show: true, readOnly: false},
+                                magicType : {show: true, type: ['line', 'bar']},
+                                restore : {show: true},
+                                saveAsImage : {show: true}
+                            }
+                        },
+                        calculable : true,
+                        xAxis : [
+                            {
+                                type : 'category',
+                                data : ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+                            }
+                        ],
+                        yAxis : [
+                            {
+                                type : 'value'
+                            }
+                        ],
+                        series : [
+                            {
+                                name:'有偿众筹',
+                                type:'line',
+                                data:[420, 490, 538, 556, 612, 767, 899, 1080, 1446, 1550, 1920, 2138]
+                            },
+                            {
+                                name:'无偿众筹',
+                                type:'line',
+                                data:[26, 59, 90, 264, 287, 308, 156, 120, 256, 188, 60, 23]
+                            }
+                        ]
+                    };
+
+                    // 使用刚指定的配置项和数据显示图表。
+                    echart_1.setOption(option1);
+                    echart_2.setOption(option2);
+                    echart_3.setOption(option3);
+                </script>
             </div>
-            <script>
-                var int = setInterval("clock()",50);
-
-
-                function clock()
-                {
-                    document.getElementById("clock").innerHTML=show()+'<br>'
-                }
-
-                function show(){
-                    var mydate = new Date();
-                    var str = "" + mydate.getFullYear() + "年";
-                    str += (Array(2).join('0') + (mydate.getMonth() + 1)).slice(-2) + "月";
-                    str += (Array(2).join('0') + mydate.getDate()).slice(-2) + "日 ";
-                    str += (Array(2).join('0') + mydate.getHours()).slice(-2) + ":";
-                    str += (Array(2).join('0') + mydate.getMinutes()).slice(-2) + ":";
-                    str += (Array(2).join('0') + mydate.getSeconds()).slice(-2);
-                    return str;
-                }
-            </script>
         </div>
     </div>
 </section>

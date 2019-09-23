@@ -310,11 +310,22 @@ class Shop extends Common {
                 ['id','=',$val['cart_id']],
                 ['uid','=',$this->myinfo['id']]
             ];
-            $exist = Db::table('mp_cart')->where($where)->find();
-            if(!$exist) {
+            $cart_exist = Db::table('mp_cart')->where($where)->find();
+            if(!$cart_exist) {
                 return ajax($val['cart_id'],-4);
             }
             Db::table('mp_cart')->where($where)->delete();
+//            if($cart_exist['use_attr']) {
+//                $whereAttr = [
+//                    ['id','=',$cart_exist['attr_id']],
+//                    ['goods_id','=',$cart_exist['goods_id']]
+//                ];
+//                Db::table('mp_goods_attr')->where($whereAttr)->setInc('stock',1);
+//            }
+//            $whereGoods = [
+//                ['id','=',$cart_exist['goods_id']]
+//            ];
+//            Db::table('mp_goods')->where($whereGoods)->setInc('stock',1);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

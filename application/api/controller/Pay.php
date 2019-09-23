@@ -344,7 +344,27 @@ class Pay extends Common {
     }
 
 
-
+    protected function asyn_tpl_send($data) {
+        $param = http_build_query($data);
+        $allow = [
+            'fundingOrder'
+        ];
+        if(!in_array($data['action'],$allow)) {
+            $this->log('Pay/asyn_tpl_send',$data['action'] . ' not in allow actions');
+        }
+        $fp = @fsockopen('ssl://' . $this->domain, 443, $errno, $errstr, 1);
+        if (!$fp){
+            $this->log('asyn_tpl_send','error fsockopen:' . $this->domain);
+        }else{
+            stream_set_blocking($fp,0);
+            $http = "GET /api/message/fundingOrder?".$param." HTTP/1.1\r\n";
+            $http .= "Host: ".$this->domain."\r\n";
+            $http .= "Connection: Close\r\n\r\n";
+            fwrite($fp,$http);
+            usleep(1000);
+            fclose($fp);
+        }
+    }
 
 
 

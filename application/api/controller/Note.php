@@ -366,7 +366,7 @@ WHERE c.note_id=?",[$val['note_id']]);
                 return ajax('invalid to_uid',-4);
             }
             if($val['to_uid'] == $val['uid']) {
-                return ajax('我关注我自己',38);
+                return ajax('不能关注自己',38);
             }
             $map = [
                 ['uid','=',$val['uid']],

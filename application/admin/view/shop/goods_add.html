@@ -151,13 +151,6 @@
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-2">描述：</label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <textarea name="desc" cols="" rows="" class="textarea" maxlength="255" placeholder="" oninput="this.value.length<=255?$('#textlen1').text(this.value.length):$('#textlen1').text(255)" ></textarea>
-                <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/255</p>
-            </div>
-        </div>
-        <div class="row cl">
             <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
                 <button class="btn btn-primary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 添加</button>
                 <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;取消&nbsp;&nbsp;</button>
@@ -219,10 +212,6 @@
                 },
                 sales:{
                     required:true
-                },
-                desc:{
-                    required:true,
-                    maxlength:255
                 }
             },
             focusCleanup:true,
