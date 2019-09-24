@@ -107,6 +107,34 @@ class Home extends Common {
         return ajax($list);
 
     }
+    //他人主页视频
+    public function homeVideo() {
+        $val['uid'] = input('post.uid');
+        checkPost($val);
+        try {
+            $whereUser = [
+                ['id','=',$val['uid']]
+            ];
+            $user_exist = Db::table('mp_user')->where($whereUser)->find();
+            if(!$user_exist) {  return ajax('非法参数uid',-4);}
+            $whereVideo = [
+                ['uid','=',$val['uid']]
+            ];
+            $video_exist = Db::table('mp_video')->where($whereVideo)->find();
+            if($video_exist) {
+                $data['use_video'] = true;
+                $data['title'] = $video_exist['title'];
+                $data['poster'] = $video_exist['poster'];
+                $data['video_url'] = $video_exist['video_url'];
+            }else {
+                $data['use_video'] = false;
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($data);
+
+    }
 
     //活动列表
     public function reqList() {

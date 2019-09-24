@@ -143,7 +143,7 @@ class Common extends Controller {
         $bucketManager->delete(config('qiniu_bucket'), $key);
     }
 
-    //小程序验证内容是否违规
+    //小程序验证文本内容是否违规
     protected function msgSecCheck($msg) {
         $content = $msg;
         $app = Factory::payment($this->mp_config);
@@ -156,7 +156,7 @@ class Common extends Controller {
         try {
             $audit = true;
             if($result['errcode'] !== 0) {
-                $this->log($this->cmd,$this->myinfo['id'] .' : '. $content .' : '. var_export($result,true));
+                $this->mplog($this->cmd,$this->myinfo['id'] .' : '. $content .' : '. var_export($result,true));
                 switch ($result['errcode']) {
                     case 87014: $audit = false;break;
                     case 40001:
@@ -166,6 +166,37 @@ class Common extends Controller {
             }
         } catch (\Exception $e) {
             throw new HttpResponseException(ajax($e->getMessage(),-1));
+        }
+        return $audit;
+    }
+
+    /*微信图片敏感内容检测*/
+    public function imgSecCheck($image_path) {
+        $img = file_get_contents($image_path);
+        $filePath = '/dev/shm/tmp1.png';
+        file_put_contents($filePath, $img);
+        $obj = new \CURLFile(realpath($filePath));
+        $obj->setMimeType("image/jpeg");
+        $file['media'] = $obj;
+        $app = Factory::payment($this->mp_config);
+        $access_token = $app->access_token;
+        $token = $access_token->getToken();
+        $url = 'https://api.weixin.qq.com/wxa/img_sec_check?access_token=' . $token['access_token'];
+        $info = curl_post_data($url,$file);
+        $result = json_decode($info,true);
+        try {
+            $audit = true;
+            if($result['errcode'] !== 0) {
+                $this->mplog($this->cmd,$this->myinfo['id'] .' : '. $img .' : '. var_export($result,true));
+                switch ($result['errcode']) {
+                    case 87014: $audit = false;break;
+                    case 40001:
+                        $audit = false;break;
+                    default:$audit = false;;
+                }
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
         }
         return $audit;
     }
@@ -205,6 +236,17 @@ class Common extends Controller {
     //Exception日志
     protected function msglog($cmd,$str) {
         $file= ROOT_PATH . '/log/message.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+    //小程序验证内容违规
+    protected function mplog($cmd,$str) {
+        $file= ROOT_PATH . '/log/mp.log';
         $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
         if(false !== fopen($file,'a+')){
             file_put_contents($file,$text,FILE_APPEND);

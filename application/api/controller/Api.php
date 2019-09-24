@@ -192,16 +192,33 @@ class Api extends Common
             $list = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_user u','i.uid=u.id','left')
                 ->where($where)
-                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar')
+                ->field('i.id,i.title,i.content,i.works_num,i.vote,i.tags,i.create_time,u.nickname,u.avatar')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
             $myvote = Db::table('mp_idea_vote')->where('uid','=',$this->myinfo['id'])->column('idea_id');
+            $tag_list = Db::table('mp_req_idea_tags')->field('id,tag_name')->select();
+            $tag_arr = [];
+            foreach ($tag_list as $v) {
+                $tag_arr[$v['id']] = $v['tag_name'];
+            }
             foreach ($list as &$v) {
                 if(in_array($v['id'],$myvote)) {
                     $v['if_vote'] = true;
                 }else {
                     $v['if_vote'] = false;
+                }
+                $tags = explode(',',$v['tags']);
+                if(empty($tags)) {
+                    $v['tags_name'] = '';
+                }else {
+                    $tags_name = [];
+                    foreach ($tags as $vv) {
+                        if(isset($tag_arr[$vv])) {
+                            $tags_name[] = $tag_arr[$vv];
+                        }
+                    }
+                    $v['tags_name'] = $tags_name;
                 }
             }
         } catch (\Exception $e) {

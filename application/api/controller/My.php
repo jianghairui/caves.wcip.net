@@ -464,6 +464,9 @@ class My extends Common {
             $whereNote = [
                 ['n.id','IN',$note_ids]
             ];
+            $count = Db::table('mp_note')->alias('n')
+                ->join('mp_user u','n.uid=u.id','left')
+                ->where($whereNote)->count();
             $list = Db::table('mp_note')->alias('n')
                 ->join('mp_user u','n.uid=u.id','left')
                 ->where($whereNote)
@@ -476,7 +479,9 @@ class My extends Common {
         foreach ($list as &$v) {
             $v['pics'] = unserialize($v['pics']);
         }
-        return ajax($list);
+        $data['count'] = $count;
+        $data['list'] = $list;
+        return ajax($data);
     }
 
     //我的创意列表
