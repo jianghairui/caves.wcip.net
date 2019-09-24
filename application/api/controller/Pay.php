@@ -234,7 +234,14 @@ class Pay extends Common {
                         Db::table('mp_order_unite')->where($whereUnite)->update($update_data);
                         Db::table('mp_order')->where($whereUnite)->update($update_data);
                         //todo 发送模板消息
+
                         //todo 变更商品销量
+//                        $order_ids = Db::table('mp_order')->where($whereUnite)->column('id');
+//                        $whereDetail = [
+//                            ['order_id','IN',$order_ids]
+//                        ];
+//                        Db::table('mp_order_detail')->where($whereDetail)->field('id,goods_id,use_attr,attr_id,num')->select();
+
                     }
                 }catch (\Exception $e) {
                     $this->log($this->cmd,$e->getMessage());

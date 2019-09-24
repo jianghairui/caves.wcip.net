@@ -35,6 +35,9 @@ class My extends Common {
                     if($qiniu_exist !== true) {
                         return ajax($qiniu_exist['msg'] . ' :'.$avatar,5);
                     }
+                    if(!$this->imgSecCheck(config('qiniu_weburl') . $avatar)) {
+                        return ajax('图片包含违规内容',82);
+                    }
                     $qiniu_move = $this->moveFile($avatar,'upload/avatar/');
                     if($qiniu_move['code'] == 0) {
                         $val['avatar'] = $qiniu_move['path'];
@@ -112,7 +115,6 @@ class My extends Common {
         }
         return ajax();
     }
-
     //修改角色封面
     public function modCover() {
         try {
