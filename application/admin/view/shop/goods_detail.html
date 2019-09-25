@@ -275,7 +275,7 @@
                         type: 'post',
                         url: "{:url('Shop/goodsModPost')}" ,
                         success: function(data){
-                            console.log(data);isclick = true;return;
+                            // console.log(data);isclick = true;return;
                             if(data.code == 1) {
                                 layer.msg('保存成功!',{icon:1,time:1000},function () {
                                     window.parent.location.reload();
@@ -437,7 +437,7 @@
                 return false;
             }
             $("#attr_detail").append(
-                '<div class="row cl"><label class="form-label col-sm-2"><a style="text-decoration:none" class="ml-5" title="删除" onclick="javascript:$(this).parent().parent().remove();"><i class="Hui-iconfont">&#xe6e2;</i></a></label><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr1[]"></div><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr2[]" onkeyup="onlyNumber(this)"></div><div class="formControls col-sm-2"><input type="number" class="input-text" value="" name="attr3[]"></div></div>'
+                '<div class="row cl"><label class="form-label col-sm-2"><a style="text-decoration:none" class="ml-5" title="删除" onclick="javascript:$(this).parent().parent().remove();"><i class="Hui-iconfont">&#xe6e2;</i></a></label><div class="formControls col-sm-2"><input type="hidden" class="input-text" value="" name="attr0[]"><input type="text" class="input-text" value="" name="attr1[]"></div><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr2[]" onkeyup="onlyNumber(this)"></div><div class="formControls col-sm-2"><input type="number" class="input-text" value="" name="attr3[]"></div></div>'
             );
         });
 

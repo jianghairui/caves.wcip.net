@@ -16,7 +16,7 @@ class Email extends Common {
 //        if($_SERVER['REMOTE_ADDR'] == '120.27.60.129') {
             try {
                 $order_id = input('param.order_id','');
-                $order_id = 19;
+//                $order_id = 19;
                 if(!$order_id) {    die('DIE');}
                 //订单是否存在
                 $whereUnite = [
