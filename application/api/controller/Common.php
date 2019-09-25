@@ -52,6 +52,8 @@ class Common extends Controller {
     private function checkSession() {
         $noneed = [
             'Test',
+            'Message',
+            'Email',
             'Login/login',
             'Pay/recharge_notify',
             'Pay/order_notify',
@@ -192,7 +194,7 @@ class Common extends Controller {
         $result = json_decode($info,true);
         try {
             if($result['errcode'] !== 0) {
-                $this->mplog($this->cmd,$this->myinfo['id'] .' : '. $img .' : '. var_export($result,true));
+                $this->mplog($this->cmd,$this->myinfo['id'] .' : '. $image_path .' : '. var_export($result,true));
                 switch ($result['errcode']) {
                     case 87014: $audit = false;break;
                     case 40001:

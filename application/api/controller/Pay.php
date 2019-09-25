@@ -235,10 +235,16 @@ class Pay extends Common {
                         Db::table('mp_order')->where($whereUnite)->update($update_data);
 
                         $order_ids = Db::table('mp_order')->where($whereUnite)->column('id');
+                        //给店家发送邮件
+                        $email_data = [
+                            'order_id' => $unite_exist['id'],
+                            'action' => 'goodsOrder'
+                        ];
+                        $this->asyn_email_send($email_data);
                         //发送模板消息
                         $tpl_data = [
                             'order_id' => $unite_exist['id'],
-                            'action' => 'order'
+                            'action' => 'goodsOrder'
                         ];
                         $this->asyn_tpl_send($tpl_data);
                         //变更商品销量
@@ -336,7 +342,7 @@ class Pay extends Common {
                         }
                         $funding_data['curr_money'] = $funding_exist['curr_money'] + $order_exist['total_price'];
                         $funding_data['order_num'] = $funding_exist['order_num'] + 1;
-                        if($order_exist['type'] == 1) {//有偿订单
+                        if($order_exist['type'] == 1) { //有偿订单
                             $update_data['status'] = 1;
                             $funding_data['paid_money'] = $funding_exist['paid_money'] + $order_exist['total_price'];
                             $whereGoods = [
@@ -351,6 +357,12 @@ class Pay extends Common {
                         //修改订单状态,众筹金额增加
                         Db::table('mp_funding_order')->where('pay_order_sn','=',$data['out_trade_no'])->update($update_data);
                         Db::table('mp_funding')->where($whereFunding)->update($funding_data);
+                        //发送模板消息
+                        $tpl_data = [
+                            'order_id' => $order_exist['id'],
+                            'action' => 'fundingOrder'
+                        ];
+                        $this->asyn_tpl_send($tpl_data);
                     }
                 }catch (\Exception $e) {
                     $this->log($this->cmd,$e->getMessage());
@@ -364,10 +376,12 @@ class Pay extends Common {
     protected function asyn_tpl_send($data) {
         $param = http_build_query($data);
         $allow = [
-            'fundingOrder'
+            'fundingOrder',
+            'goodsOrder'
         ];
         if(!in_array($data['action'],$allow)) {
             $this->msglog('Pay/asyn_tpl_send',$data['action'] . ' not in allow actions');
+            die();
         }
         $fp = @fsockopen('ssl://' . $this->domain, 443, $errno, $errstr, 1);
         if (!$fp){
@@ -375,6 +389,29 @@ class Pay extends Common {
         }else{
             stream_set_blocking($fp,0);
             $http = "GET /api/message/" . $data['action'] . "?".$param." HTTP/1.1\r\n";
+            $http .= "Host: ".$this->domain."\r\n";
+            $http .= "Connection: Close\r\n\r\n";
+            fwrite($fp,$http);
+            usleep(1000);
+            fclose($fp);
+        }
+    }
+
+    protected function asyn_email_send($data) {
+        $param = http_build_query($data);
+        $allow = [
+            'goodsOrder'
+        ];
+        if(!in_array($data['action'],$allow)) {
+            $this->msglog('Pay/asyn_email_send',$data['action'] . ' not in allow actions');
+            die();
+        }
+        $fp = @fsockopen('ssl://' . $this->domain, 443, $errno, $errstr, 1);
+        if (!$fp){
+            $this->msglog('asyn_email_send','error fsockopen:' . $this->domain);
+        }else{
+            stream_set_blocking($fp,0);
+            $http = "GET /api/email/" . $data['action'] . "?".$param." HTTP/1.1\r\n";
             $http .= "Host: ".$this->domain."\r\n";
             $http .= "Connection: Close\r\n\r\n";
             fwrite($fp,$http);

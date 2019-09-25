@@ -33,7 +33,7 @@ class Message extends Common {
             //formid是否存在
             $whereFormid = [
                 ['uid','=',$order_exist['uid']],
-                ['create_time','>',time()-(7200*24*7+7200*2)]
+                ['create_time','>',time()-(3600*24*7-3600*2)]
             ];
             $formid_exist = Db::table('mp_formid')->where($whereFormid)->order(['id'=>'DESC'])->find();
             if(!$formid_exist) {
@@ -114,7 +114,7 @@ class Message extends Common {
     }
 
     //商城订单支付成功给用户发送消息
-    public function order() {
+    public function goodsOrder() {
         $order_id = input('param.order_id','');
         if(!$order_id) {    die('DIE');}
         try {

@@ -577,6 +577,23 @@ class My extends Common {
         }
         return ajax();
     }
+    //设置订单通知接收邮箱
+    public function setOrderEmail() {
+        $val['email'] = input('post.email');
+        checkPost($val);
+        try {
+            if(!is_email($val['email'])) {
+                return ajax('无效的邮箱',7);
+            }
+            $whereUser = [
+                ['id','=',$this->myinfo['id']]
+            ];
+            Db::table('mp_user')->where($whereUser)->update(['order_email'=>$val['email']]);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax();
+    }
     /*------ 店铺设置 END ------*/
 
     /*------ 博物馆独有接口 START ------*/
