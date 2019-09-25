@@ -210,7 +210,7 @@ class Api extends Common
                 }
                 $tags = explode(',',$v['tags']);
                 if(empty($tags)) {
-                    $v['tags_name'] = '';
+                    $v['tags_name'] = [];
                 }else {
                     $tags_name = [];
                     foreach ($tags as $vv) {
@@ -238,7 +238,7 @@ class Api extends Common
                 ->join('mp_user u','i.uid=u.id','left')
                 ->join('mp_req r','i.req_id=r.id','left')
                 ->where($whereIdea)
-                ->field('i.id,i.uid,i.title,i.content,i.works_num,i.vote,i.create_time,u.nickname,u.avatar,i.req_id,r.title AS req_title,r.cover,r.org')
+                ->field('i.id,i.uid,i.title,i.content,i.works_num,i.vote,i.create_time,i.tags,u.nickname,u.avatar,i.req_id,r.title AS req_title,r.cover,r.org')
                 ->find();
             if(!$info) {
                 return ajax('invalid idea_id',-4);
@@ -258,6 +258,23 @@ class Api extends Common
                 $info['ifocus'] = true;
             }else {
                 $info['ifocus'] = false;
+            }
+            $tag_list = Db::table('mp_req_idea_tags')->field('id,tag_name')->select();
+            $tag_arr = [];
+            foreach ($tag_list as $v) {
+                $tag_arr[$v['id']] = $v['tag_name'];
+            }
+            $tags = explode(',',$info['tags']);
+            if(empty($tags)) {
+                $info['tags_name'] = [];
+            }else {
+                $tags_name = [];
+                foreach ($tags as $vv) {
+                    if(isset($tag_arr[$vv])) {
+                        $tags_name[] = $tag_arr[$vv];
+                    }
+                }
+                $info['tags_name'] = $tags_name;
             }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);

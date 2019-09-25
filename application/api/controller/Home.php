@@ -60,10 +60,29 @@ class Home extends Common {
             $list = Db::table('mp_req_idea')->alias('i')
                 ->join('mp_req r','i.req_id=r.id','left')
                 ->where($whereIdea)
-                ->field('i.id,i.req_id,i.title,i.content,i.works_num,i.vote,i.create_time,r.title AS req_title')
+                ->field('i.id,i.req_id,i.title,i.content,i.works_num,i.vote,i.create_time,i.tags,r.title AS req_title')
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
+            $tag_list = Db::table('mp_req_idea_tags')->field('id,tag_name')->select();
+            $tag_arr = [];
+            foreach ($tag_list as $v) {
+                $tag_arr[$v['id']] = $v['tag_name'];
+            }
+            foreach ($list as &$v) {
+                $tags = explode(',',$v['tags']);
+                if(empty($tags)) {
+                    $v['tags_name'] = [];
+                }else {
+                    $tags_name = [];
+                    foreach ($tags as $vv) {
+                        if(isset($tag_arr[$vv])) {
+                            $tags_name[] = $tag_arr[$vv];
+                        }
+                    }
+                    $v['tags_name'] = $tags_name;
+                }
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
