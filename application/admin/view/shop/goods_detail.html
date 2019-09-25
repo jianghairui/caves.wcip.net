@@ -275,7 +275,7 @@
                         type: 'post',
                         url: "{:url('Shop/goodsModPost')}" ,
                         success: function(data){
-                            // console.log(data);return;
+                            console.log(data);isclick = true;return;
                             if(data.code == 1) {
                                 layer.msg('保存成功!',{icon:1,time:1000},function () {
                                     window.parent.location.reload();

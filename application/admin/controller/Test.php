@@ -11,29 +11,11 @@ use think\Db;
 
 class Test extends Base {
 
-    //七牛云转移笔记图片
-    public function notemove() {
-//        try {
-//            $list = Db::table('mp_note_bak')->select();
-//        } catch (\Exception $e) {
-//            return ajax($e->getMessage(), -1);
-//        }
-//        foreach ($list as &$v) {
-//            $v['pics'] = unserialize($v['pics']);
-//            foreach ($v['pics'] as &$vv) {
-//                $vv = "upload/note" . substr($vv,30);
-//            }
-//            $v['pics'] = serialize($v['pics']);
-//        }
-//        $res = Db::table('mp_note')->insertAll($list);
-//        halt($res);
-//        halt($list);
-    }
-    //删除角色测试,删除角色图片
-    public function roletest() {
-        $uid = 2;
-        try {
 
+    //删除角色测试,删除角色图片
+    public function roledel() {
+//        $uid = 2;
+        try {
             $info = Db::table('mp_user_role')->where('uid','=',$uid)->find();
             if(!$info) {
                 die('无角色');
@@ -55,15 +37,37 @@ class Test extends Base {
         foreach ($pics as $v) {
             $this->rs_delete($v);
         }
-        foreach ($pics as $v) {
-            if($this->qiniuFileExist($v) === true) {
-                echo $v . ' EXISTS<br>';
-            }else {
-                echo $v . ' DELETED<br>';
-            }
-        }
+//        foreach ($pics as $v) {
+//            if($this->qiniuFileExist($v) === true) {
+//                echo $v . ' EXISTS<br>';
+//            }else {
+//                echo $v . ' DELETED<br>';
+//            }
+//        }
 
     }
+
+
+
+    //七牛云转移笔记图片
+
+//    public function notemove() {
+//        try {
+//            $list = Db::table('mp_note_bak')->select();
+//        } catch (\Exception $e) {
+//            return ajax($e->getMessage(), -1);
+//        }
+//        foreach ($list as &$v) {
+//            $v['pics'] = unserialize($v['pics']);
+//            foreach ($v['pics'] as &$vv) {
+//                $vv = "upload/note" . substr($vv,30);
+//            }
+//            $v['pics'] = serialize($v['pics']);
+//        }
+//        $res = Db::table('mp_note')->insertAll($list);
+//        halt($res);
+//        halt($list);
+//    }
 
 
 }

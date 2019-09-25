@@ -8,65 +8,85 @@
 namespace app\api\controller;
 
 use think\Db;
+use my\smtp;
 class Email extends Common {
 
     public function goodsOrder() {
-        $order_id = input('param.order_id','');
-        if(!$order_id) {    die('DIE');}
-        try {
-            //订单是否存在
-            $whereOrder = [
-                ['id','=',$order_id],
-                ['status','=',1]
-            ];
-            $order_exist = Db::table('mp_order_unite')->where($whereOrder)->find();
-            if(!$order_exist) { die('DIE');}
-            $uid = $order_exist['uid'];
-            //formid是否存在
-            $whereFormid = [
-                ['uid','=',$uid],
-                ['create_time','>',time()-(3600*24*7-3600*2)]
-            ];
-            $formid_exist = Db::table('mp_formid')->where($whereFormid)->find();
-            if(!$formid_exist) {
-                $this->msglog($this->cmd,'not found formid ,uid:' . $uid);
-                die('not found formid');
-            }
-            $this->msglog($this->cmd, var_export($formid_exist,true));
-            $formid = $formid_exist['formid'];
-            //查找用户openid
-            $whereUser = [
-                ['id','=',$uid]
-            ];
-            $user_exist = Db::table('mp_user')->where($whereUser)->find();
-            if(!$user_exist) {
-                $this->msglog($this->cmd,'user not found , openid:' . $uid);
-                die('user not found');
-            }
-            //发送消息
-            $app = Factory::miniProgram($this->mp_config);
 
-            $res = $app->template_message->send([
-                'touser' => $user_exist['openid'],
-                'template_id' => 'cruzZq_l8eGfn86bP7B6ZYo-CCBiEZDYQHeFz-WrYvE',
-                'page' => 'index',
-                'form_id' => $formid,
-                'data' => [
-                    'keyword1' => $order_exist['pay_order_sn'],
-                    'keyword2' => '山洞文创商品',
-                    'keyword3' => $order_exist['pay_price'],
-                    'keyword4' => date('Y年m月d日 H:i:s',$order_exist['pay_time']),
-                ]
-            ]);
+//        if($_SERVER['REMOTE_ADDR'] == '120.27.60.129') {
+            try {
+                $order_id = input('param.order_id','');
+                $order_id = 19;
+                if(!$order_id) {    die('DIE');}
+                //订单是否存在
+                $whereUnite = [
+                    ['id','=',$order_id],
+                    ['status','=',1]
+                ];
+                $order_exist = Db::table('mp_order_unite')->where($whereUnite)->find();
+                if(!$order_exist) { die('INVALID ORDER_ID');}
 
-            if($res['errcode'] != 0) {
-                $this->msglog($this->cmd, var_export($res,true));
+                $whereOrder = [
+                    ['o.pay_order_sn','=',$order_exist['pay_order_sn']]
+                ];
+                $order_list = Db::table('mp_order')->alias('o')
+                    ->join('mp_user u','o.shop_id=u.id','left')
+                    ->field('o.*,u.order_email')
+                    ->where($whereOrder)->select();
+
+                foreach ($order_list as $li) {
+                    $whereGoods = [
+                        ['order_id','=',$li['id']]
+                    ];
+                    $goods_name = '';
+                    $goods_list = Db::table('mp_order_detail')->where($whereGoods)->field('id,goods_name,num')->select();
+                    foreach ($goods_list as $v) {
+                        $goods_name .= $v['goods_name'] . ' (数量: x' . $v['num'] . ')<br>';
+                    }
+                    //使用163邮箱服务器
+                    $smtpserver = "smtp.163.com";
+//163邮箱服务器端口
+                    $smtpserverport = 465;
+//你的163服务器邮箱账号
+                    $smtpusermail = "git_smtp@163.com";
+//收件人邮箱
+                    if($li['order_email']) {
+                        $smtpemailto = $li['order_email'];
+                    }else {
+                        $smtpemailto = '1873645345@qq.com';
+                    }
+
+//你的邮箱账号(去掉@163.com)
+                    $smtpuser = "git_smtp";//你的163邮箱去掉后面的163.com
+//你的邮箱密码
+                    $smtppass = "jiang22513822"; //你的163邮箱SMTP的授权码，千万不要填密码！！！
+
+//邮件主题
+                    $mailsubject = '您有新的订单';
+//邮件内容
+                    $mailbody = '订单编号: ' . $li['order_sn'] . '<br>';
+                    $mailbody .= '购买商品: <br>' . $goods_name . '<br>';
+                    $mailbody .= '支付金额: <span style="color: #ff4c4c">' . $li['pay_price'] . '</span><br>';
+                    $mailbody .= '下单时间: ' . date('Y年m月d日 H:i:s') . '<br>';
+
+                    //邮件格式（HTML/TXT）,TXT为文本邮件
+                    $mailtype = "HTML";
+//这里面的一个true是表示使用身份验证,否则不使用身份验证.
+                    $smtp = new smtp($smtpserver,$smtpserverport,true,$smtpuser,$smtppass);
+//是否显示发送的调试信息
+                    $smtp->debug = false;
+//发送邮件
+                    $smtp->sendmail($smtpemailto, $smtpusermail, $mailsubject, $mailbody, $mailtype);
+                }
+
+            } catch(\Exception $e) {
+                die($e->getMessage());
             }
-            Db::table('mp_formid')->where('formid','=',$formid)->delete();
-        } catch (\Exception $e) {
-            $this->log($this->cmd, $e->getMessage());
-        }
-        exit('SUCCESS');
+
+
+//        }else {
+//            die('IP不在访问白名单内');
+//        }
     }
 
 

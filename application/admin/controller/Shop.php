@@ -236,12 +236,12 @@ class Shop extends Base {
         $val['detail'] = input('post.detail');
         $val['use_attr'] = input('post.use_attr','');
         if($val['use_attr']) {
-            $attr0 = input('post.attr0',[]);
-            $attr1 = input('post.attr1',[]);
-            $attr2 = input('post.attr2',[]);
-            $attr3 = input('post.attr3',[]);
+            $attr0 = input('post.attr0',[]);//attr_ids
+            $attr1 = input('post.attr1',[]);//属性值
+            $attr2 = input('post.attr2',[]);//金额
+            $attr3 = input('post.attr3',[]);//库存
 
-            $val['attr'] = input('post.attr','');
+            $val['attr'] = input('post.attr','');//属性名
             if(!$val['attr'] || empty($attr1)) {
                 return ajax('至少添加一个规格',-1);
             }
@@ -249,19 +249,13 @@ class Shop extends Base {
                 return ajax('属性规格异常',-1);
             }
             foreach ($attr1 as $v) {
-                if(!$v) {
-                    return ajax('属性规格值不能为空',-1);
-                }
+                if(!$v) {return ajax('属性规格值不能为空',-1);}
             }
             foreach ($attr2 as $v) {
-                if(!is_currency($v)) {
-                    return ajax('属性金额格式不合法',-1);
-                }
+                if(!is_currency($v)) {return ajax('属性金额格式不合法',-1);}
             }
             foreach ($attr3 as $v) {
-                if(!if_int($v)) {
-                    return ajax('规格库存必须为数字'.$v,-1);
-                }
+                if(!if_int($v)) {return ajax('规格库存必须为数字'.$v,-1);}
             }
         }
         $image = input('post.pic_url',[]);
@@ -303,8 +297,13 @@ class Shop extends Base {
             $val['pics'] = serialize($image_array);
 
             Db::table('mp_goods')->where($map)->update($val);
+            //如果使用了规格
             if($val['use_attr']) {
-                $attr_ids = Db::table('mp_goods_attr')->where('goods_id',$val['id'])->column('id');
+                $whereAttr = [
+                    ['goods_id','=',$val['id']],
+                    ['del','=',0]
+                ];
+                $attr_ids = Db::table('mp_goods_attr')->where($whereAttr)->column('id');//原有规格
                 $attr_insert = [];
                 foreach ($attr1 as $k=>$v) {
                     $data['goods_id'] = $val['id'];
@@ -317,14 +316,11 @@ class Shop extends Base {
                     }else {
                         Db::table('mp_goods_attr')->where('id','=',$attr0[$k])->update($data);
                     }
-
                 }
                 Db::table('mp_goods_attr')->insertAll($attr_insert);
                 $whereDelete = [];
                 foreach ($attr_ids as $v) {
-                    if(!in_array($v,$attr0)) {
-                        $whereDelete[] = $v;
-                    }
+                    if(!in_array($v,$attr0)) {$whereDelete[] = $v;}
                 }
                 if(!empty($whereDelete)) {
                     Db::table('mp_goods_attr')->where('id','in',$whereDelete)->update(['del'=>1]);
@@ -336,7 +332,7 @@ class Shop extends Base {
                     $this->rs_delete($v);
                 }
             }
-            return ajax($e->getMessage(),-1);
+            return ajax($e->getMessage(),-1111);
         }
         foreach ($old_pics as $v) {
             if(!in_array($v,$image_array)) {

@@ -54,6 +54,7 @@ class Common extends Controller {
             'Test',
             'Message',
             'Email',
+            'Email',
             'Login/login',
             'Pay/recharge_notify',
             'Pay/order_notify',

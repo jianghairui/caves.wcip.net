@@ -69,16 +69,25 @@ class Shop extends Common {
         checkPost($val);
         try {
             $where = [
-                ['id','=',$val['id']]
+                ['g.id','=',$val['id']]
             ];
-            $info = Db::table('mp_goods')
+            $info = Db::table('mp_goods')->alias('g')
+                ->join('mp_user u','g.shop_id=u.id','left')
                 ->where($where)
-                ->field("id,name,detail,origin_price,price,vip_price,pics,carriage,stock,sales,desc,use_attr,attr,hot,limit")
+                ->field("g.id,g.name,g.detail,g.origin_price,g.price,g.pics,g.carriage,g.stock,g.sales,g.use_attr,g.attr,g.hot,g.limit,u.avatar,u.org,u.level")
                 ->find();
             if(!$info) {
                 return ajax($val['id'],-4);
             }
-            $attr_list = Db::table('mp_goods_attr')->where('goods_id',$val['id'])->select();
+            if($info['use_attr']) {
+                $whereAttr = [
+                    ['goods_id','=',$val['id']],
+                    ['del','=',0]
+                ];
+                $attr_list = Db::table('mp_goods_attr')->where($whereAttr)->select();
+            }else {
+                $attr_list = [];
+            }
             $info['attr_list'] = $attr_list;
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -404,7 +413,6 @@ class Shop extends Common {
             $order_detail['unit_price'] = $unit_price;
             $order_detail['total_price'] = $unit_price * $data['num'] + $goods_exist['carriage'];
             $order_detail['carriage'] = $goods_exist['carriage'];
-            $order_detail['weight'] = $goods_exist['weight'];
             $order_detail['create_time'] = $time;
 
             $order_unite = [
@@ -442,7 +450,7 @@ class Shop extends Common {
         try {
             $time = time();
             $whereCart = [
-                ['c.id','in',$cart_ids],
+                ['c.id','IN',$cart_ids],
                 ['c.uid','=',$this->myinfo['id']]
             ];
             $cart_list = Db::table('mp_cart')->alias('c')
@@ -504,7 +512,6 @@ class Shop extends Common {
                         $insert_detail['unit_price'] = $unit_price;
                         $insert_detail['total_price'] = $unit_price * $v['num'] + $v['carriage'];
                         $insert_detail['carriage'] = $v['carriage'];
-                        $insert_detail['weight'] = $v['weight'];
                         $insert_detail['create_time'] = $time;
                         $insert_detail_all[] = $insert_detail;
                     }
