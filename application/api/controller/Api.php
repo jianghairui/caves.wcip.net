@@ -1020,6 +1020,24 @@ class Api extends Common
     }
 
 
+    //收集formid
+    public function collectFormid() {
+        $val['formid'] = input('post.formid');
+        checkPost($val);
+        if($val['formid'] == 'the formId is a mock one') {
+            return ajax();
+        }
+        $val['uid'] = $this->myinfo['id'];
+        $val['create_time'] = time();
+        try {
+            Db::table('mp_formid')->insert($val);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($val);
+    }
+
+
 
 
 }

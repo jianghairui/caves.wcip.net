@@ -27,6 +27,7 @@ class My extends Common {
         $user = $this->myinfo;
         try {
             $avatar = input('post.avatar');
+            $val['avatar'] = $avatar;
             if($avatar) {
                 if (substr($avatar,0,4) == 'http') {
                     $val['avatar'] = $avatar;
@@ -35,7 +36,8 @@ class My extends Common {
                     if($qiniu_exist !== true) {
                         return ajax($qiniu_exist['msg'] . ' :'.$avatar,5);
                     }
-                    if(!$this->imgSecCheck(config('qiniu_weburl') . $avatar)) {
+                    $img_check = $this->imgSecCheck(config('qiniu_weburl') . $avatar);
+                    if(!$img_check) {
                         return ajax('图片包含违规内容',82);
                     }
                     $qiniu_move = $this->moveFile($avatar,'upload/avatar/');

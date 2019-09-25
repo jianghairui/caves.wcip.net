@@ -58,7 +58,8 @@ class Common extends Controller {
             'Pay/funding_notify',
             'Activity/test',
             'Message/index',
-            'Message/fundingorder'
+            'Message/fundingorder',
+            'Message/order',
 //            'Activity/getqrcode'
         ];
         if (in_array($this->controller,$noneed) || in_array($this->cmd, $noneed)) {
@@ -172,7 +173,12 @@ class Common extends Controller {
 
     /*微信图片敏感内容检测*/
     public function imgSecCheck($image_path) {
-        $img = file_get_contents($image_path);
+        $audit = true;
+        $img = @file_get_contents($image_path);
+        if(!$img) {
+            $this->mplog($this->cmd,'file_get_contents(): php_network_getaddresses: getaddrinfo failed: Name or service not known');
+            return true;
+        }
         $filePath = '/dev/shm/tmp1.png';
         file_put_contents($filePath, $img);
         $obj = new \CURLFile(realpath($filePath));
@@ -185,7 +191,6 @@ class Common extends Controller {
         $info = curl_post_data($url,$file);
         $result = json_decode($info,true);
         try {
-            $audit = true;
             if($result['errcode'] !== 0) {
                 $this->mplog($this->cmd,$this->myinfo['id'] .' : '. $img .' : '. var_export($result,true));
                 switch ($result['errcode']) {

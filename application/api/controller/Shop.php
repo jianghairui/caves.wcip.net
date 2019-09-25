@@ -51,7 +51,7 @@ class Shop extends Common {
         try {
             $list = Db::table('mp_goods')
                 ->where($where)
-                ->field("id,name,origin_price,price,sales,desc,pics,width,height")
+                ->field("id,name,origin_price,price,sales,desc,pics")
                 ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {

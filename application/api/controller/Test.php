@@ -15,12 +15,31 @@ class Test extends Common {
     public function index() {
         $start = microtime(true);
         try {
-            $image_url = 'http://qiniu.wcip.net/public/enter-plat.jpg';
-            $result = $this->msgSecCheck($image_url);
+            $uid = 1;
+            //formid是否存在
+            $whereFormid = [
+                ['uid','=',$uid],
+                ['create_time','>',time()-(3600*24*7-3600*2)]
+            ];
+            $list = Db::table('mp_formid')->where($whereFormid)->select();
+            if(!$list) {
+//                $this->msglog($this->cmd,'not found formid ,uid:' . $uid);
+                die('not found formid');
+            }
+
+
+
+//            $image_url = 'http://qiniu.wcip.net/public/enter-plat.jpg';
+//            $result = $this->msgSecCheck($image_url);
         } catch (\Exception $e) {
             die($e->getMessage());
         }
-        dump($result);
+//        $formid_exist['create_time'] = date('Y-m-d H:i:s');
+        foreach ($list as &$v) {
+            $v['create_time'] = date('Y-m-d H:i:s',$v['create_time']);
+        }
+        halt($list);
+
         $end = microtime(true);
         echo $end-$start;
         echo ' 秒 ';

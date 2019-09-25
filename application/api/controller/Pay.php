@@ -233,15 +233,25 @@ class Pay extends Common {
                         ];
                         Db::table('mp_order_unite')->where($whereUnite)->update($update_data);
                         Db::table('mp_order')->where($whereUnite)->update($update_data);
-                        //todo 发送模板消息
 
-                        //todo 变更商品销量
-//                        $order_ids = Db::table('mp_order')->where($whereUnite)->column('id');
-//                        $whereDetail = [
-//                            ['order_id','IN',$order_ids]
-//                        ];
-//                        Db::table('mp_order_detail')->where($whereDetail)->field('id,goods_id,use_attr,attr_id,num')->select();
-
+                        $order_ids = Db::table('mp_order')->where($whereUnite)->column('id');
+                        //发送模板消息
+                        $tpl_data = [
+                            'order_id' => $unite_exist['id'],
+                            'action' => 'order'
+                        ];
+                        $this->asyn_tpl_send($tpl_data);
+                        //变更商品销量
+                        $whereDetail = [
+                            ['order_id','IN',$order_ids]
+                        ];
+                        $detail = Db::table('mp_order_detail')->where($whereDetail)->field('id,goods_id,num')->select();
+                        foreach ($detail as $v) {
+                            $whereGoods = [
+                                ['id','=',$v['goods_id']]
+                            ];
+                            Db::table('mp_goods')->where($whereGoods)->setInc('sales',$v['num']);
+                        }
                     }
                 }catch (\Exception $e) {
                     $this->log($this->cmd,$e->getMessage());
@@ -357,14 +367,14 @@ class Pay extends Common {
             'fundingOrder'
         ];
         if(!in_array($data['action'],$allow)) {
-            $this->log('Pay/asyn_tpl_send',$data['action'] . ' not in allow actions');
+            $this->msglog('Pay/asyn_tpl_send',$data['action'] . ' not in allow actions');
         }
         $fp = @fsockopen('ssl://' . $this->domain, 443, $errno, $errstr, 1);
         if (!$fp){
-            $this->log('asyn_tpl_send','error fsockopen:' . $this->domain);
+            $this->msglog('asyn_tpl_send','error fsockopen:' . $this->domain);
         }else{
             stream_set_blocking($fp,0);
-            $http = "GET /api/message/fundingOrder?".$param." HTTP/1.1\r\n";
+            $http = "GET /api/message/" . $data['action'] . "?".$param." HTTP/1.1\r\n";
             $http .= "Host: ".$this->domain."\r\n";
             $http .= "Connection: Close\r\n\r\n";
             fwrite($fp,$http);
