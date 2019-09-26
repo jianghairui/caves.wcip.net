@@ -337,10 +337,18 @@ class My extends Common {
         $perpage = input('perpage',10);
         $type = input('post.type',1);
         try {
+            $whereFocus = [
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $myFocus = Db::table('mp_user_focus')->where($whereFocus)->column('to_uid');
+            if(empty($myFocus)) {
+                return ajax([]);
+            }
             if($type == 1) {
                 $where = [
                     ['u.role', '=', 1],
-                    ['u.role_check','=',2]
+                    ['u.role_check','=',2],
+                    ['u.id','IN',$myFocus]
                 ];
                 $list = Db::table('mp_user')->alias('u')
                     ->join('mp_user_role r','u.id=r.uid','left')
@@ -351,7 +359,8 @@ class My extends Common {
             }elseif ($type == 2) {
                 $where = [
                     ['role', '=', 2],
-                    ['role_check','=',2]
+                    ['role_check','=',2],
+                    ['id','IN',$myFocus]
                 ];
                 $list = Db::table('mp_user')
                     ->where($where)
@@ -360,7 +369,8 @@ class My extends Common {
             }elseif ($type == 3) {
                 $where = [
                     ['u.role', '=', 3],
-                    ['u.role_check','=',2]
+                    ['u.role_check','=',2],
+                    ['u.id','IN',$myFocus]
                 ];
                 $list = Db::table('mp_user')->alias('u')
                     ->join('mp_user_role r','u.id=r.uid','left')
