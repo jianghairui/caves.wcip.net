@@ -25,6 +25,16 @@ class Home extends Common {
             if(!$user_exist) {
                 return ajax('非法参数uid',-4);
             }
+            $whereFocus = [
+                ['uid','=',$this->myinfo['id']],
+                ['to_uid','=',$user_exist['id']]
+            ];
+            $if_focus = Db::table('mp_user_focus')->where($whereFocus)->find();
+            if($if_focus) {
+                $user_exist['if_focus'] = true;
+            }else {
+                $user_exist['if_focus'] = false;
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -35,7 +45,6 @@ class Home extends Common {
         }
         return ajax($user_exist);
     }
-
     //他人主页创意
     public function ideaList() {
         $val['uid'] = input('post.uid');
@@ -88,7 +97,6 @@ class Home extends Common {
         }
         return ajax($list);
     }
-
     //作品列表
     public function worksList() {
         $val['uid'] = input('post.uid');
@@ -154,7 +162,6 @@ class Home extends Common {
         return ajax($data);
 
     }
-
     //活动列表
     public function reqList() {
         $val['uid'] = input('post.uid');

@@ -333,24 +333,43 @@ class My extends Common {
 
     //我的关注
     public function myFocusList() {
-        $page = input('page',1);
+        $curr_page = input('page',1);
         $perpage = input('perpage',10);
+        $type = input('post.type',1);
         try {
-            $whereFoucs = [
-                ['uid','=',$this->myinfo['id']],
-            ];
-            $ids = Db::table('mp_user_focus')->where($whereFoucs)->column('id');
-            if(empty($ids)) {
-                return ajax([]);
+            if($type == 1) {
+                $where = [
+                    ['u.role', '=', 1],
+                    ['u.role_check','=',2]
+                ];
+                $list = Db::table('mp_user')->alias('u')
+                    ->join('mp_user_role r','u.id=r.uid','left')
+                    ->where($where)
+                    ->field("u.id,u.org,u.req_num,u.focus,u.level,r.cover")
+                    ->limit(($curr_page - 1) * $perpage, $perpage)->select();
+
+            }elseif ($type == 2) {
+                $where = [
+                    ['role', '=', 2],
+                    ['role_check','=',2]
+                ];
+                $list = Db::table('mp_user')
+                    ->where($where)
+                    ->field("id,nickname,avatar,idea_num,works_num,focus,level")
+                    ->limit(($curr_page - 1) * $perpage, $perpage)->select();
+            }elseif ($type == 3) {
+                $where = [
+                    ['u.role', '=', 3],
+                    ['u.role_check','=',2]
+                ];
+                $list = Db::table('mp_user')->alias('u')
+                    ->join('mp_user_role r','u.id=r.uid','left')
+                    ->where($where)
+                    ->field("u.id,u.org,u.bid_num,u.focus,u.level,r.cover")
+                    ->limit(($curr_page - 1) * $perpage, $perpage)->select();
+            }else {
+                $list = [];
             }
-            $whereUser = [
-                ['id','IN',$ids]
-            ];
-            $list = Db::table('mp_user')
-                ->where($whereUser)
-                ->field('id,nickname,avatar,role,focus,idea_num')
-                ->order(['create_time'=>'DESC'])
-                ->limit(($page-1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

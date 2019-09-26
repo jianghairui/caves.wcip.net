@@ -935,7 +935,8 @@ class Api extends Common
         $perpage = input('post.perpage', 10);
         try {
             $where = [
-                ['role', '=', 2]
+                ['role', '=', 2],
+                ['role_check','=',2]
             ];
             $whereFocus = [
                 ['uid','=',$this->myinfo['id']]
@@ -963,7 +964,8 @@ class Api extends Common
         $perpage = input('post.perpage', 10);
         try {
             $where = [
-                ['u.role', '=', 1]
+                ['u.role', '=', 1],
+                ['u.role_check','=',2]
             ];
             $list = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','left')
