@@ -122,10 +122,17 @@ class Shop extends Common {
             return ajax($val['num'],-4);
         }
         try {
-            $where = [
+            $whereCart = [
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $count = Db::table('mp_cart')->where($whereCart)->count();
+            if($count >= 10) {
+                return ajax('购物车已经满啦',83);
+            }
+            $whereGoods = [
                 ['id','=',$val['goods_id']]
             ];
-            $goods_exist = Db::table('mp_goods')->where($where)->find();
+            $goods_exist = Db::table('mp_goods')->where($whereGoods)->find();
             if(!$goods_exist) {
                 return ajax($val['goods_id'],-4);
             }
@@ -324,17 +331,6 @@ class Shop extends Common {
                 return ajax($val['cart_id'],-4);
             }
             Db::table('mp_cart')->where($where)->delete();
-//            if($cart_exist['use_attr']) {
-//                $whereAttr = [
-//                    ['id','=',$cart_exist['attr_id']],
-//                    ['goods_id','=',$cart_exist['goods_id']]
-//                ];
-//                Db::table('mp_goods_attr')->where($whereAttr)->setInc('stock',1);
-//            }
-//            $whereGoods = [
-//                ['id','=',$cart_exist['goods_id']]
-//            ];
-//            Db::table('mp_goods')->where($whereGoods)->setInc('stock',1);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

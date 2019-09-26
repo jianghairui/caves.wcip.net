@@ -70,43 +70,20 @@ class Login extends Common {
             return ajax($e->getMessage(),-1);
         }
         $user = $this->myinfo;
-        $inviter_id = input('post.inviter_id');
         try {
+            $data['nickname'] = $decryptedData['nickName'];
+            $data['avatar'] = $decryptedData['avatarUrl'];
+            $data['sex'] = $decryptedData['gender'];
+            $data['unionid'] = $decryptedData['unionId'];
             //未授权过的新用户
             if(!$user['user_auth']) {
-                $data['nickname'] = $decryptedData['nickName'];
-                $data['avatar'] = $decryptedData['avatarUrl'];
-                $data['sex'] = $decryptedData['gender'];
-                $data['unionid'] = $decryptedData['unionId'];
                 $data['user_auth'] = 1;
-                //是否有邀请人ID
-                if($inviter_id) {
-                    $money = 0.5;
-                    $data['inviter_id'] = $inviter_id;
-                    $insert_data = [
-                        'inviter_id' => $inviter_id,
-                        'to_uid' => $this->myinfo['id'],
-                        'money' => $money,
-                        'create_time' => time()
-                    ];
-                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
-                    Db::table('mp_invite')->insert($insert_data);
-                    Db::table('mp_user')->where('id','=',$inviter_id)->setInc('balance',$money);
-                }else {
-                    Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
-                }
-            }else {//已授权过的用户
-                $data['nickname'] = $decryptedData['nickName'];
-                $data['avatar'] = $decryptedData['avatarUrl'];
-                $data['sex'] = $decryptedData['gender'];
-                $data['unionid'] = $decryptedData['unionId'];
-                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
-                return ajax();
             }
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        $this->rs_delete($user['avatar']);
+        $this->rs_delete($user['avatar']);//删除旧头像
         return ajax('保存成功',1);
     }
 
@@ -143,13 +120,34 @@ class Login extends Common {
             return ajax($e->getMessage(),-1);
         }
 
+        $inviter_id = input('post.inviter_id');
         try {
             $data['tel'] = $decryptedData['phoneNumber'];
             Db::table('mp_user')->where('openid','=',$this->myinfo['openid'])->update($data);
+            //如果已授权手机号
+            if($this->myinfo['tel']) {
+                return ajax($decryptedData);
+            }
+            //是否有邀请人ID
+            if($inviter_id) {
+                $score = 50;
+                $data['inviter_id'] = $inviter_id;
+                $insert_data = [
+                    'inviter_id' => $inviter_id,
+                    'to_uid' => $this->myinfo['id'],
+                    'score' => $score,
+                    'create_time' => time()
+                ];
+                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
+                Db::table('mp_invite')->insert($insert_data);
+                Db::table('mp_user')->where('id','=',$inviter_id)->setInc('score',$score);
+            }else {
+                Db::table('mp_user')->where('id','=',$this->myinfo['id'])->update($data);
+            }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
-        return ajax($decryptedData,1);
+        return ajax($decryptedData);
     }
 
 

@@ -13,10 +13,13 @@ class My extends Common {
     //获取个人信息
     public function mydetail() {
         $map = [
-            ['id','=',$this->myinfo['id']]
+            ['u.id','=',$this->myinfo['id']]
         ];
         try {
-            $info = Db::table('mp_user')->where($map)->find();
+            $info = Db::table('mp_user')->alias('u')
+                ->join('mp_user_role r','u.id=r.uid','left')
+                ->field('u.*,r.cover')
+                ->where($map)->find();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -353,7 +356,23 @@ class My extends Common {
         }
         return ajax($list);
     }
-
+    //我的积分日志
+    public function myScoreLog() {
+        $page = input('page',1);
+        $perpage = input('perpage',10);
+        $where = [
+            ['uid','=',$this->myinfo['id']]
+        ];
+        try {
+            $list = Db::table('mp_score_log')->where($where)
+                ->field('id,score,desc,create_time')
+                ->order(['id'=>'DESC'])
+                ->limit(($page-1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
+    }
 
     //获取我发的笔记列表
     public function getMyNoteList()

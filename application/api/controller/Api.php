@@ -981,7 +981,8 @@ class Api extends Common
         $perpage = input('post.perpage', 10);
         try {
             $where = [
-                ['u.role', '=', 3]
+                ['u.role', '=', 3],
+                ['u.role_check','=',2]
             ];
             $list = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','left')
