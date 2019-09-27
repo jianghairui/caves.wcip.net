@@ -14,10 +14,6 @@ class Message extends Common {
 
     /*------ 小程序模板消息 ------*/
 
-    public function index() {
-
-    }
-
     //众筹订单支付通知
     public function fundingOrder() {
         $order_id = input('param.order_id','');

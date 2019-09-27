@@ -231,10 +231,10 @@ class Pay extends Common {
                             'trans_id' => $data['transaction_id'],
                             'pay_time' => time()
                         ];
+                        $order_ids = Db::table('mp_order')->where($whereUnite)->column('id');
+
                         Db::table('mp_order_unite')->where($whereUnite)->update($update_data);
                         Db::table('mp_order')->where($whereUnite)->update($update_data);
-
-                        $order_ids = Db::table('mp_order')->where($whereUnite)->column('id');
                         //给店家发送邮件
                         $email_data = [
                             'order_id' => $unite_exist['id'],
@@ -242,16 +242,17 @@ class Pay extends Common {
                         ];
                         $this->asyn_email_send($email_data);
                         //发送模板消息
-                        $tpl_data = [
-                            'order_id' => $unite_exist['id'],
-                            'action' => 'goodsOrder'
-                        ];
-                        $this->asyn_tpl_send($tpl_data);
+//                        $tpl_data = [
+//                            'order_id' => $unite_exist['id'],
+//                            'action' => 'goodsOrder'
+//                        ];
+//                        $this->asyn_tpl_send($tpl_data);
                         //变更商品销量
                         $whereDetail = [
                             ['order_id','IN',$order_ids]
                         ];
                         $detail = Db::table('mp_order_detail')->where($whereDetail)->field('id,goods_id,num')->select();
+                        $this->log($this->cmd,var_export($detail,true));
                         foreach ($detail as $v) {
                             $whereGoods = [
                                 ['id','=',$v['goods_id']]
