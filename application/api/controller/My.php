@@ -784,6 +784,7 @@ class My extends Common {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
         $status = input('post.status','');
+        $order = ['w.id'=>'DESC'];
         try {
             $where = [
                 ['w.uid','=',$this->myinfo['id']]
@@ -795,6 +796,7 @@ class My extends Common {
                 ->join('mp_req r','w.req_id=r.id','left')
                 ->where($where)
                 ->field("w.id,w.title,w.desc,w.req_id,w.vote,w.bid_num,w.pics,w.status,w.reason,r.title AS req_title,r.org")
+                ->order($order)
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -1501,27 +1503,32 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             return ajax('invalid tel',6);
         }
         try {
-            $param = [
+            $code = mt_rand(100000,999999);
+            $insert_data = [
                 'tel' => $tel,
-                'code' => mt_rand(100000,999999),
+                'code' => $code,
                 'create_time' => time()
+            ];
+            $sms_data['tel'] = $val['tel'];
+            $sms_data['param'] = [
+                'code' => $code
             ];
             $exist = Db::table('mp_verify')->where('tel',$tel)->find();
             if($exist) {
                 if((time() - $exist['create_time']) < 60) {
                     return ajax('1分钟内不可重复发送',11);
                 }
-                $res = $sms->send($param);
+                $res = $sms->send($sms_data);
                 if($res->Code === 'OK') {
-                    Db::table('mp_verify')->where('tel',$tel)->update($param);
+                    Db::table('mp_verify')->where('tel',$tel)->update($insert_data);
                     return ajax();
                 }else {
                     return ajax($res->Message,12);
                 }
             }else {
-                $res = $sms->send($param);
+                $res = $sms->send($sms_data);
                 if($res->Code === 'OK') {
-                    Db::table('mp_verify')->insert($param);
+                    Db::table('mp_verify')->insert($insert_data);
                     return ajax();
                 }else {
                     return ajax($res->Message,12);
@@ -1711,6 +1718,12 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         return ajax();
     }
     /*------ 申请角色 END ------*/
+
+
+
+
+
+
 
 
 

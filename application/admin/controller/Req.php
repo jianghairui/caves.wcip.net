@@ -169,6 +169,7 @@ class Req extends Base {
                     }
                 }
                 Db::table('mp_req')->insert($val);
+                Db::table('mp_user')->where('id','=',$val['uid'])->setInc('req_num',1);
             } catch (\Exception $e) {
                 $this->rs_delete($val['cover']);
                 if($use_video) {
@@ -646,6 +647,7 @@ class Req extends Base {
                 return ajax('非法操作',-1);
             }
             Db::table('mp_req_works')->where($map)->update(['status'=>1]);
+            Db::table('mp_user')->where('id','=',$exist['uid'])->setInc('works_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -701,6 +703,7 @@ class Req extends Base {
                 return ajax('非法操作',-1);
             }
             Db::table('mp_req_works')->where($map)->update(['del'=>1]);
+            Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('works_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }

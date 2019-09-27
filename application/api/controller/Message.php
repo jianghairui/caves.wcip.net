@@ -8,8 +8,11 @@
 namespace app\api\controller;
 use EasyWeChat\Factory;
 use think\Db;
+use my\Sendsms;
 
 class Message extends Common {
+
+    /*------ 小程序模板消息 ------*/
 
     public function index() {
 
@@ -98,10 +101,7 @@ class Message extends Common {
         }
         exit('SUCCESS');
     }
-    //博物馆选择工厂时给工厂发送消息
-    public function chooseFactory() {
 
-    }
 
     //作品未通过审核时给设计师发送消息
     public function worksReject() {
@@ -173,10 +173,137 @@ class Message extends Common {
         exit('SUCCESS');
     }
 
+
+    //申请平台角色通过,给用户发送消息
+    public function rolePass() {
+        $uid = input('param.uid','');
+        if(!$uid) {
+            die('DIE');
+        }
+        try {
+            //查找用户openid
+            $whereUser = [
+                ['id','=',$uid],
+                ['role_check','=',2]
+            ];
+            $user_exist = Db::table('mp_user')->where($whereUser)->field('id,role,role_check,openid')->find();
+            if(!$user_exist) {
+                $this->msglog($this->cmd,'user not found , openid:' . $uid);
+                die('user not found');
+            }
+            //formid是否存在
+            $whereFormid = [
+                ['uid','=',$uid],
+                ['create_time','>',time()-(3600*24*7-3600*2)]
+            ];
+            $formid_exist = Db::table('mp_formid')->where($whereFormid)->order(['id'=>'DESC'])->find();
+            if(!$formid_exist) {
+                $this->msglog($this->cmd,'not found formid ,uid:' . $uid);
+                die('not found formid');
+            }
+            $formid = $formid_exist['formid'];
+
+            switch ($user_exist['role']) {
+                case 1:$role_name = '博物馆';break;
+                case 2:$role_name = '设计师';break;
+                case 3:$role_name = '工厂';break;
+                default:
+                    die('DIE');
+            }
+
+            //发送消息
+            $app = Factory::miniProgram($this->mp_config);
+            $res = $app->template_message->send([
+                'touser' => $user_exist['openid'],
+                'template_id' => 'yLNxX7ENQIRSFILfflMn0QmnpegzYLDDbb4IwdlGYWI',
+                'page' => 'index',
+                'form_id' => $formid,
+                'data' => [
+                    'keyword1' => '山洞文创平台'.$role_name.'角色申请',
+                    'keyword2' => '已通过',
+                    'keyword3' => date('Y年m月d日 H:i:s')
+                ]
+            ]);
+            if($res['errcode'] != 0) {
+                $this->msglog($this->cmd, var_export($res,true));
+            }
+            Db::table('mp_formid')->where('formid','=',$formid)->delete();
+        } catch (\Exception $e) {
+            $this->log($this->cmd, $e->getMessage());
+        }
+        exit('SUCCESS');
+    }
+
     //申请平台角色未过审,给用户发送消息
     public function roleReject() {
+        $uid = input('param.uid','');
+        $uid=1;
+        if(!$uid) {
+            die('DIE');
+        }
+        try {
+            //查找用户openid
+            $whereUser = [
+                ['u.id','=',$uid],
+                ['u.role_check','=',3]
+            ];
+            $user_exist = Db::table('mp_user')->alias('u')
+                ->join('mp_user_role r','u.id=r.uid','left')
+                ->field('u.id,u.role,u.role_check,u.openid,r.reason')
+                ->where($whereUser)->find();
+            if(!$user_exist) {
+                $this->msglog($this->cmd,'user not found , openid:' . $uid);
+                die('user not found');
+            }
+            //formid是否存在
+            $whereFormid = [
+                ['uid','=',$uid],
+                ['create_time','>',time()-(3600*24*7-3600*2)]
+            ];
+            $formid_exist = Db::table('mp_formid')->where($whereFormid)->order(['id'=>'DESC'])->find();
+            if(!$formid_exist) {
+                $this->msglog($this->cmd,'not found formid ,uid:' . $uid);
+                die('not found formid');
+            }
+            $formid = $formid_exist['formid'];
 
+            switch ($user_exist['role']) {
+                case 1:$role_name = '博物馆';break;
+                case 2:$role_name = '设计师';break;
+                case 3:$role_name = '工厂';break;
+                default:
+                    die('DIE');
+            }
+
+            //发送消息
+            $app = Factory::miniProgram($this->mp_config);
+            $res = $app->template_message->send([
+                'touser' => $user_exist['openid'],
+                'template_id' => 'yLNxX7ENQIRSFILfflMn0T5WHH_d6pCA3brcJJE2Yas',
+                'page' => 'index',
+                'form_id' => $formid,
+                'data' => [
+                    'keyword1' => '山洞文创平台'.$role_name.'角色申请',
+                    'keyword2' => '未通过',
+                    'keyword3' => $user_exist['reason'],
+                    'keyword4' => date('Y年m月d日 H:i:s')
+                ]
+            ]);
+            if($res['errcode'] != 0) {
+                $this->msglog($this->cmd, var_export($res,true));
+            }
+            Db::table('mp_formid')->where('formid','=',$formid)->delete();
+        } catch (\Exception $e) {
+            $this->log($this->cmd, $e->getMessage());
+        }
+        exit('SUCCESS');
     }
+
+
+
+
+
+
 
 
 

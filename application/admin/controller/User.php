@@ -91,6 +91,11 @@ class User extends Base {
                 return ajax('非法操作',-1);
             }
             Db::table('mp_user')->where($map)->update(['role_check'=>2]);
+            $param = [
+                'action' => 'rolePass',
+                'uid' => $exist['id']
+            ];
+            $this->asyn_tpl_send($param);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -110,6 +115,11 @@ class User extends Base {
             }
             Db::table('mp_user')->where($map)->update(['role_check'=>3]);
             Db::table('mp_user_role')->where('uid','=',$exist['id'])->update(['reason'=>$reason]);
+            $param = [
+                'action' => 'roleReject',
+                'uid' => $exist['id']
+            ];
+            $this->asyn_tpl_send($param);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
@@ -439,6 +449,32 @@ class User extends Base {
             return ajax($e->getMessage(), -1);
         }
         return ajax();
+    }
+
+
+
+    protected function asyn_tpl_send($data) {
+        $param = http_build_query($data);
+        $allow = [
+            'rolePass',
+            'roleReject'
+        ];
+        if(!in_array($data['action'],$allow)) {
+            $this->msglog('User/asyn_tpl_send',$data['action'] . ' not in allow actions');
+            die();
+        }
+        $fp = @fsockopen('ssl://' . $this->domain, 443, $errno, $errstr, 1);
+        if (!$fp){
+            $this->msglog('asyn_tpl_send','error fsockopen:' . $this->domain);
+        }else{
+            stream_set_blocking($fp,0);
+            $http = "GET /api/message/" . $data['action'] . "?".$param." HTTP/1.1\r\n";
+            $http .= "Host: ".$this->domain."\r\n";
+            $http .= "Connection: Close\r\n\r\n";
+            fwrite($fp,$http);
+            usleep(1000);
+            fclose($fp);
+        }
     }
 
 }

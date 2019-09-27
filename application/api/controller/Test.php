@@ -10,35 +10,32 @@ namespace app\api\controller;
 use EasyWeChat\Factory;
 use think\Controller;
 use think\Db;
+use my\Sendsms;
+
 class Test extends Common {
 
     public function index() {
         $start = microtime(true);
         try {
-            $uid = 1;
-            //formid是否存在
-            $whereFormid = [
-                ['uid','=',$uid],
-                ['create_time','>',time()-(3600*24*7-3600*2)]
+            $sms = new Sendsms();
+            $param = [
+                'tel' => '13102163019',
+                'param' => [
+                    'req_title' => '海河锦鲤文创大赛',
+                    'work_title' => '好作品',
+                    'org' => '华为工厂'
+                ]
             ];
-            $list = Db::table('mp_formid')->where($whereFormid)->select();
-            if(!$list) {
-//                $this->msglog($this->cmd,'not found formid ,uid:' . $uid);
-                die('not found formid');
-            }
-
-
-
-//            $image_url = 'http://qiniu.wcip.net/public/enter-plat.jpg';
-//            $result = $this->msgSecCheck($image_url);
+            $res = $sms->send($param,'SMS_174809724');
+//            if($res->Code !== 'OK') {
+//                $this->smslog($this->cmd,$res->Message);
+//            }else {
+//
+//            }
         } catch (\Exception $e) {
             die($e->getMessage());
         }
-//        $formid_exist['create_time'] = date('Y-m-d H:i:s');
-        foreach ($list as &$v) {
-            $v['create_time'] = date('Y-m-d H:i:s',$v['create_time']);
-        }
-        halt($list);
+        halt($res);
 
         $end = microtime(true);
         echo $end-$start;

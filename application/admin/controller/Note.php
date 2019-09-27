@@ -69,7 +69,7 @@ class Note extends Base {
             Db::table('mp_note')->where($map)->update(['status'=>1]);
 
             Db::table('mp_user')->where([['id', '=', $exist['uid']]])->setInc('lucky_draw_times', 5);
-
+            Db::table('mp_user')->where('id','=',$exist['uid'])->setInc('note_num',1);
             Db::commit();
         }catch (\Exception $e) {
             Db::rollback();
@@ -116,9 +116,18 @@ class Note extends Base {
     }
 
     public function noteDel() {
-        $map[] = ['id','=',input('post.id',0)];
+        $val['id'] = input('post.id',0);
+        checkInput($val);
         try {
-            Db::table('mp_note')->where($map)->update(['del'=>1]);
+            $whereNote = [
+                ['id','=',$val['id']]
+            ];
+            $exist = Db::table('mp_note')->where($whereNote)->find();
+            if(!$exist) {
+                return ajax('非法参数',-1);
+            }
+            Db::table('mp_note')->where($whereNote)->update(['del'=>1]);
+            Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('note_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }

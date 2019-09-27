@@ -19,6 +19,7 @@ class Base extends Controller {
 
     protected $config = [];
     protected $weburl = '';
+    protected $domain = '';
     protected $cmd;
 
     public function initialize()
@@ -106,16 +107,6 @@ class Base extends Controller {
         Db::table('mp_syslog')->insert($insert);
     }
 
-    public function qiniuLog($cmd,$str) {
-        $file= ROOT_PATH . '/qiniu_error.log';
-        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
-        if(false !== fopen($file,'a+')){
-            file_put_contents($file,$text,FILE_APPEND);
-        }else{
-            echo '创建失败';
-        }
-    }
-
     //七牛云判断文件是否存在
     public function qiniuFileExist($key) {
         $auth = new \Qiniu\Auth(config('qiniu_ak'), config('qiniu_sk'));
@@ -171,10 +162,30 @@ class Base extends Controller {
         $bucketManager->delete(config('qiniu_bucket'), $key);
     }
 
+    public function qiniuLog($cmd,$str) {
+        $file= ROOT_PATH . '/log/qiniu_error.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
 
     //Exception日志
     protected function refundLog($cmd,$str) {
-        $file= ROOT_PATH . '/order_refund.log';
+        $file= ROOT_PATH . '/log/order_refund.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+    //模板消息日志
+    protected function msglog($cmd,$str) {
+        $file= ROOT_PATH . '/log/message.log';
         $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
         if(false !== fopen($file,'a+')){
             file_put_contents($file,$text,FILE_APPEND);

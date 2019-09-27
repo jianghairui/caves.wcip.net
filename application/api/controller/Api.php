@@ -7,7 +7,7 @@
  */
 
 namespace app\api\controller;
-
+use my\Sendsms;
 use think\Db;
 use think\Exception;
 
@@ -33,6 +33,7 @@ class Api extends Common
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         $where = [
+            ['recommend', '=', 1],
             ['status', '=', 1],
             ['show', '=', 1],
             ['del', '=', 0]
@@ -70,21 +71,6 @@ class Api extends Common
             $info['avatar'] = $user['avatar'];
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
-        }
-        if ($info['start_time'] <= time() && $info['deadline'] > time()) {
-            $info['join_btn'] = true;
-        } else {
-            $info['join_btn'] = false;
-        }
-        if ($info['deadline'] <= time() && $info['vote_time'] > time()) {
-            $info['vote_btn'] = true;
-        } else {
-            $info['vote_btn'] = false;
-        }
-        if ($info['start_time'] <= time() && $info['end_time'] > time()) {
-            $info['bidding_btn'] = true;
-        } else {
-            $info['bidding_btn'] = false;
         }
         return ajax($info);
     }
@@ -166,6 +152,7 @@ class Api extends Common
 
             Db::table('mp_req')->where($whereReq)->setInc('idea_num',1);
             Db::table('mp_req_idea')->insert($val);
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('idea_num',1);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -559,6 +546,22 @@ class Api extends Common
             }
             Db::table('mp_bidding')->insert($val);
             Db::table('mp_req_works')->where($where_work)->setInc('bid_num',1);
+            Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('bid_num',1);
+
+            /*给博物馆发短信通知*/
+            $sms = new Sendsms();
+            $param = [
+                'tel' => '13102163019',
+                'param' => [
+                    'req_title' => '海河锦鲤文创大赛',
+                    'work_title' => '好作品',
+                    'org' => '华为工厂'
+                ]
+            ];
+//            $res = $sms->send($param,'SMS_174809724');
+//            if($res->Code !== 'OK') {
+//                $this->smslog($this->cmd,$res->Message);
+//            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -720,6 +723,8 @@ class Api extends Common
             }
             Db::table('mp_req_works')->where($whereWork)->update(['factory_id'=>$exist['uid']]);
             Db::table('mp_bidding')->where($whereBidding)->update(['choose'=>1]);
+            //todo 给工厂发送通知短信
+
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
