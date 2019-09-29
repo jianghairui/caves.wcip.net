@@ -117,22 +117,32 @@ class Api extends Common
             $whereReq = [
                 ['id', '=', $val['req_id']]
             ];
-            $exist = Db::table('mp_req')->where($whereReq)->find();
-            if (!$exist) {
+            $req_exist = Db::table('mp_req')->where($whereReq)->find();
+            if (!$req_exist) {
                 return ajax('非法参数req_id', -4);
             }
-            if ($exist['start_time'] > time()) {
+            if ($req_exist['start_time'] > time()) {
                 return ajax('活动未开始', 26);
             }
-            if ($exist['end_time'] <= time()) {
+            if ($req_exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
             }
-            if ($exist['deadline'] <= time()) {
+            if ($req_exist['deadline'] <= time()) {
                 return ajax('创意时间已结束', 57);
             }
             if (!$this->myinfo['user_auth']) {
                 return ajax('用户未授权', 56);
             }
+
+            $whereIdea = [
+                ['uid','=',$this->myinfo['id']],
+                ['req_id','=',$val['req_id']]
+            ];
+            $idea_num = Db::table('mp_req_idea')->where($whereIdea)->count();
+            if($idea_num) {
+                return ajax('最多发三条创意',84);
+            }
+
             if($val['tags']) {
                 $tags_arr = explode(',',$val['tags']);
                 if(empty($tags_arr)) {
@@ -360,15 +370,15 @@ class Api extends Common
                 if(!$idea_exist) {
                     return ajax('非法参数idea_id',-4);
                 }
-//                $whereWork = [
-//                    ['req_id', '=', $val['req_id']],
-//                    ['idea_id', '=', $val['idea_id']],
-//                    ['uid', '=', $this->myinfo['id']]
-//                ];
-//                $workExist = Db::table('mp_req_works')->where($whereWork)->find();
-//                if ($workExist) {
-//                    return ajax('已投过此创意,不可重复投稿', 58);
-//                }
+                $whereWork = [
+                    ['req_id', '=', $val['req_id']],
+                    ['idea_id', '=', $val['idea_id']],
+                    ['uid', '=', $this->myinfo['id']]
+                ];
+                $workExist = Db::table('mp_req_works')->where($whereWork)->find();
+                if ($workExist) {
+                    return ajax('已投过此创意,不可重复投稿', 58);
+                }
             }
             //七牛云上传多图
             $image_array = [];
@@ -527,7 +537,7 @@ class Api extends Common
                 ['uid', '=', $val['uid']]
             ])->find();
             if ($bidding_exist) {
-                return ajax('已经参与竞标', 37);
+                return ajax('已经参与接单', 37);
             }
 
             if ($user['role'] != 3) {
@@ -544,24 +554,38 @@ class Api extends Common
             if ($req_exist['end_time'] <= time()) {
                 return ajax('活动已结束', 25);
             }
+
+            $whereToday = [
+                ['uid','=',$this->myinfo['id']],
+                ['create_time','>=',strtotime(date('Y-m-d 00:00:00'))],
+                ['create_time','<=',strtotime(date('Y-m-d 23:59:59'))]
+            ];
+            $today_count = Db::table('mp_bidding')->where($whereToday)->count('id');
+
+            $today_limit = 10;
+            if($today_count > $today_limit) {
+                return ajax('每天最多接三个订单',3);
+            }
+
             Db::table('mp_bidding')->insert($val);
             Db::table('mp_req_works')->where($where_work)->setInc('bid_num',1);
             Db::table('mp_user')->where('id','=',$this->myinfo['id'])->setInc('bid_num',1);
 
+            $bwg = Db::table('mp_user_role')->where('uid','=',$req_exist['uid'])->find();
             /*给博物馆发短信通知*/
             $sms = new Sendsms();
             $param = [
-                'tel' => '13102163019',
+                'tel' => $bwg['tel'],
                 'param' => [
-                    'req_title' => '海河锦鲤文创大赛',
-                    'work_title' => '好作品',
-                    'org' => '华为工厂'
+                    'req_title' => mb_substr($req_exist['title'],0,20,'utf-8'),
+                    'work_title' => mb_substr($work_exist['title'],0,20,'utf-8'),
+                    'org' => mb_substr($this->myinfo['org'],0,20,'utf-8')
                 ]
             ];
-//            $res = $sms->send($param,'SMS_174809724');
-//            if($res->Code !== 'OK') {
-//                $this->smslog($this->cmd,$res->Message);
-//            }
+            $res = $sms->send($param,'SMS_174992129');
+            if($res->Code !== 'OK') {
+                $this->smslog($this->cmd,$res->Message);
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -707,24 +731,36 @@ class Api extends Common
             $whereBidding = [
                 ['id','=',$val['bidding_id']]
             ];
-            $exist = Db::table('mp_bidding')->where($whereBidding)->find();
-            if(!$exist) {
+            $bidding_exist = Db::table('mp_bidding')->where($whereBidding)->find();
+            if(!$bidding_exist) {
                 return ajax('invalid bidding_id',-4);
             }
-            if(!in_array($exist['req_id'],$myreqids)) {
+            if(!in_array($bidding_exist['req_id'],$myreqids)) {
                 return ajax('无权操作此活动流程',74);
             }
             $whereWork = [
-                ['id','=',$exist['work_id']]
+                ['id','=',$bidding_exist['work_id']]
             ];
-            $factory_exist = Db::table('mp_req_works')->where($whereWork)->find();
-            if($factory_exist['factory_id']) {
+            $work_exist = Db::table('mp_req_works')->where($whereWork)->find();
+            if($work_exist['factory_id']) {
                 return ajax('此作品已有接单工厂',73);
             }
-            Db::table('mp_req_works')->where($whereWork)->update(['factory_id'=>$exist['uid']]);
+            $factory = Db::table('mp_user_role')->where('uid','=',$bidding_exist['uid'])->field('id,tel,org')->find();
+            Db::table('mp_req_works')->where($whereWork)->update(['factory_id'=>$bidding_exist['uid']]);
             Db::table('mp_bidding')->where($whereBidding)->update(['choose'=>1]);
             //todo 给工厂发送通知短信
-
+            $sms = new Sendsms();
+            $param = [
+                'tel' => $factory['tel'],
+                'param' => [
+                    'work_title' => $work_exist['title'],
+                    'org' => $this->myinfo['org']
+                ]
+            ];
+            $res = $sms->send($param,'SMS_174987199');
+            if($res->Code !== 'OK') {
+                $this->smslog($this->cmd,$res->Message);
+            }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }

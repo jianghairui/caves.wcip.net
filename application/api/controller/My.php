@@ -681,7 +681,7 @@ class My extends Common {
             }
             $order = ['w.id'=>'DESC'];
             $whereWorks = [
-                ['w.id','IN',$req_ids],
+                ['w.req_id','IN',$req_ids],
                 ['w.bid_num','>',0]
             ];
             $workslist = Db::table('mp_req_works')->alias('w')

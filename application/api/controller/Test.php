@@ -16,17 +16,22 @@ class Test extends Common {
 
     public function index() {
         $start = microtime(true);
+        echo strtotime('+10 days',strtotime(date('Y-m-d 00:00:00'))) . '<hr>';
         try {
-            $sms = new Sendsms();
-            $param = [
-                'tel' => '13102163019',
-                'param' => [
-                    'req_title' => '海河锦鲤文创大赛',
-                    'work_title' => '好作品',
-                    'org' => '华为工厂'
-                ]
-            ];
-            $res = $sms->send($param,'SMS_174809724');
+//            $whereToday = [
+//                ['create_time','>=',strtotime(date('Y-m-d 00:00:00'))],
+//                ['create_time','<',strtotime(date('Y-m-d 00:00:00'))]
+//            ];
+//            $sms = new Sendsms();
+//            $param = [
+//                'tel' => '13102163019',
+//                'param' => [
+//                    'req_title' => '海河锦鲤文创大赛',
+//                    'work_title' => '好作品',
+//                    'org' => '华为工厂'
+//                ]
+//            ];
+//            $res = $sms->send($param,'SMS_174992129');
 //            if($res->Code !== 'OK') {
 //                $this->smslog($this->cmd,$res->Message);
 //            }else {
@@ -35,7 +40,7 @@ class Test extends Common {
         } catch (\Exception $e) {
             die($e->getMessage());
         }
-        halt($res);
+//        halt($whereToday);
 
         $end = microtime(true);
         echo $end-$start;

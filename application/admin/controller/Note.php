@@ -127,7 +127,9 @@ class Note extends Base {
                 return ajax('非法参数',-1);
             }
             Db::table('mp_note')->where($whereNote)->update(['del'=>1]);
-            Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('note_num',1);
+            if($exist['status'] == 1) {
+                Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('note_num',1);
+            }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
