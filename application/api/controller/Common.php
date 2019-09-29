@@ -52,8 +52,8 @@ class Common extends Controller {
     private function checkSession() {
         $noneed = [
             'Test',
+            'Plan',
             'Message',
-            'Email',
             'Email',
             'Login/login',
             'Pay/recharge_notify',
@@ -273,6 +273,20 @@ class Common extends Controller {
             echo '创建失败';
         }
     }
+
+    //小程序
+    protected function planlog($cmd,$str) {
+        $file= ROOT_PATH . '/log/plan.log';
+        $text='[Time ' . date('Y-m-d H:i:s') ."]\ncmd:" .$cmd. "\n" .$str. "\n---END---" . "\n";
+        if(false !== fopen($file,'a+')){
+            file_put_contents($file,$text,FILE_APPEND);
+        }else{
+            echo '创建失败';
+        }
+    }
+
+
+
 
 
 }
