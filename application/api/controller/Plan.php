@@ -10,17 +10,19 @@ namespace app\api\controller;
 use think\Db;
 class Plan extends Common {
 
-    public function fundingFail() {
+    public function index() {
         try {
-            $where = [
-                ['end_time','<',time()]
+            $whereFunding = [
+                ['end_time','<',time()],
+
             ];
-            $funding_list = Db::table('mp_funding')->where($where)->field('id')->select();
+            $funding_list = Db::table('mp_funding')->where($whereFunding)->whereExp('need_money',' > curr_money')->select();
             foreach ($funding_list as $v) {
                 $whereOrder = [
                     ['funding_id','=',$v['id']],
                     ['status','=',1],
-                    ['refund_apply','=',0]
+                    ['refund_apply','=',0],
+                    ['result','=',0]
                 ];
                 $order_list = Db::table('mp_funding_order')->alias('o')
                     ->join('mp_')

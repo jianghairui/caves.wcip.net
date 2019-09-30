@@ -90,7 +90,7 @@ class Funding extends Base {
                     ['del','=',0]
                 ];
                 $work_exist = Db::table('mp_req_works')
-                    ->where($whereWork)->where('factory_id','NOT NULL')->find();
+                    ->where($whereWork)->where('factory_id','>',0)->find();
                 if(!$work_exist) {
                     return ajax('非法参数',-1);
                 }
@@ -126,7 +126,7 @@ class Funding extends Base {
             return ajax();
         }
         try {
-            $worklist = Db::table('mp_req_works')->where('factory_id','NOT NULL')->field('id,title')->select();
+            $worklist = Db::table('mp_req_works')->where('factory_id','>',0)->field('id,title')->select();
         } catch (\Exception $e) {
             die($e->getMessage());
         }

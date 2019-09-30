@@ -33,15 +33,16 @@ class Api extends Common
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         $where = [
-            ['recommend', '=', 1],
-            ['status', '=', 1],
-            ['show', '=', 1],
-            ['del', '=', 0]
+            ['r.recommend', '=', 1],
+            ['r.status', '=', 1],
+            ['r.show', '=', 1],
+            ['r.del', '=', 0]
         ];
         try {
-            $list = Db::table('mp_req')
-                ->where($where)->order(['start_time' => 'ASC'])
-                ->field("id,title,works_num,idea_num,cover,org,start_time,end_time")
+            $list = Db::table('mp_req')->alias('r')
+                ->join('mp_user u','r.uid=u.id','left')
+                ->where($where)->order(['r.start_time' => 'ASC'])
+                ->field("r.id,r.uid,r.title,r.works_num,r.idea_num,r.cover,u.org,r.start_time,r.end_time")
                 ->limit(($curr_page - 1) * $perpage, $perpage)
                 ->select();
         } catch (\Exception $e) {
@@ -66,9 +67,10 @@ class Api extends Common
             if (!$info) {
                 return ajax($val['req_id'], -4);
             }
-            $user = Db::table('mp_user')->where('id','=',$info['uid'])->field('nickname,avatar')->find();
+            $user = Db::table('mp_user')->where('id','=',$info['uid'])->field('nickname,avatar,org')->find();
             $info['nickname'] = $user['nickname'];
             $info['avatar'] = $user['avatar'];
+            $info['org'] = $user['org'];
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
@@ -531,7 +533,9 @@ class Api extends Common
             if (!$work_exist) {
                 return ajax('非法参数work_id', -4);
             }
-
+            if($work_exist['factory_id']) {
+                return ajax('此作品已有选中工厂,无法再接单',86);
+            }
             $bidding_exist = Db::table('mp_bidding')->where([
                 ['work_id', '=', $val['work_id']],
                 ['uid', '=', $val['uid']]
@@ -562,9 +566,9 @@ class Api extends Common
             ];
             $today_count = Db::table('mp_bidding')->where($whereToday)->count('id');
 
-            $today_limit = 10;
+            $today_limit = 3;
             if($today_count > $today_limit) {
-                return ajax('每天最多接三个订单',3);
+                return ajax('每天最多接三个订单',85);
             }
 
             Db::table('mp_bidding')->insert($val);
