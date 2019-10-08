@@ -519,14 +519,15 @@ class Req extends Base {
         $val['id'] = input('post.id','');
         checkInput($val);
         $map = [
-            ['id','=',$val['id']]
+            ['id','=',$val['id']],
+            ['del','=',0]
         ];
         try {
             $exist = Db::table('mp_req_idea')->where($map)->find();
             if(!$exist) {
                 return ajax('非法操作',-1);
             }
-            Db::table('mp_req_idea')->where($map)->delete();
+            Db::table('mp_req_idea')->where($map)->update(['del'=>1]);
             Db::table('mp_req')->where('id','=',$exist['req_id'])->setDec('idea_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -646,7 +647,15 @@ class Req extends Base {
             if(!$exist) {
                 return ajax('非法操作',-1);
             }
+            $whereReq = [
+                ['id','=',$exist['req_id']]
+            ];
+            $whereIdea = [
+                ['id','=',$exist['idea_id']]
+            ];
             Db::table('mp_req_works')->where($map)->update(['status'=>1]);
+            Db::table('mp_req')->where($whereReq)->setInc('works_num',1);
+            Db::table('mp_req_idea')->where($whereIdea)->setInc('works_num',1);
             Db::table('mp_user')->where('id','=',$exist['uid'])->setInc('works_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -702,7 +711,15 @@ class Req extends Base {
             if(!$exist) {
                 return ajax('非法操作',-1);
             }
+            $whereReq = [
+                ['id','=',$exist['req_id']]
+            ];
+            $whereIdea = [
+                ['id','=',$exist['idea_id']]
+            ];
             Db::table('mp_req_works')->where($map)->update(['del'=>1]);
+            Db::table('mp_req')->where($whereReq)->setDec('works_num',1);
+            Db::table('mp_req_idea')->where($whereIdea)->setDec('works_num',1);
             Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('works_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);

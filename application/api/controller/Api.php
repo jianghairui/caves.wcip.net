@@ -27,13 +27,33 @@ class Api extends Common
         }
         return ajax($list);
     }
-    //获取活动列表
+    //获取首页列表
     public function getReqList()
+    {
+        $where = [
+            ['r.recommend', '=', 1],
+            ['r.status', '=', 1],
+            ['r.show', '=', 1],
+            ['r.del', '=', 0]
+        ];
+        try {
+            $list = Db::table('mp_req')->alias('r')
+                ->join('mp_user u','r.uid=u.id','left')
+                ->where($where)->order(['r.start_time' => 'ASC'])
+                ->field("r.id,r.uid,r.title,r.works_num,r.idea_num,r.cover,u.org,r.start_time,r.end_time")
+                ->limit(0, 2)
+                ->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($list);
+    }
+    //获取活动列表
+    public function getAllReqList()
     {
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
         $where = [
-            ['r.recommend', '=', 1],
             ['r.status', '=', 1],
             ['r.show', '=', 1],
             ['r.del', '=', 0]
@@ -838,6 +858,9 @@ class Api extends Common
                 ->join('mp_req_works w','f.work_id=w.id','left')
                 ->field('f.id,f.title,f.cover,f.need_money,f.curr_money,f.order_num,f.start_time,f.end_time,f.req_id,f.idea_id,f.work_id,r.title AS req_title,r.explain AS req_detail,i.title AS idea_title,i.content AS idea_detail,w.uid,w.title AS work_title,w.desc AS work_detail,w.pics AS works_pics,f.desc,f.content')
                 ->where($where)->find();
+            if(!$info) {
+                return ajax('非法参数',-4);
+            }
             $whereUser = [
                 ['id','=',$info['uid']]
             ];

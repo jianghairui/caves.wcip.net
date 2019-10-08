@@ -67,9 +67,13 @@ class Note extends Base {
                 return ajax('非法操作',-1);
             }
             Db::table('mp_note')->where($map)->update(['status'=>1]);
-
-            Db::table('mp_user')->where([['id', '=', $exist['uid']]])->setInc('lucky_draw_times', 5);
-            Db::table('mp_user')->where('id','=',$exist['uid'])->setInc('note_num',1);
+            //审核笔记时
+            $whereNote = [
+                ['uid','=',$exist['uid']],
+                ['status','=',1]
+            ];
+            $count = Db::table('mp_note')->where($whereNote)->count();
+            Db::table('mp_user')->where('id','=',$exist['uid'])->update(['note_num'=>($count+1)]);
             Db::commit();
         }catch (\Exception $e) {
             Db::rollback();

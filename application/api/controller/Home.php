@@ -116,7 +116,8 @@ class Home extends Common {
                 $order = ['w.vote'=>'DESC'];
             }
             $whereWorks = [
-                ['w.uid','=',$val['uid']]
+                ['w.uid','=',$val['uid']],
+                ['w.status','=',1]
             ];
             $list = Db::table('mp_req_works')->alias('w')
                 ->join("mp_req r", "w.req_id=r.id", "left")
