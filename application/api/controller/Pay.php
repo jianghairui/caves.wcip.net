@@ -133,8 +133,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '山洞文创产品',
                 'out_trade_no' => $pay_order_sn,
-                'total_fee' => 1,
-//                'total_fee' => floatval($pay_price)*100,
+//                'total_fee' => 1,
+                'total_fee' => floatval($pay_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/order_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']
@@ -178,6 +178,7 @@ class Pay extends Common {
             if(!$unite_exist) {
                 return ajax($whereUnite,4);
             }
+            $pay_price = $unite_exist['pay_price'];
             $order_ids = explode(',',$unite_exist['order_ids']);
             $order_list = Db::table('mp_order')->where($whereOrder)->column('id');
             if(!$order_list || count($order_list) !== count($order_ids)) {
@@ -187,8 +188,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '山洞文创产品',
                 'out_trade_no' => $pay_order_sn,
-                'total_fee' => 1,
-//                'total_fee' => floatval($pay_price)*100,
+//                'total_fee' => 1,
+                'total_fee' => floatval($pay_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/order_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']
@@ -286,8 +287,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '山洞文创众筹',
                 'out_trade_no' => $val['pay_order_sn'],
-                'total_fee' => 1,
-//                'total_fee' => floatval($total_price)*100,
+//                'total_fee' => 1,
+                'total_fee' => floatval($total_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/funding_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']
