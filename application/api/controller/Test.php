@@ -14,6 +14,7 @@ use my\Sendsms;
 
 class Test extends Common {
 
+
     public function index() {
         $start = microtime(true);
         try {
@@ -42,6 +43,10 @@ class Test extends Common {
         echo ' 秒 ';
     }
 
+
+    public function pay() {
+        echo strlen('oou0p5892uu2u6ikcj3slll9q7');
+    }
 
     /*微信图片敏感内容检测*/
     public function test() {
@@ -97,9 +102,6 @@ class Test extends Common {
         curl_close($curl);
         return $output;
     }
-
-
-
 
 
     protected function asyn_tpl_send($data) {
