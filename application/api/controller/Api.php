@@ -1107,6 +1107,17 @@ class Api extends Common
 
     }
 
+    //角色充值类目列表
+    public function getRoleLevelList() {
+
+        $list = [
+            [
+                ''
+            ],
+        ];
+        return ajax($list);
+    }
+
 
     //收集formid
     public function collectFormid() {

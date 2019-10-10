@@ -62,8 +62,8 @@ class Sign extends Controller {
         $jssdk = new Jssdk($this->appid, $this->appsecret);
         $data = $jssdk->getSignPackage();
         $share_data = [
-            'title' => '山洞文创平台工厂采购交流会',
-            'desc' => '山洞文创平台工厂采购交流会',
+            'title' => '平津战役纪念馆文创对接会邀请函',
+            'desc' => '平津战役纪念馆文创对接会邀请函',
             'link' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/api/sign/index',
             'imgUrl' => $_SERVER['REQUEST_SCHEME'] . '://'.$_SERVER['HTTP_HOST'] . '/static/src/image/shlogo.png'
         ];

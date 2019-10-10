@@ -12,7 +12,7 @@ use think\Db;
 class Fake extends Common {
 
     public function addRole() {
-
+        die();
         $val['nickname'] = input('post.nickname');
         $val['avatar'] = input('post.avatar');
         $val['org'] = input('post.org');
@@ -41,14 +41,14 @@ class Fake extends Common {
                 return ajax($qiniu_move['msg'],101);
             }
 
-            $qiniu_exist = $this->qiniuFileExist($val['cover']);
+            $qiniu_exist = $this->qiniuFileExist($role['cover']);
             if($qiniu_exist !== true) {
                 return ajax($qiniu_exist['msg'],5);
             }
-            $qiniu_move = $this->moveFile($val['cover'],'upload/role/');
+            $qiniu_move = $this->moveFile($role['cover'],'upload/role/');
 
             if($qiniu_move['code'] == 0) {
-                $val['cover'] = $qiniu_move['path'];
+                $role['cover'] = $qiniu_move['path'];
             }else {
                 return ajax($qiniu_move['msg'],101);
             }
@@ -61,15 +61,56 @@ class Fake extends Common {
 
         } catch (\Exception $e) {
             Db::rollback();
+            if(isset($val['avatar'])) {
+                $this->rs_delete($val['avatar']);
+            }
+            if(isset($role['cover'])) {
+                $this->rs_delete($role['cover']);
+            }
             return ajax($e->getMessage(), -1);
         }
         return ajax();
     }
 
 
-
     public function test() {
+        die();
+        $role['uid'] = input('post.uid');
+        $role['cover'] = input('post.cover');
+        $role['org'] = input('post.org');
+        try {
+            $whereRole = [
+                ['uid','=',$role['uid']]
+            ];
+            $exist = Db::table('mp_user_role')->where($whereRole)->find();
+            if(!$exist) {
+                return ajax('非法参数',-4);
+            }
 
+            $qiniu_exist = $this->qiniuFileExist($role['cover']);
+            if($qiniu_exist !== true) {
+                return ajax($qiniu_exist['msg'],5);
+            }
+            $qiniu_move = $this->moveFile($role['cover'],'upload/role/');
+
+            if($qiniu_move['code'] == 0) {
+                $role['cover'] = $qiniu_move['path'];
+            }else {
+                return ajax($qiniu_move['msg'],101);
+            }
+
+            Db::table('mp_user_role')->where($whereRole)->update($role);
+            Db::table('mp_user')->where('id','=',$role['uid'])->update(['org'=>$role['org']]);
+        } catch (\Exception $e) {
+            if(isset($role['cover'])) {
+                $this->rs_delete($role['cover']);
+            }
+            return ajax($e->getMessage(), -1);
+        }
+        if(isset($role['cover'])) {
+            $this->rs_delete($exist['cover']);
+        }
+        return ajax();
     }
 
 
