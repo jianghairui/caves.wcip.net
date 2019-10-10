@@ -52,6 +52,7 @@ class Common extends Controller {
     private function checkSession() {
         $noneed = [
             'Test',
+            'Fake',
             'Plan',
             'Message',
             'Email',

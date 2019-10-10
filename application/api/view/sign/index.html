@@ -7,121 +7,119 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>信息登记</title>
   <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+  <link rel="stylesheet" href="/static/src/swiper/swiper.min.css">
   <style>
     * {
       margin: 0;
       padding: 0;
     }
-    img{
+
+    html, body {
+      position: relative;
+      height: 100%;
+    }
+
+    body {
+      font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+
+    img {
       width: 100%;
       display: block;
     }
-    .news-box h3{
-      text-align: center;
-      margin: 20px 0;
-    }
-    .news-box .img-one{
-      margin: 0 25px;
-    }
-    .news-box .img-two {
-      margin: 5px 15px;
-    }
-    .news-box .title-box {
-      margin: 20px 10px;
-      padding: 10px;
-      border-right: 1px dashed rgb(190, 119, 99);
-      border-bottom: 1px dashed rgb(190, 119, 99);
 
+    .ping-jin img {
+      width: 100%;
+      display: block;
     }
-    .news-box .title-box h3{
-      height: 30px;
-      padding-left: 10px;
-      color: rgb(190, 119, 99);
-      font-weight: normal;
-      font-size: 14px;
-      margin: 0;
-      border-top: 1px solid rgb(190, 119, 99);
-      border-left: 10px solid rgb(190, 119, 99);
-      display: flex;
-      align-items: flex-end;
-    }
-    .news-box .title-box p {
-      text-align: justify;
-      margin-bottom: 20px;
-      margin-top: 10px;
-      font-size: 14px;
-      color: rgb(63,63,63);
-      text-indent: 2em;
-      line-height: 2;
-    }
-    .news-box .video-box {
-      margin: 0 15px;
-    }
-    .news-box .video-box video{
+
+    .ping-jin .img-box {
       width: 100%;
     }
-    .news-box .img-tip {
-      font-size: 16px;
-      text-align: center;
-      margin-top: 20px;
-    }
-    .news-box .text-box {
-      margin: 30px 15px;
-    }
-    .news-box .text-box p{
-      line-height: 2;
-      text-align: justify;
-      text-indent: 2em;
-      font-size: 14px;
-      color: rgb(136, 136, 136);
-    }
-    .news-box .other-color p {
-      color: rgb(192,80,77);
-    }
-    .news-box .cave-title{
-      margin: 0 auto;
-      line-height: 30px;
-      text-align: center;
-      width: 100px;
-      height: 30px;
-      border: 1px solid #333333;
-      box-shadow: rgb(246, 208, 208) 0 2px 2px;
+
+    .ping-jin .swiper-box {
+      margin: 10px;
     }
 
+    .ping-jin .swiper-container {
+      width: 100%;
+      height: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
 
+    .ping-jin .swiper-slide {
+      background-size: 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .ping-jin .gallery-top {
+      height: 150px;
+      width: 100%;
+      border-radius: 5px;
+    }
+
+    .ping-jin .gallery-thumbs {
+      height: 65px;
+      box-sizing: border-box;
+      padding: 10px 0;
+    }
+
+    .ping-jin .gallery-thumbs .swiper-slide {
+      width: 25%;
+      height: 100%;
+      opacity: 0.4;
+      border-radius: 5px;
+    }
+
+    .ping-jin .gallery-thumbs .swiper-slide-thumb-active {
+      opacity: 1;
+    }
+
+    .submit-box {
+      background: linear-gradient(to bottom right, #1435a6, #e08071);
+      overflow: hidden;
+    }
 
     .header {
-      height: 49px;
-      line-height: 49px;
+      height: 30px;
+      line-height: 30px;
+      margin-top: 20px;
       text-align: center;
       width: 100%;
-      background-color: #000000;
-      font-size: 18px;
-      color: #cccccc;
+      font-size: 24px;
+      color: #ffffff;
     }
 
     .content .cont {
       overflow: hidden;
-      border-top: 1px solid #ff7e00;
+      /*border-top: 1px solid #ff7e00;*/
       margin: 12px 9px;
-      background-color: #ffffff;
-      box-shadow: 0 1px 35px 0 rgba(213, 213, 213, 0.75);
+      /*background-color: #ffffff;*/
+      /*box-shadow: 0 1px 35px 0 rgba(213, 213, 213, 0.75);*/
     }
 
     .ipt-box {
-      margin: 20px 15px;
+      margin: 0 15px 30px;
     }
 
     .ipt-box label {
       font-weight: bold;
       font-size: 16px;
       line-height: 21px;
-      color: #333333;
+      margin: 15px 0;
+      color: #fff;
     }
 
     .ipt-box .input {
       margin-top: 10px;
-      height: 40px;
+      height: 30px;
+      background-color: #efefef;
       border-radius: 2px;
       border: solid 1px #aaa;
       overflow: hidden;
@@ -139,6 +137,7 @@
       height: 100%;
       border: none;
       outline: none;
+      background: unset;
     }
 
     .ipt-box .recommend-people {
@@ -194,238 +193,136 @@
     }
 
     .btn-box {
-      background-color: #ff7e00;
+      background-color: #1b284a;
+      border-radius: 40px;
       margin: 45px 15px 30px;
       height: 40px;
       line-height: 40px;
       text-align: center;
-      border-radius: 2px;
       color: #ffffff;
-    }
-
-    .logo {
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .logo .logo-box {
-      margin-right: 10px;
-      width: 15px;
-      height: 15px;
-    }
-
-    .logo .logo-box img {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .logo p {
-      font-size: 12px;
-      color: #cccccc;
     }
   </style>
 </head>
 <body>
 <script type="text/javascript">
-    wx.config({
-        debug: false,
-        appId: '{$data["appId"]}',
-        timestamp: '{$data["timestamp"]}',
-        nonceStr: '{$data["nonceStr"]}',
-        signature: '{$data["signature"]}',
-        jsApiList: [
-            'checkJsApi',
-            'onMenuShareTimeline',
-            'onMenuShareAppMessage'
-        ]
+  wx.config({
+    debug: false,
+    appId: '{$data["appId"]}',
+    timestamp: '{$data["timestamp"]}',
+    nonceStr: '{$data["nonceStr"]}',
+    signature: '{$data["signature"]}',
+    jsApiList: [
+      'checkJsApi',
+      'onMenuShareTimeline',
+      'onMenuShareAppMessage'
+    ]
+  });
+  wx.ready(function () {
+    wx.onMenuShareTimeline({
+      title: '{$share_data.title}', // 分享标题
+      desc: '{$share_data.desc}',
+      link: '{$share_data.link}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+      imgUrl: '{$share_data.imgUrl}', // 分享图标
+      success: function () {
+        // 用户点击了分享后执行的回调函数
+        //alert('分享成功')
+      }
     });
-    wx.ready(function () {
-        wx.onMenuShareTimeline({
-            title: '{$share_data.title}', // 分享标题
-            desc: '{$share_data.desc}',
-            link: '{$share_data.link}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-            imgUrl: '{$share_data.imgUrl}', // 分享图标
-            success: function () {
-                // 用户点击了分享后执行的回调函数
-                //alert('分享成功')
-            }
-        });
-        wx.onMenuShareAppMessage({
-            title: '{$share_data.title}', // 分享标题
-            desc: '{$share_data.desc}', // 分享描述
-            link: '{$share_data.link}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-            imgUrl: '{$share_data.imgUrl}', // 分享图标
-            type: '', // 分享类型,music、video或link，不填默认为link
-            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
-            success: function () {
-                //alert('分享成功')
-            }
-        });
+    wx.onMenuShareAppMessage({
+      title: '{$share_data.title}', // 分享标题
+      desc: '{$share_data.desc}', // 分享描述
+      link: '{$share_data.link}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+      imgUrl: '{$share_data.imgUrl}', // 分享图标
+      type: '', // 分享类型,music、video或link，不填默认为link
+      dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+      success: function () {
+        //alert('分享成功')
+      }
+    });
 
-    });
+  });
 
 </script>
-  <div class="news-box">
-    <h3>杨柳青木版年画</h3>
-    <div class="img-one"><img src="http://qiniu.wcip.net/signtmp/1.jpg" /></div>
-    <div class="title-box">
-      <h3>连年有鱼&nbsp;&nbsp;镇馆之宝</h3>
-      <p>图中童子一辫一髻，代表童颜佛身，半男半女，凑成一个好字。</p>
+<div class="ping-jin">
+  <div class="img-box">
+    <img src="/static/src/image/pingjin/1.png"/>
+  </div>
+  <div class="swiper-box">
+    <div class="swiper-container gallery-top">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide" style="background-image:url('/static/src/image/pingjin/img1.png')"></div>
+        <div class="swiper-slide" style="background-image:url('/static/src/image/pingjin/img2.png')"></div>
+        <div class="swiper-slide" style="background-image:url('/static/src/image/pingjin/img3.png')"></div>
+      </div>
     </div>
-
-    <div class="video-box">
-      <video src="http://qiniu.wcip.net/signtmp/1.mp4" controls poster="http://qiniu.wcip.net/signtmp/poster1.jpg"></video>
-    </div>
-    <div class="img-tip">时逢九月，秋意渐浓</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/2.jpg" /></div>
-    <div class="text-box">
-      <p>细碎的日光穿过枝叶映在斑驳的墙面上，小巷里只有一位环卫工人大叔簌簌地扫着落叶。我们转过几个弯，终于在尽头寻到了那处略显静谧的所在--杨柳青画社。</p>
-      <p>杨柳青画社始建于二零零八年九月，以收藏，研究，展示杨柳青木板年画为目的公益性博物馆。</p>
-      <p>博物馆客观地反映了杨柳青木版年画起源，繁荣，濒危，抢救，保护，传承和发展的历史过程。馆内珍藏自明代以来的杨柳青木板年画万余张，画版六千四百多块。其表现的内容包罗万象，有农耕生活，神话故事，节日习俗等，被称为民间大百科全书，对研究北方自明代以来的民风民俗和民间百姓的精神天地及文化连续性都具有重要作用。</p>
-      <p>杨柳青木板年画继承了雕版印刷技术，其刻工精美，绘制细腻，人物生动，色彩丰富而艳丽，表达了农耕社会的文明审美观，寄托了人们的希望和向往，成为了迎接除夕，纳福履吉的重要载体。</p>
-    </div>
-    <div class="img-tip"> 三星高照</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/3.jpg" /></div>
-
-
-    <div class="title-box">
-      <h3>三星高照</h3>
-      <p>这副三清图由清末传承至今，使用的是矿物颜料，历久弥新</p>
-    </div>
-    <div class="img-tip">图中年画为居家生活与孩童游戏的场景。</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/4.jpg" /></div>
-    <div class="img-tip">传承人</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/5.jpg" /></div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/6.jpg" /></div>
-    <div class="title-box">
-      <h3>传承</h3>
-      <p>传统文化的传承是永久的话题。图中雕版的这位年轻人名叫郗望，九零后，他的师父已经年过古稀，郗望是他的关门弟子。</p>
-    </div>
-    <div class="img-tip">成板</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/7.jpg" /></div>
-    <div class="title-box">
-      <h3>成板</h3>
-      <p>一块成板的制造十分复杂，不仅需要高超的技艺功底，更需要持续的耐心和专注。</p>
-    </div>
-    <div class="img-tip">门神</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/8.jpg" /></div>
-    <div class="title-box">
-      <h3>门神</h3>
-      <p>秦琼字叔宝，尉迟恭字敬德，均为唐太宗时的名将，在民间被誉为武门神。门神在传统文化中至关重要，他也是木板年画文化的经典代表之一。</p>
-    </div>
-    <div class="img-tip">海河锦鲤，跃动津城——文创设计大赛</div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/9.jpg" /></div>
-
-    <div class="text-box">
-      <p>八月二十二日起，杨柳青画社为加快推进“五个现代化天津”建设，助力天津市申请联合国教科文组织“全球创意城市网络——设计之都”工作，坚定文化自信，挖掘天津优秀文化遗产，打造天津城市符号推出了以“海河锦鲤·跃动津城”为主题的，向全国征集“海河锦鲤”形象设计及文创产品设计的大赛。</p>
-      <p>这也正是我们走访杨柳青画社的目的。</p>
-      <p>本次杨柳青画社和山海文化公司合作，“海河锦鲤，跃动津城”设计大赛在山海文化旗下的山洞文创生态平台上开启了投稿通道。山洞平台近期上线，敬请关注投稿入口。 </p>
-      <p>杨柳青画社的李部长告诉我们，虽然主题名字叫做“海河锦鲤”，但是希望大家能开拓思维，不要局限在鲤鱼的鱼形上。而是希望能将锦鲤进行变形，加入丰富的想象力和文化内涵，让锦鲤变成天津的一个独特的文化形象。让大家看到这个形象就能想到天津，感受到天津的亲切与魅力。同时将这一“文化锦鲤”应用于各类文创产品，逐步打造饱含地域特色和文化意识的“天津礼物”，使其成为有代表性的城市符号和文化品牌</p>
-    </div>
-
-    <div class="text-box other-color">
-      <p>鲤鱼不是鱼，希望各位有才华的设计师能从有形的鱼中看到无限的可能性。</p>
-    </div>
-
-    <div class="cave-title">山洞</div>
-    <div class="text-box">
-      <p>山洞文创生态平台是为顺应国家文化产业发展需求，立足全国，助力各地文化创意产业的发展，为文创产品和制造企业的发展提供整体解决方案的文创生态服务体系。</p>
-      <p>山海文化公司凭借深厚的文化底蕴和过硬的技术实力以及丰富的业内经验，将文创产品从需求产生，到设计成稿，到生产落地，再到受用人群，打造了一个科学的生态圈。我们致力于以全新的服务体系，打造全国第一家文创生态孵化平台。</p>
-      <p>以“海河锦鲤”活动为例，杨柳青画社进行文创设计大赛活动发布，消费者提供创意，设计师上传投稿，创意排行榜，设计作品排行榜直观看到消费者喜好，入选作品由生产商接单，发起众筹，最后成品发往消费者。</p>
-    </div>
-    <div class="img-two"><img src="http://qiniu.wcip.net/signtmp/10.gif" /></div>
-    <div class="text-box">
-      <p>山洞平台使文创产业链条的所有角色互联互通，特别是通过两个排行榜直观地为消费者需求提供了画像，能帮助博物馆美术馆，设计师，生产厂商更好的了解消费者。</p>
-      <p>未来全国将会有一千余家博物馆和美术馆图书馆等文化单位，百余家景区入驻并进行需求发布，全国范围内生产厂商入驻也在火热进行中。</p>
+    <div class="swiper-container gallery-thumbs">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide" style="background-image:url('/static/src/image/pingjin/img1.png')"></div>
+        <div class="swiper-slide" style="background-image:url('/static/src/image/pingjin/img2.png')"></div>
+        <div class="swiper-slide" style="background-image:url('/static/src/image/pingjin/img3.png')"></div>
+      </div>
     </div>
   </div>
+  <div class="img-box">
+    <img src="/static/src/image/pingjin/2.png"/>
+  </div>
+</div>
+<div class="submit-box">
+  <div class="header">信息登记</div>
+  <div class="content">
 
-
-<div class="header">信息登记</div>
-<div class="content">
-
-  <div class="cont">
-    <form id="formAjax">
-    <div class="ipt-box">
-      <label for="company">公司名称</label>
-      <div class="input">
-        <div class="smoll-box"><input id="company" type="text" name="company" value="{$info.company}" maxlength="50" {if $info['tel']}readonly{/if}></div>
-      </div>
-    </div>
-    <div class="ipt-box">
-      <label for="company">公司地址</label>
-      <div class="input">
-        <div class="smoll-box"><input id="address" type="text" name="address" value="{$info.address}" maxlength="255" {if $info['tel']}readonly{/if}></div>
-      </div>
-    </div>
-    <div class="ipt-box">
-      <label for="name">本人姓名</label>
-      <div class="input">
-        <div class="smoll-box"><input id="name" type="text" name="name" value="{$info.name}" maxlength="20" {if $info['tel']}readonly{/if}></div>
-      </div>
-    </div>
-    <div class="ipt-box">
-      <label for="tel">联系电话</label>
-      <div class="input">
-        <div class="smoll-box"><input id="tel" type="text" name="tel" value="{$info.tel}"  maxlength="15" {if $info['tel']}readonly{/if}></div>
-      </div>
-    </div>
-    <div class="ipt-box">
-      <label for="job">当前职务</label>
-      <div class="input">
-        <div class="smoll-box"><input id="job" type="text" name="job" value="{$info.job}" maxlength="30" {if $info['tel']}readonly{/if}></div>
-      </div>
-    </div>
-    <div class="ipt-box">
-      <label>推荐人</label>
-      <input type="hidden" id="referer_id" name="referer_id" value="{$info['referer_id']}" {if $info['tel']}readonly{/if} />
-      <div class="input recommend-people">
-        {foreach $list as $li}
-        <div class="people {if $info['referer_id'] == $li['id']}on{/if}" title="{$li.id}" data-tel="{$li.tel}">{$li.name}</div>
-        {/foreach}
-      </div>
-    </div>
-    <div class="separator">
-      <img src="/static/src/image/bg-img.png"/>
-    </div>
-    <div class="ipt-box bottom-cont">
-      <label>推荐人联系方式</label>
-      <div class="input address" id="referer">
-        {$info.referer_tel}
-      </div>
-    </div>
-    <div class="ipt-box bottom-cont">
-      <label>与会地址</label>
-      <div class="input address">
-        天津市西青区海泰绿色产业基地K1座6号楼2层
-      </div>
-    </div>
-    <div class="ipt-box bottom-cont">
-      <label>公司简介</label>
-      <div class="input address company-brief">
-        <p>
-          山海文化有限公司是一家兼具文化特质、科技情怀、艺术气质的创新型综合性文化公司。公司倡导并践行“文化沿袭，创新传承”的理念，立足于已被提升至国家战略性产业层面的文化创意产业，持守创新与工匠精神，专注于文创产品的研发设计推广、文化类展馆设计施工、文化交流与展览策划、文化艺术教育信息咨询、美术馆运营、品牌公关策划、文化行业平台交流等，深具国际视野与时尚品位。</p>
-        <p>公司主营业务有：品牌VI设计策划、文创衍生品设计开发、展览展示服务、文化交流活动、ip资源整合平台。</p>
-      </div>
-    </div>
-      <button type="submit" name="提交" id="submit" style="display: none"></button>
-      {if $info['tel']}
-      <div class="btn-box" onclick="alert('不可重复登记')">已登记</div>
-      {else /}
-      <div class="btn-box" onclick="$('#submit').click()">提交</div>
-      {/if}
-    </form>
-    <div class="logo">
-      <div class="logo-box">
-        <img src="/static/src/image/shlogo.png" alt="山海文化有限公司">
-      </div>
-      <p>山海文化有限公司</p>
+    <div class="cont">
+      <form id="formAjax">
+        <div class="ipt-box">
+          <label for="company">厂家名称</label>
+          <div class="input">
+            <div class="smoll-box">
+              <input id="company" type="text" name="company" value="" maxlength="20" >
+            </div>
+          </div>
+        </div>
+        <div class="ipt-box">
+          <label for="busine">经营范围</label>
+          <div class="input">
+            <div class="smoll-box">
+              <input id="busine" type="text" name="busine" value="" maxlength="255" >
+            </div>
+          </div>
+        </div>
+        <div class="ipt-box">
+          <label for="name">参会代表</label>
+          <div class="input">
+            <div class="smoll-box">
+              <input id="name" type="text" name="name" value="" maxlength="20"  οninput="this.value.length>5?this.value=this.value.slice(0,5)" />
+            </div>
+          </div>
+        </div>
+        <div class="ipt-box">
+          <label for="tel">参会人数</label>
+          <div class="input">
+            <div class="smoll-box">
+              <input id="num" type="number" name="num" oninput="this.value.length>3?this.value=this.value.slice(0,3):this.value" />
+            </div>
+          </div>
+        </div>
+        <div class="ipt-box">
+          <label for="tel">联系方式</label>
+          <div class="input">
+            <div class="smoll-box">
+              <input id="tel" type="text" name="tel" value="" maxlength="15" >
+            </div>
+          </div>
+        </div>
+        <button type="submit" name="提交信息" id="submit" style="display: none"></button>
+        <div class="btn-box" onclick="$('#submit').click()">提交信息</div>
+      </form>
     </div>
   </div>
 </div>
+<div class="img-box">
+  <img src="/static/src/image/pingjin/shwh.png" alt="山海文化有限公司">
+</div>
+
 <!--_footer 作为公共模版分离出去-->
 <script type="text/javascript" src="/lib/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript" src="/lib/layer/2.4/layer.js"></script>
@@ -435,99 +332,105 @@
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
 <script type="text/javascript" src="/lib/jquery.validation/1.14.0/messages_zh.js"></script>
+<script type="text/javascript" src="/static/src/swiper/swiper.min.js"></script>
 
 <!--/_footer 作为公共模版分离出去-->
 <!--请在下方写此页面业务相关的脚本-->
 <script type="text/javascript">
 
-    $(function() {
-        var isclick = true;
-        var rule_tel = /^1[34578]\d{9}$/;
+  $(function () {
+    var galleryThumbs = new Swiper('.gallery-thumbs', {
+      spaceBetween: 10,
+      slidesPerView: 3,
+      freeMode: true,
+      watchSlidesVisibility: true,
+      watchSlidesProgress: true,
+    });
+    var galleryTop = new Swiper('.gallery-top', {
+      spaceBetween: 10,
+      autoplay: {
+        delay: 3000,
+        stopOnLastSlide: false,
+        disableOnInteraction: true,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      thumbs: {
+        swiper: galleryThumbs
+      }
+    });
 
-        $("#formAjax").validate({
-            rules:{
-                company:{
-                    required:true,
-                    maxlength:50
-                },
-                address:{
-                    required:true,
-                    maxlength:255
-                },
-                name:{
-                    required:true,
-                    maxlength:20
-                },
-                tel:{
-                    required:true,
-                    maxlength:15,
-                },
-                job:{
-                    required:true,
-                    maxlength:30
-                },
+
+    var isclick = true;
+    var rule_tel = /^1[34578]\d{9}$/;
+
+    $("#formAjax").validate({
+      rules: {
+        company: {
+          required: true,
+          maxlength: 20
+        },
+        busine: {
+          required: true,
+          maxlength: 255
+        },
+        name: {
+          required: true,
+          maxlength: 20
+        },
+        tel: {
+          required: true,
+          maxlength: 15,
+        },
+        num: {
+          required: true,
+          maxlength: 3
+        }
+      },
+      onkeyup: false,
+      focusCleanup: true,
+      success: "valid",
+      submitHandler: function (form) {
+        if (!rule_tel.test($("#tel").val())) {
+          layer.msg('无效的手机号', { time: 1000 }, function () {
+            isclick = true;
+          });
+          return;
+        }
+        if (isclick === true) {
+          isclick = false;
+          $(form).ajaxSubmit({
+            type: 'post',
+            url: "{:url('Sign/index')}",
+            success: function (data) {
+              // console.log(data);isclick = true;return;
+              // alert(JSON.stringify(data));
+              if (data.code == 1) {
+                layer.msg('提交成功!', { icon: 1, time: 1000 }, function () {
+                  window.location.href = window.location.href + "?" + 10000 * Math.random();
+                  isclick = true;
+                });
+              } else {
+                layer.msg(data.data, { icon: 2, time: 1000 });
+                isclick = true
+              }
             },
-            onkeyup:false,
-            focusCleanup:true,
-            success:"valid",
-            submitHandler:function(form){
-                if(!rule_tel.test($("#tel").val())) {
-                    layer.msg('无效的手机号',{time:1000},function () {
-                        isclick = true;
-                    });
-                    return;
-                }
-                if($("#referer_id").val() == '0') {
-                    layer.msg('请选择推荐人',{time:1000},function () {
-                        isclick = true;
-                    });
-                    return;
-                }
-                if(isclick === true) {
-                    isclick = false;
-                    $(form).ajaxSubmit({
-                        type: 'post',
-                        url: "{:url('Sign/index')}" ,
-                        success: function(data){
-                            // console.log(data);isclick = true;return;
-                            // alert(JSON.stringify(data));
-                            if(data.code == 1) {
-                                layer.msg('提交成功!',{icon:1,time:1000},function () {
-                                    window.location.href = window.location.href+"?"+10000*Math.random();
-                                    isclick = true;
-                                });
-                            }else {
-                                layer.msg(data.data,{icon:2,time:1000});
-                                isclick = true
-                            }
-                        },
-                        error: function(XmlHttpRequest, textStatus, errorThrown){
-                            layer.msg('接口请求错误!',{icon:5,time:1000});
-                            isclick = true
-                        }
-                    });
-                }
+            error: function (XmlHttpRequest, textStatus, errorThrown) {
+              layer.msg('接口请求错误!', { icon: 5, time: 1000 });
+              isclick = true
             }
-        });
+          });
+        }
+      }
+    });
 
 
-        $(".people").click(function () {
-            var tel = '{$info.tel}';
-            var data_tel = $(this).attr('data-tel');
-            if(tel == '') {
-                $(this).addClass('on');
-                $(this).siblings('.people').removeClass('on');
-                var referer_id = $(this).attr('title');
-                $("#referer_id").val(referer_id);
-                $("#referer").text(data_tel);
-            }
-        })
 
-    })
+  })
 
 </script>
-
-
 
 
 </body>

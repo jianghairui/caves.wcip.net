@@ -38,35 +38,27 @@ class Sign extends Controller {
         $userinfo = session('userinfo');
         if(request()->isPost()) {
             $val['company'] = input('post.company');
-            $val['address'] = input('post.address');
+            $val['busine'] = input('post.busine');
             $val['name'] = input('post.name');
             $val['tel'] = input('post.tel');
-            $val['job'] = input('post.job');
-            $val['referer_id'] = input('post.referer_id');
+            $val['num'] = input('post.num');
             checkPost($val);
-            $val['sign_time'] = time();
+            $val['openid'] = $userinfo['openid'];
+            $val['nickname'] = $userinfo['nickname'];
+            $val['avatar'] = $userinfo['headimgurl'];
+            $val['create_time'] = time();
+
             if(!is_tel($val['tel'])) {
                 return ajax('无效的手机号',-1);
             }
             try {
-                Db::table('mp_sign')->where('openid','=',$userinfo['openid'])->update($val);
+                Db::table('mp_sign')->insert($val);
             } catch (\Exception $e) {
                 return ajax($e->getMessage(), -1);
             }
             return ajax();
         }
-        try {
-            $info = Db::table('mp_sign')->alias('s')
-                ->join('mp_sign_referer r','s.referer_id=r.id','left')
-                ->where('openid','=',$userinfo['openid'])
-                ->field('s.*,r.name,r.tel AS referer_tel')->find();
-            if(!$info) {
-                return $this->fetch('error');
-            }
-            $list = Db::table('mp_sign_referer')->select();
-        } catch (\Exception $e) {
-            die($e->getMessage());
-        }
+
         $jssdk = new Jssdk($this->appid, $this->appsecret);
         $data = $jssdk->getSignPackage();
         $share_data = [
@@ -78,8 +70,6 @@ class Sign extends Controller {
         $this->assign('data',$data);
         $this->assign('share_data',$share_data);
         $this->assign('userinfo',$userinfo);
-        $this->assign('info',$info);
-        $this->assign('list',$list);
         return $this->fetch();
     }
 
@@ -100,26 +90,26 @@ class Sign extends Controller {
                 $data_all = $this->get_user_info($data['access_token'],$data['openid']);//获取微信用户信息
 
                 /*保存用户信息到数据库并设置session*/
-                $insert_data = [
-                    'openid' => $data_all['openid'],
-                    'nickname' => $data_all['nickname'],
-                    'avatar' => $data_all['headimgurl']
-                ];
-
-                try {
-                    $whereUser = [
-                        ['openid','=',$data_all['openid']]
-                    ];
-                    $user_exist = Db::table('mp_sign')->where($whereUser)->find();
-                    if($user_exist) {
-                        Db::table('mp_sign')->where($whereUser)->update($insert_data);
-                    }else {
-                        $insert_data['create_time'] = time();
-                        Db::table('mp_sign')->insert($insert_data);
-                    }
-                }catch (\Exception $e) {
-                    die('系统错误,请联系管理员 :' . $e->getMessage());
-                }
+//                $insert_data = [
+//                    'openid' => $data_all['openid'],
+//                    'nickname' => $data_all['nickname'],
+//                    'avatar' => $data_all['headimgurl']
+//                ];
+//
+//                try {
+//                    $whereUser = [
+//                        ['openid','=',$data_all['openid']]
+//                    ];
+//                    $user_exist = Db::table('mp_sign')->where($whereUser)->find();
+//                    if($user_exist) {
+//                        Db::table('mp_sign')->where($whereUser)->update($insert_data);
+//                    }else {
+//                        $insert_data['create_time'] = time();
+//                        Db::table('mp_sign')->insert($insert_data);
+//                    }
+//                }catch (\Exception $e) {
+//                    die('系统错误,请联系管理员 :' . $e->getMessage());
+//                }
 
                 session('userinfo',$data_all);
             }

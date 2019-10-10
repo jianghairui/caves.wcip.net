@@ -27,11 +27,11 @@
             <th width="35">#</th>
             <th width="60">头像</th>
             <th width="100">昵称</th>
-            <th width="100">姓名</th>
-            <th width="80">职位</th>
+            <th width="100">参会人姓名</th>
+            <th width="50">参会人数</th>
             <th width="120">手机号</th>
             <th width="150">公司名称</th>
-            <th width="200">公司地址</th>
+            <th width="200">经营范围</th>
             <th width="60">用户状态</th>
             <th width="80">操作</th>
         </tr>
@@ -44,10 +44,10 @@
                 {if substr($li['avatar'],0,4) == 'http'}{$li['avatar']}{else /}{$qiniu_weburl}{$li['avatar']}{/if}{else /}/static/src/image/default.jpg{/if}" alt=""></td>
                 <td>{$li.nickname}</td>
                 <td>{$li.name}</td>
-                <td>{$li.job}</td>
+                <td>{$li.num}</td>
                 <td>{$li.tel}</td>
                 <td>{$li.company}</td>
-                <td>{$li.address}</td>
+                <td>{$li.busine}</td>
                 <td class="td-contact">
                     {switch $li['contact']}
                     {case 0}
