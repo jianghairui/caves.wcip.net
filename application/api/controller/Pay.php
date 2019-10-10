@@ -375,6 +375,95 @@ class Pay extends Common {
     }
 
 
+
+
+    //工厂购买套餐支付
+    public function role3Pay() {
+        $val['pay_order_sn'] = input('post.pay_order_sn');
+        checkPost($val);
+        $where = [
+            ['pay_order_sn','=',$val['pay_order_sn']],
+            ['status','=',0],
+            ['uid','=',$this->myinfo['id']]
+        ];
+
+        $app = Factory::payment($this->mp_config);
+        try {
+            $order_exist = Db::table('mp_role3_order')->where($where)->find();
+            if(!$order_exist) {
+                return ajax('pay_order_sn',4);
+            }
+            $result = $app->order->unify([
+                'body' => '工厂套餐充值',
+                'out_trade_no' => $val['pay_order_sn'],
+//                'total_fee' => 1,
+                'total_fee' => floatval($order_exist['pay_price'])*100,
+                'notify_url' => $this->weburl . 'api/pay/role3_notify',
+                'trade_type' => 'JSAPI',
+                'openid' => $this->myinfo['openid'],
+            ]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        if($result['return_code'] != 'SUCCESS' || $result['result_code'] != 'SUCCESS') {
+            return ajax($result['err_code_des'],-1);
+        }
+        try {
+            $sign['appId'] = $result['appid'];
+            $sign['timeStamp'] = strval(time());
+            $sign['nonceStr'] = $result['nonce_str'];
+            $sign['signType'] = 'MD5';
+            $sign['package'] = 'prepay_id=' . $result['prepay_id'];
+            $sign['paySign'] = getSign($sign);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($sign);
+    }
+
+    //工厂套餐支付回调接口
+    public function role3_notify() {
+        //将返回的XML格式的参数转换成php数组格式
+        $xml = file_get_contents('php://input');
+        $data = xml2array($xml);
+        $this->paylog($this->cmd,var_export($data,true));
+        if($data) {
+            if($data['return_code'] == 'SUCCESS' && $data['result_code'] == 'SUCCESS') {
+                $whereOrder = [
+                    ['pay_order_sn','=',$data['out_trade_no']],
+                    ['status','=',0],
+                ];
+                try {
+                    Db::startTrans();
+                    $order_exist = Db::table('mp_role3_order')->where($whereOrder)->find();
+                    if($order_exist) {
+
+                        $update_data = [
+                            'status' => 1,
+                            'trans_id' => $data['transaction_id'],
+                            'pay_time' => time(),
+                        ];
+                        Db::table('mp_role3_order')->where($whereOrder)->update($update_data);
+                        //TODO  查找role3_level表
+
+                        //TODO  插入role3_curr表
+
+                        //TODO  更改user表
+                        $user = Db::table('mp_user')->where('id',$order_exist['uid'])->find();
+                    }
+                    Db::commit();
+                }catch (\Exception $e) {
+                    Db::rollback();
+                    $this->log($this->cmd,$e->getMessage());
+                }
+            }
+
+        }
+        exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
+
+    }
+
+
     protected function asyn_tpl_send($data) {
         $param = http_build_query($data);
         $allow = [

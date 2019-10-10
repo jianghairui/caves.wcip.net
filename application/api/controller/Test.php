@@ -16,30 +16,18 @@ class Test extends Common {
 
 
     public function index() {
+
         $start = microtime(true);
         try {
-            $sms = new Sendsms();
-            $param = [
-                'tel' => '15202284533,18776554629,18834406582,13114857103',
-                'param' => [
-                    'req_title' => '这是群发测试',
-                    'work_title' => '这是群发测试',
-                    'org' => 'LALALA'
-                ]
-            ];
-            $res = $sms->send($param,'SMS_174992129');
-//            if($res->Code !== 'OK') {
-//                $this->smslog($this->cmd,$res->Message);
-//            }else {
-//
-//            }
+            Db::startTrans();
+            Db::commit();
         } catch (\Exception $e) {
+            Db::rollback();
             die($e->getMessage());
         }
-        dump($res);
 
         $end = microtime(true);
-        echo $end-$start;
+        echo bcsub($end,$start,20);
         echo ' 秒 ';
     }
 
@@ -84,6 +72,40 @@ class Test extends Common {
             echo '<hr>';
         }
     }
+
+
+    public function sms_test() {
+
+        $start = microtime(true);
+        try {
+            $str = create_unique_number('');
+            echo $str . '<br>';
+            echo strlen('4200000409201909276961823508') . '<br>';
+//            Db::table('mp_user')->select();
+//            $sms = new Sendsms();
+//            $param = [
+//                'tel' => '15202284533,18776554629,18834406582,13114857103',
+//                'param' => [
+//                    'req_title' => '这是群发测试',
+//                    'work_title' => '这是群发测试',
+//                    'org' => 'LALALA'
+//                ]
+//            ];
+//            $res = $sms->send($param,'SMS_174992129');
+//            if($res->Code !== 'OK') {
+//                $this->smslog($this->cmd,$res->Message);
+//            }else {
+//
+//            }
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+
+        $end = microtime(true);
+        echo bcsub($end,$start,20);
+        echo ' 秒 ';
+    }
+
 
     //HTTP请求（支持HTTP/HTTPS，支持GET/POST）
     private function http_request($url, $data = null)

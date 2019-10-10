@@ -58,6 +58,7 @@ class Common extends Controller {
             'Email',
             'Login/login',
             'Pay/recharge_notify',
+            'Pay/role3_notify',
             'Pay/order_notify',
             'Pay/funding_notify',
             'Activity/test',
