@@ -300,10 +300,10 @@ class User extends Base {
             $where[] = ['o.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
         }
         if($param['datemax']) {
-            $where[] = ['create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
+            $where[] = ['o.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
         }
         if($param['search']) {
-            $where[] = ['nickname|tel','like',"%{$param['search']}%"];
+            $where[] = ['o.nickname|o.tel','like',"%{$param['search']}%"];
         }
 
         $curr_page = input('param.page',1);
@@ -328,6 +328,51 @@ class User extends Base {
         $this->assign('list',$list);
         $this->assign('page',$page);
         return $this->fetch();
+    }
+
+
+    public function role3OrderList() {
+        $param['status'] = input('param.status','');
+        $param['datemin'] = input('param.datemin');
+        $param['datemax'] = input('param.datemax');
+        $param['search'] = input('param.search');
+
+        $page['query'] = http_build_query(input('param.'));
+        $where = [];
+
+        if($param['datemin']) {
+            $where[] = ['o.create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
+        }
+        if($param['datemax']) {
+            $where[] = ['o.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
+        }
+        if($param['search']) {
+            $where[] = ['o.pay_order_sn','like',"%{$param['search']}%"];
+        }
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+
+        try {
+            $count = Db::table('mp_role3_order')->alias('o')->where($where)->count();
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_role3_order')->alias('o')
+                ->join("mp_user u","o.uid=u.id","left")
+                ->join("mp_role3_level l","o.level_id=l.id","left")
+                ->where($where)
+                ->order(['o.create_time'=>'DESC'])
+                ->field("o.*,u.nickname,u.avatar,l.title")
+                ->limit(($curr_page-1)*$perpage,$perpage)
+                ->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        return $this->fetch();
+
     }
 
     public function rechargeDetail() {
