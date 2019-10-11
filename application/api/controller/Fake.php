@@ -16,7 +16,7 @@ class Fake extends Common {
         $val['nickname'] = input('post.nickname');
         $val['avatar'] = input('post.avatar');
         $val['org'] = input('post.org');
-        $val['role'] = 3;
+        $val['role'] = 1;
         $val['role_check'] = 2;
         $val['create_time'] = time();
         $val['fake'] = 1;
