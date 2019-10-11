@@ -490,8 +490,8 @@ class Pay extends Common {
                             ];
                             Db::table('mp_role3_curr')->insert($insert_data);
                             $update = [
-                                'role_level' => $level_exist['level'],
                                 'role_level_id' => $level_exist['id'],
+                                'role_level' => $level_exist['level'],
                                 'role_level_endtime' => $insert_data['end_time']
                             ];
                             Db::table('mp_user')->where('id','=',$order_exist['uid'])->update($update);

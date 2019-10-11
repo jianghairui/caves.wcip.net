@@ -12,11 +12,11 @@ use think\Db;
 class Fake extends Common {
 
     public function addRole() {
-        die();
+//        die();
         $val['nickname'] = input('post.nickname');
         $val['avatar'] = input('post.avatar');
         $val['org'] = input('post.org');
-        $val['role'] = 1;
+        $val['role'] = 3;
         $val['role_check'] = 2;
         $val['create_time'] = time();
         $val['fake'] = 1;
@@ -71,7 +71,6 @@ class Fake extends Common {
         }
         return ajax();
     }
-
 
     public function test() {
 //        die();
