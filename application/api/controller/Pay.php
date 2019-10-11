@@ -30,8 +30,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => 'VIP充值',
                 'out_trade_no' => $val['order_sn'],
-                'total_fee' => 1,
-//                'total_fee' => floatval($order_exist['price'])*100,
+//                'total_fee' => 1,
+                'total_fee' => floatval($order_exist['price'])*100,
                 'notify_url' => $this->weburl . 'api/pay/recharge_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid'],
@@ -406,8 +406,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '工厂套餐充值',
                 'out_trade_no' => $val['pay_order_sn'],
-//                'total_fee' => 1,
-                'total_fee' => floatval($order_exist['pay_price'])*100,
+                'total_fee' => 1,
+//                'total_fee' => floatval($order_exist['pay_price'])*100,
                 'notify_url' => $this->weburl . 'api/pay/role3_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid'],
@@ -441,10 +441,9 @@ class Pay extends Common {
             if($data['return_code'] == 'SUCCESS' && $data['result_code'] == 'SUCCESS') {
                 $whereOrder = [
                     ['pay_order_sn','=',$data['out_trade_no']],
-                    ['status','=',0],
+                    ['status','=',0]
                 ];
                 try {
-                    Db::startTrans();
                     $order_exist = Db::table('mp_role3_order')->where($whereOrder)->find();
                     if($order_exist) {
 
@@ -454,12 +453,50 @@ class Pay extends Common {
                             'pay_time' => time(),
                         ];
                         Db::table('mp_role3_order')->where($whereOrder)->update($update_data);
-                        //TODO  查找role3_level表
 
-                        //TODO  插入role3_curr表
+                        Db::startTrans();
+                        //TODO  查找role3_level表,插入role3_curr表,更改user表
+                        $whereLevel = [
+                            ['id','=',$order_exist['level_id']]
+                        ];
+                        $level_exist = Db::table('mp_role3_level')->where($whereLevel)->find();
+                        if($level_exist) {
+                            $insert_data = [
+                                'uid' => $order_exist['uid'],
+                                'title' => $level_exist['title'],
+                                'price' => $level_exist['price'],
+                                'level_id' => $level_exist['id'],
+                                'level' => $level_exist['level'],
+                                'days' => $level_exist['days'],
+                                'service_1' => $level_exist['service_1'],
+                                'service_2' => $level_exist['service_2'],
+                                'service_3' => $level_exist['service_3'],
+                                'service_4' => $level_exist['service_4'],
+                                'service_5' => $level_exist['service_5'],
+                                'service_6' => $level_exist['service_6'],
+                                'service_7' => $level_exist['service_7'],
+                                'service_8' => $level_exist['service_8'],
+                                'service_9' => $level_exist['service_9'],
+                                'service_10' => $level_exist['service_10'],
+                                'service_11' => $level_exist['service_11'],
+                                'service_12' => $level_exist['service_12'],
+                                'service_13' => $level_exist['service_13'],
+                                'service_14' => $level_exist['service_14'],
+                                'service_15' => $level_exist['service_15'],
+                                'service_16' => $level_exist['service_16'],
+                                'service_17' => $level_exist['service_17'],
+                                'create_time' => time(),
+                                'end_time' => (time()+$level_exist['days']*24*3600)
+                            ];
+                            Db::table('mp_role3_curr')->insert($insert_data);
+                            $update = [
+                                'role_level' => $level_exist['level'],
+                                'role_level_id' => $level_exist['id'],
+                                'role_level_endtime' => $insert_data['end_time']
+                            ];
+                            Db::table('mp_user')->where('id','=',$order_exist['uid'])->update($update);
+                        }
 
-                        //TODO  更改user表
-                        $user = Db::table('mp_user')->where('id',$order_exist['uid'])->find();
                     }
                     Db::commit();
                 }catch (\Exception $e) {
