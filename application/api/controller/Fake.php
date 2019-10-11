@@ -74,7 +74,7 @@ class Fake extends Common {
 
 
     public function test() {
-        die();
+//        die();
         $role['uid'] = input('post.uid');
         $role['cover'] = input('post.cover');
         $role['org'] = input('post.org');

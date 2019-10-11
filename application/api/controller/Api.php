@@ -41,7 +41,7 @@ class Api extends Common
                 ->join('mp_user u','r.uid=u.id','left')
                 ->where($where)->order(['r.start_time' => 'ASC'])
                 ->field("r.id,r.uid,r.title,r.works_num,r.idea_num,r.cover,u.org,r.start_time,r.end_time")
-                ->limit(0, 2)
+                ->limit(0, 5)
                 ->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
@@ -85,7 +85,7 @@ class Api extends Common
                 ->field('id,uid,title,cover,theme,explain,desc,org,linkman,tel,email,weixin,start_time,deadline,vote_time,end_time,works_num,idea_num,use_video,video_url')
                 ->where($where)->find();
             if (!$info) {
-                return ajax($val['req_id'], -4);
+                return ajax($val['req_id'], 87);
             }
             $user = Db::table('mp_user')->where('id','=',$info['uid'])->field('nickname,avatar,org')->find();
             $info['nickname'] = $user['nickname'];
@@ -161,9 +161,9 @@ class Api extends Common
                 ['req_id','=',$val['req_id']]
             ];
             $idea_num = Db::table('mp_req_idea')->where($whereIdea)->count();
-            if($idea_num) {
-                return ajax('最多发三条创意',84);
-            }
+//            if($idea_num > 3) {
+//                return ajax('最多发三条创意',84);
+//            }
 
             if($val['tags']) {
                 $tags_arr = explode(',',$val['tags']);
@@ -198,7 +198,8 @@ class Api extends Common
         $perpage = input('post.perpage',20);
         try {
             $where = [
-                ['i.status','=',1]
+                ['i.status','=',1],
+                ['i.del','=',0]
             ];
             if($val['req_id']) {
                 $where[] = ['i.req_id','=',$val['req_id']];
@@ -260,7 +261,7 @@ class Api extends Common
                 ->field('i.id,i.uid,i.title,i.content,i.works_num,i.vote,i.create_time,i.tags,u.nickname,u.avatar,i.req_id,r.title AS req_title,r.cover,r.org')
                 ->find();
             if(!$info) {
-                return ajax('invalid idea_id',-4);
+                return ajax('invalid idea_id',88);
             }
             $myvote = Db::table('mp_idea_vote')->where('uid','=',$this->myinfo['id'])->column('idea_id');
             if(in_array($info['id'],$myvote)) {
@@ -495,7 +496,7 @@ class Api extends Common
                 ->field("w.id,w.uid,w.title,w.desc,w.pics,w.vote,w.bid_num,w.req_id,w.create_time,w.status,w.reason,u.avatar,u.nickname,i.title AS idea_title,i.vote AS idea_vote")
                 ->find();
             if (!$work_exist) {
-                return ajax($val['id'], -4);
+                return ajax($val['id'], 89);
             }
             //我是否投票
             $myvote = Db::table('mp_works_vote')->where('uid','=',$this->myinfo['id'])->column('work_id');
@@ -1108,15 +1109,58 @@ class Api extends Common
     }
 
     //角色充值类目列表
-    public function getRoleLevelList() {
-
-        $list = [
-            [
-                ''
-            ],
-        ];
+    public function getRole3LevelList() {
+        try {
+            $list = Db::table('mp_role3_level')->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
         return ajax($list);
     }
+
+    public function role3Recharge() {
+        $val['level_id'] = input('post.level_id');
+        checkPost($val);
+        try {
+            if($this->myinfo['role'] != 3 || $this->myinfo['role_check'] != 2) {
+                return ajax('套餐仅限通过审核的工厂',90);
+            }
+            $whereLevel = [
+                ['id','=',$val['level_id']]
+            ];
+            $level_exist = Db::table('mp_role3_level')->where($whereLevel)->find();
+            if(!$level_exist) {
+                return ajax($val['level_id'],-4);
+            }
+            $whereCurr = [
+                ['uid','=',$this->myinfo['id']],
+                ['end_time','>',time()]
+            ];
+            $curr_exist = Db::table('mp_role3_curr')->where($whereCurr)->find();
+            if($curr_exist) {
+                return ajax('当前套餐结束前无法购买新套餐',91);
+            }
+            $val['uid'] = $this->myinfo['id'];
+            $val['pay_order_sn'] = create_unique_number('');
+            $val['pay_price'] = $level_exist['price'];
+            $val['role_level'] = $level_exist['level'];
+            $val['days'] = $level_exist['days'];
+            $val['role_level'] = $level_exist['level'];
+            $val['create_time'] = time();
+            Db::table('mp_role3_order')->insert($val);
+
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($val['pay_order_sn']);
+    }
+
+
+
+
+
+
+
 
 
     //收集formid

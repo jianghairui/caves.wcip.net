@@ -21,7 +21,7 @@ class Home extends Common {
             $user_exist = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','left')
                 ->where($whereUser)
-                ->field('u.id,u.org,u.nickname,u.avatar,u.role,u.role_check,u.level,u.ifocus,u.focus,u.req_num,u.bid_num,u.idea_num,u.works_num,u.sign,r.cover,r.tel AS role_tel')->find();
+                ->field('u.id,u.org,u.nickname,u.avatar,u.role,u.role_check,u.level,u.ifocus,u.focus,u.req_num,u.bid_num,u.idea_num,u.works_num,r.cover,r.tel AS role_tel,r.desc AS sign')->find();
             if(!$user_exist) {
                 return ajax('非法参数uid',-4);
             }
@@ -43,6 +43,7 @@ class Home extends Common {
         }else {
             $user_exist['level_name'] = '未知称号';
         }
+        $user_exist['role_tel'] = '';
         return ajax($user_exist);
     }
     //他人主页创意

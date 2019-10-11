@@ -390,7 +390,7 @@ class Req extends Base {
         $perpage = input('param.perpage',10);
 
         $where = [
-            ['r.del','=',0]
+            ['i.del','=',0]
         ];
         if(!is_null($param['status']) && $param['status'] !== '') {
             $where[] = ['i.status','=',$param['status']];
@@ -456,6 +456,7 @@ class Req extends Base {
             die($e->getMessage());
         }
         $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
     //创意编辑

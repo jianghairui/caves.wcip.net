@@ -375,24 +375,34 @@ class Pay extends Common {
     }
 
 
-
-
     //工厂购买套餐支付
     public function role3Pay() {
         $val['pay_order_sn'] = input('post.pay_order_sn');
         checkPost($val);
-        $where = [
-            ['pay_order_sn','=',$val['pay_order_sn']],
-            ['status','=',0],
-            ['uid','=',$this->myinfo['id']]
-        ];
 
-        $app = Factory::payment($this->mp_config);
+        if($this->myinfo['role'] != 3 || $this->myinfo['role_check'] != 2) {
+            return ajax('套餐仅限通过审核的工厂',90);
+        }
         try {
-            $order_exist = Db::table('mp_role3_order')->where($where)->find();
+            $whereCurr = [
+                ['uid','=',$this->myinfo['id']],
+                ['end_time','>',time()]
+            ];
+            $level_exist = Db::table('mp_role3_curr')->where($whereCurr)->find();
+            if($level_exist) {
+                return ajax('当前套餐结束前无法购买新套餐',91);
+            }
+            $whereOrder = [
+                ['pay_order_sn','=',$val['pay_order_sn']],
+                ['status','=',0],
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $order_exist = Db::table('mp_role3_order')->where($whereOrder)->find();
             if(!$order_exist) {
                 return ajax('pay_order_sn',4);
             }
+
+            $app = Factory::payment($this->mp_config);
             $result = $app->order->unify([
                 'body' => '工厂套餐充值',
                 'out_trade_no' => $val['pay_order_sn'],

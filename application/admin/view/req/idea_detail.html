@@ -1,12 +1,13 @@
 <style>
-    .thumbnail{ width:132px;border-radius: 50%;}
+    .thumbnail{ width:132px;height:132px;border-radius: 50%;}
 </style>
 <article class="page-container">
     <form class="form form-horizontal" id="form-article-add">
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3"></label>
             <div class="formControls col-xs-8 col-sm-9">
-                <img class="thumbnail" src="{$info.avatar}">
+                <img class="thumbnail" src="{if $info['avatar']}
+                {if substr($info['avatar'],0,4) == 'http'}{$info['avatar']}{else /}{$qiniu_weburl}{$info['avatar']}{/if}{else /}/static/src/image/default.jpg{/if}">
             </div>
         </div>
         <div class="row cl">
