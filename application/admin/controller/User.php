@@ -347,22 +347,23 @@ class User extends Base {
             $where[] = ['o.create_time','<=',strtotime(date('Y-m-d 23:59:59',strtotime($param['datemax'])))];
         }
         if($param['search']) {
-            $where[] = ['o.pay_order_sn','like',"%{$param['search']}%"];
+            $where[] = ['o.pay_order_sn|r.org|r.tel','like',"%{$param['search']}%"];
         }
         $curr_page = input('param.page',1);
         $perpage = input('param.perpage',10);
 
         try {
-            $count = Db::table('mp_role3_order')->alias('o')->where($where)->count();
+            $count = Db::table('mp_role3_order')->alias('o')->join("mp_user_role r","o.uid=r.uid","left")
+                ->join("mp_role3_level l","o.level_id=l.id","left")->where($where)->count();
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
             $list = Db::table('mp_role3_order')->alias('o')
-                ->join("mp_user u","o.uid=u.id","left")
+                ->join("mp_user_role r","o.uid=r.uid","left")
                 ->join("mp_role3_level l","o.level_id=l.id","left")
                 ->where($where)
                 ->order(['o.create_time'=>'DESC'])
-                ->field("o.*,u.nickname,u.avatar,l.title")
+                ->field("o.*,r.org,r.tel,l.title")
                 ->limit(($curr_page-1)*$perpage,$perpage)
                 ->select();
         }catch (\Exception $e) {

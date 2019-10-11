@@ -22,8 +22,8 @@
         <thead>
         <tr class="text-c">
             <th width="30">#</th>
-            <th width="60">头像</th>
-            <th width="100">昵称</th>
+            <th width="160">工厂名称</th>
+            <th width="100">注册电话</th>
             <th width="160">订单号</th>
             <th width="200">微信端单号</th>
             <th width="60">价格</th>
@@ -37,9 +37,8 @@
             {foreach $list as $li}
             <tr class="text-c userinfo">
                 <td>{$li.id}</td>
-                <td><img src="{if $li['avatar']}
-                {if substr($li['avatar'],0,4) == 'http'}{$li['avatar']}{else /}{$qiniu_weburl}{$li['avatar']}{/if}{else /}/static/src/image/default.jpg{/if}" alt=""></td>
-                <td>{$li.nickname}</td>
+                <td>{$li.org}</td>
+                <td>{$li.tel}</td>
                 <td>{$li.pay_order_sn}</td>
                 <td>{$li.trans_id}</td>
                 <td>{$li.pay_price}</td>
