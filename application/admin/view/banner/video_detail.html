@@ -195,7 +195,7 @@
             }
             var file = obj.get(0).files[0];	                                           //上传的文件
             if(file.size > 128*1024) {
-                layer.alert('上传文件大小不超过512K');
+                layer.alert('上传文件大小不超过128K');
                 return;
             }
             //七牛云上传

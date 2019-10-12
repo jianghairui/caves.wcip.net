@@ -180,7 +180,7 @@
                 return;
             }
             var file = obj.get(0).files[0];	                                           //上传的文件
-            var limitsize = 512;
+            var limitsize = 128;
             if(file.size > limitsize*1024) {
                 layer.alert('上传文件大小不超过'+limitsize+'Kb');
                 return;
