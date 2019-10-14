@@ -16,6 +16,7 @@ class User extends Base {
     //会员列表
     public function userList() {
         $param['role_check'] = input('param.role_check','');
+        $param['role'] = input('param.role','');
         $param['datemin'] = input('param.datemin');
         $param['datemax'] = input('param.datemax');
         $param['search'] = input('param.search');
@@ -30,6 +31,9 @@ class User extends Base {
         if(!is_null($param['role_check']) && $param['role_check'] !== '') {
             $where[] = ['role_check','=',$param['role_check']];
         }
+        if(!is_null($param['role']) && $param['role'] !== '') {
+            $where[] = ['role','=',$param['role']];
+        }
         if($param['datemin']) {
             $where[] = ['create_time','>=',strtotime(date('Y-m-d 00:00:00',strtotime($param['datemin'])))];
         }
@@ -43,11 +47,11 @@ class User extends Base {
         }
         $order = ['id'=>'DESC'];
         try {
-            $count = Db::table('mp_user')->where($where)->count();
+            $count = Db::table('mp_user')->where($where)->whereNotNull('nickname')->count();
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_user')->where($where)
+            $list = Db::table('mp_user')->where($where)->whereNotNull('nickname')
                 ->order($order)
                 ->limit(($curr_page - 1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {
