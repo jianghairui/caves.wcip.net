@@ -34,7 +34,7 @@
             <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span></label>
             <div class="formControls col-xs-8 col-sm-9">
                 <span style="font-size: 16px">
-                    (建议尺寸: 420*420)
+                    (建议尺寸: 800*800)
                 </span>
             </div>
         </div>
@@ -302,8 +302,9 @@
                 return;
             }
             var file = obj.get(0).files[0];	                                           //上传的文件
-            if(file.size > 512*1024) {
-                layer.alert('上传文件大小不超过512Kb',{title:'提示'});
+            var limitsize = 128;
+            if(file.size > limitsize*1024) {
+                layer.alert('上传文件大小不超过'+limitsize+'Kb',{title:'提示'});
                 return;
             }
             //七牛云上传
@@ -369,7 +370,7 @@
                 return false;
             }
             $("#attr_detail").append(
-                '<div class="row cl"><label class="form-label col-sm-2"><a style="text-decoration:none" class="ml-5" title="删除" onclick="javascript:$(this).parent().parent().remove();"><i class="Hui-iconfont">&#xe6e2;</i></a></label><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr1[]"></div><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr2[]" onkeyup="onlyNumber(this)"></div><div class="formControls col-sm-2"><input type="number" class="input-text" value="" name="attr3[]"></div></div>'
+                '<div class="row cl"><label class="form-label col-sm-2"><a style="text-decoration:none" class="ml-5" title="删除" onclick="javascript:$(this).parent().parent().remove();"><i class="Hui-iconfont">&#xe6e2;</i></a></label><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr1[]" maxlength="20"></div><div class="formControls col-sm-2"><input type="text" class="input-text" value="" name="attr2[]" onkeyup="onlyNumber(this)"></div><div class="formControls col-sm-2"><input type="number" class="input-text" value="" name="attr3[]" maxlength="8"></div></div>'
             );
         });
 

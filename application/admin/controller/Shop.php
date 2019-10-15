@@ -611,7 +611,7 @@ class Shop extends Base {
         $curr_page = input('param.page',1);
         $perpage = input('param.perpage',10);
 
-        $where = " 1";
+        $where = " `del`=0";
         $order = " ORDER BY `id` DESC";
         $orderby = " ORDER BY `d`.`id` DESC";
         if($param['status'] !== '') {

@@ -1046,7 +1046,7 @@ class My extends Common {
         }
         return ajax();
     }
-    //取消订单
+    //取消众筹订单
     public function fundingOrderCancel() {
         $val['order_id'] = input('post.order_id');
         checkPost($val);
@@ -1322,6 +1322,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             return ajax($e->getMessage(), -1);
         }
         return ajax();
+
     }
     /*------ 商品订单结束 END------*/
 

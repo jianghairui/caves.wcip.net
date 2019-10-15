@@ -34,7 +34,7 @@
             <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span></label>
             <div class="formControls col-xs-8 col-sm-9">
                 <span style="font-size: 16px">
-                    (建议尺寸: 420*420)
+                    (建议尺寸: 800*800)
                 </span>
             </div>
         </div>
@@ -339,7 +339,8 @@
                     if(result.code == 1){
                         load = layer.load(2);
                         var observer = {                         //设置上传过程的监听函数
-                            next(res){                        //上传中(result参数带有total字段的 object，包含loaded、total、percent三个属性)
+                            next(res){
+                                //上传中(result参数带有total字段的 object，包含loaded、total、percent三个属性)
                                 Math.floor(res.total.percent);//查看进度[loaded:已上传大小(字节);total:本次上传总大小;percent:当前上传进度(0-100)]
                                 console.log(Math.floor(res.total.percent));
                             },
@@ -367,6 +368,7 @@
                         };
                         var observable = qiniu.upload(file,result.data.filename,result.data.token,putExtra,config);
                         var subscription = observable.subscribe(observer);          // 上传开始
+
                         // 取消上传
                         // subscription.unsubscribe();
                     }else{
