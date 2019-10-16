@@ -639,24 +639,28 @@ class Req extends Base {
     }
     //作品审核-通过
     public function workPass() {
-        $map = [
+        $whereWorks = [
             ['status','=',0],
             ['id','=',input('post.id',0)]
         ];
         try {
-            $exist = Db::table('mp_req_works')->where($map)->find();
+            $exist = Db::table('mp_req_works')->where($whereWorks)->find();
             if(!$exist) {
                 return ajax('非法操作',-1);
             }
             $whereReq = [
                 ['id','=',$exist['req_id']]
             ];
-            $whereIdea = [
-                ['id','=',$exist['idea_id']]
-            ];
-            Db::table('mp_req_works')->where($map)->update(['status'=>1]);
+
+            Db::table('mp_req_works')->where($whereWorks)->update(['status'=>1]);
             Db::table('mp_req')->where($whereReq)->setInc('works_num',1);
-            Db::table('mp_req_idea')->where($whereIdea)->setInc('works_num',1);
+
+            if($exist['idea_id']) {
+                $whereIdea = [
+                    ['id','=',$exist['idea_id']]
+                ];
+                Db::table('mp_req_idea')->where($whereIdea)->setInc('works_num',1);
+            }
             Db::table('mp_user')->where('id','=',$exist['uid'])->setInc('works_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
