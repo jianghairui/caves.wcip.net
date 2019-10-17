@@ -74,7 +74,7 @@ class Shop extends Common {
             $info = Db::table('mp_goods')->alias('g')
                 ->join('mp_user u','g.shop_id=u.id','left')
                 ->where($where)
-                ->field("g.id,g.name,g.detail,g.origin_price,g.price,g.pics,g.carriage,g.stock,g.sales,g.use_attr,g.attr,g.hot,g.limit,u.avatar,u.org,u.level")
+                ->field("g.id,g.name,g.detail,g.origin_price,g.price,g.pics,g.carriage,g.stock,g.sales,g.use_attr,g.attr,g.hot,g.limit,u.id AS uid,u.nickname,u.avatar,u.org,u.level")
                 ->find();
             if(!$info) {
                 return ajax($val['id'],-4);
@@ -91,6 +91,9 @@ class Shop extends Common {
             $info['attr_list'] = $attr_list;
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
+        }
+        if(!$info['org']) {
+            $info['org'] = $info['nickname'];
         }
         $info['pics'] = unserialize($info['pics']);
         return ajax($info);
