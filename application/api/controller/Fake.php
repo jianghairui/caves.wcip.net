@@ -12,7 +12,7 @@ use think\Db;
 class Fake extends Common {
 
     public function addRole() {
-//        die();
+        die();
         $val['nickname'] = input('post.nickname');
         $val['avatar'] = input('post.avatar');
         $val['org'] = input('post.org');
@@ -72,8 +72,7 @@ class Fake extends Common {
         return ajax();
     }
 
-    public function test() {
-//        die();
+    public function roleClear() {
         $role['uid'] = input('post.uid');
         $role['cover'] = input('post.cover');
         $role['org'] = input('post.org');
@@ -110,6 +109,20 @@ class Fake extends Common {
             $this->rs_delete($exist['cover']);
         }
         return ajax();
+    }
+
+    public function userRestore() {
+        $val['uid'] = input('post.uid');
+
+    }
+
+    public function orgMod() {
+        $val['uid'] = input('post.uid');
+    }
+
+
+    private function userInfo() {
+
     }
 
 

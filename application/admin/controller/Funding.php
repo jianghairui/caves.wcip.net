@@ -126,7 +126,15 @@ class Funding extends Base {
             return ajax();
         }
         try {
-            $worklist = Db::table('mp_req_works')->where('factory_id','>',0)->field('id,title')->select();
+            $yet = [];
+            $works_ids_yet = Db::table('mp_funding')->where($yet)->column('work_id');
+            $whereWork = [
+                ['factory_id','>',0]
+            ];
+            if(!empty($works_ids_yet)) {
+                $whereWork[] = ['id','NOT IN',$works_ids_yet];
+            }
+            $worklist = Db::table('mp_req_works')->where($whereWork)->field('id,title')->select();
         } catch (\Exception $e) {
             die($e->getMessage());
         }

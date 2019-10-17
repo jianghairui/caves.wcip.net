@@ -719,12 +719,14 @@ class Req extends Base {
             $whereReq = [
                 ['id','=',$exist['req_id']]
             ];
-            $whereIdea = [
-                ['id','=',$exist['idea_id']]
-            ];
             Db::table('mp_req_works')->where($map)->update(['del'=>1]);
             Db::table('mp_req')->where($whereReq)->setDec('works_num',1);
-            Db::table('mp_req_idea')->where($whereIdea)->setDec('works_num',1);
+            if($exist['idea_id']) {
+                $whereIdea = [
+                    ['id','=',$exist['idea_id']]
+                ];
+                Db::table('mp_req_idea')->where($whereIdea)->setDec('works_num',1);
+            }
             Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('works_num',1);
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);

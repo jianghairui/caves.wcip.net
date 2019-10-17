@@ -118,7 +118,8 @@ class Home extends Common {
             }
             $whereWorks = [
                 ['w.uid','=',$val['uid']],
-                ['w.status','=',1]
+                ['w.status','=',1],
+                ['w.del','=',0]
             ];
             $list = Db::table('mp_req_works')->alias('w')
                 ->join("mp_req r", "w.req_id=r.id", "left")

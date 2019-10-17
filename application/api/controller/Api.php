@@ -487,7 +487,8 @@ class Api extends Common
         try {
             //作品是否存在
             $whereWorks = [
-                ['w.id', '=',$val['id']]
+                ['w.id', '=',$val['id']],
+                ['w.del', '=',0]
             ];
             $work_exist = Db::table('mp_req_works')->alias('w')
                 ->join("mp_req_idea i", "w.idea_id=i.id", "left")
