@@ -39,8 +39,11 @@ class Shop extends Base {
                 ->limit(($curr_page - 1)*$perpage,$perpage)
                 ->order(['g.id'=>'DESC'])
                 ->select();
-            $whereRole = [];
-            $shoplist = Db::table('mp_user_role')->where($whereRole)->field('uid,role,name,org')->select();
+            $whereFake = [
+                ['role_check','=',2],
+                ['role','>',0]
+            ];
+            $shoplist = Db::table('mp_user')->where($whereFake)->field('id,nickname,org,role,fake')->select();
         }catch (\Exception $e) {
             die('SQL错误: ' . $e->getMessage());
         }
@@ -60,10 +63,16 @@ class Shop extends Base {
                 ['status','=',1]
             ];
             $list = Db::table('mp_goods_cate')->where($where)->select();
+            $whereFake = [
+                ['role_check','=',2],
+                ['role','>',0]
+            ];
+            $fake_list = Db::table('mp_user')->where($whereFake)->field('id,nickname,org,role,fake')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
         $this->assign('list',$list);
+        $this->assign('fake_list',$fake_list);
         return $this->fetch();
     }
 //添加修改商品时获取分类列表
@@ -106,6 +115,11 @@ class Shop extends Base {
                 ['del','=',0]
             ];
             $attr_list = Db::table('mp_goods_attr')->where($where_attr)->select();
+            $whereFake = [
+                ['role_check','=',2],
+                ['role','>',0]
+            ];
+            $fake_list = Db::table('mp_user')->where($whereFake)->field('id,nickname,org,role,fake')->select();
         }catch (\Exception $e) {
             die($e->getMessage());
         }
@@ -114,6 +128,7 @@ class Shop extends Base {
         $this->assign('child',$child);
         $this->assign('info',$info);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        $this->assign('fake_list',$fake_list);
         return $this->fetch();
     }
 //添加商品POST
@@ -132,6 +147,7 @@ class Shop extends Base {
         $val['carriage'] = input('post.carriage');
         $val['service'] = input('post.service');
         $val['status'] = input('post.status');
+        $val['shop_id'] = input('post.shop_id',0);
         $val['create_time'] = time();
         checkInput($val);
         $val['check'] = 1;
@@ -230,6 +246,7 @@ class Shop extends Base {
         $val['carriage'] = input('post.carriage');
         $val['service'] = input('post.service');
         $val['status'] = input('post.status');
+        $val['shop_id'] = input('post.shop_id',0);
         $val['id'] = input('post.id');
         $val['create_time'] = time();
         checkInput($val);
