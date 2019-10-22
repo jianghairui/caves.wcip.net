@@ -727,9 +727,9 @@ class My extends Common {
             return ajax('请传入图片', 3);
         }
         try {
-            if ($user['role'] != 2 || $user['role_check'] != 2) {
-                return ajax('只有认证设计师可以投稿', 28);
-            }
+//            if ($user['role'] != 2 || $user['role_check'] != 2) {
+//                return ajax('只有认证设计师可以投稿', 28);
+//            }
             if (!$user['user_auth']) {
                 return ajax('用户未授权', 56);
             }
@@ -787,7 +787,8 @@ class My extends Common {
         $order = ['w.id'=>'DESC'];
         try {
             $where = [
-                ['w.uid','=',$this->myinfo['id']]
+                ['w.uid','=',$this->myinfo['id']],
+                ['w.del','=',0]
             ];
             if($status !== '' && !is_null($status)) {
                 $where[] = ['w.status','=',$status];

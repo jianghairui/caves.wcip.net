@@ -98,7 +98,7 @@ class Home extends Common {
         }
         return ajax($list);
     }
-    //作品列表
+    //参赛作品列表
     public function worksList() {
         $val['uid'] = input('post.uid');
         $val['order'] = input('post.order');
@@ -249,6 +249,34 @@ class Home extends Common {
                 ->where($whereBidding)->select();
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
+        }
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        return ajax($list);
+    }
+
+    //获取展示作品
+    public function showWorksList() {
+        $curr_page = input('post.page',1);
+        $perpage = input('post.perpage',10);
+        $val['uid'] = input('post.uid');
+        checkPost($val);
+        try {
+            $whereUser = [
+                ['id','=',$val['uid']]
+            ];
+            $user_exist = Db::table('mp_user')->where($whereUser)->find();
+            if(!$user_exist) {  return ajax('非法参数uid',-4);}
+            $whereWorks = [
+                ['uid','=',$this->myinfo['id']]
+            ];
+            $list = Db::table('mp_show_works')
+                ->where($whereWorks)
+                ->field("id,title,desc,pics")
+                ->limit(($curr_page-1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
         }
         foreach ($list as &$v) {
             $v['pics'] = unserialize($v['pics']);
