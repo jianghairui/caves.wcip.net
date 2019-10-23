@@ -21,36 +21,9 @@
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3">作品票数：</label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <span class="">{$info.vote}</span>
-            </div>
-        </div>
-        {if $info['idea_title']}
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3">创意名称：</label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <span class="">{$info.idea_title}</span>
-            </div>
-        </div>
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3">创意内容：</label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <p class="">{$info.idea_content}</p>
-            </div>
-        </div>
-        {else /}
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3"></label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <b class="">作品直投</b>
-            </div>
-        </div>
-        {/if}
-        <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>作品标题：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input type="text" class="input-text" value="{$info.title}" placeholder="输入活动标题" id="title" name="title" maxlength="30">
+                <input type="text" class="input-text" value="{$info.title}" placeholder="输入活动标题" id="title" name="title" maxlength="30" readonly >
             </div>
         </div>
         <div class="row cl">
@@ -76,14 +49,8 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3">作品内容：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <textarea name="desc" cols="" rows="" class="textarea" maxlength="500" placeholder="" oninput="this.value.length<=500?$('#textlen1').text(this.value.length):$('#textlen1').text(500)" >{$info.desc}</textarea>
+                <textarea name="desc" cols="" rows="" class="textarea" maxlength="500" placeholder="" oninput="this.value.length<=500?$('#textlen1').text(this.value.length):$('#textlen1').text(500)" readonly>{$info.desc}</textarea>
                 <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/500</p>
-            </div>
-        </div>
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3">作品来源(活动)：</label>
-            <div class="formControls col-xs-8 col-sm-9">
-                <span class="">{$info.req_title} ({$info.org}) </span>
             </div>
         </div>
         <div class="row cl">
@@ -93,7 +60,7 @@
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3">审核状态：</label>
+            <label class="form-label col-xs-4 col-sm-3">审核状态{$info.status}：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 {switch $info['status']}
                 {case 0}
@@ -110,8 +77,7 @@
         </div>
         <div class="row cl">
             <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
-                <button class="btn btn-primary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
-                <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;取消&nbsp;&nbsp;</button>
+                <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;关闭页面&nbsp;&nbsp;</button>
             </div>
         </div>
         <input type="hidden" name="id" value="{$info.id}">
@@ -128,51 +94,6 @@
 
     $(function(){
 
-        var isclick = true;
-        //表单验证
-        $("#form-article-add").validate({
-            rules:{
-                title:{
-                    required:true,
-                    maxlength:30
-                },
-                content: {
-                    required:true
-                }
-            },
-            focusCleanup:true,
-            success:"valid",
-            submitHandler:function(form){
-                if(isclick === true) {
-                    isclick = false;
-                    $(form).ajaxSubmit({
-                        type: 'post',
-                        url: "{:url('Req/workMod')}" ,
-                        success: function(data){
-                            // console.log(data.data);isclick=true;return;
-                            if(data.code == 1) {
-                                layer.msg('保存成功!',{icon:1,time:1000},function () {
-                                    window.parent.location.reload();
-                                });
-                            }else {
-                                console.log(data.data,'--HERE--');
-                                layer.msg(data.data,{icon:2,time:1000});
-                                isclick = true;
-                            }
-
-                        },
-                        error: function(XmlHttpRequest, textStatus, errorThrown){
-                            layer.msg('error!',{icon:5,time:1000});
-                            isclick = true
-                        }
-                    });
-                }
-
-            }
-        });
-
-        var textlen1 = $("textarea[name='desc']").val().length;
-        $("#textlen1").text(textlen1);
 
     });
 

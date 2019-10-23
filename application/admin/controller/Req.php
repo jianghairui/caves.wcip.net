@@ -775,15 +775,18 @@ class Req extends Base {
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
+
     //作品详情
     public function showWorkDetail() {
         $param['id'] = input('param.id','');
         try {
             $where = [
-                ['id','=',$param['id']]
+                ['w.id','=',$param['id']]
             ];
-            $info = Db::table('mp_show_works')
+            $info = Db::table('mp_show_works')->alias('w')
+                ->join('mp_user u','w.uid=u.id','left')
                 ->where($where)
+                ->field('w.*,u.nickname,u.avatar')
                 ->find();
             if(!$info) {
                 die('非法操作');
@@ -795,6 +798,7 @@ class Req extends Base {
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
+
     //作品审核-通过
     public function showWorkPass() {
         $whereWorks = [
@@ -813,6 +817,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
+
     //作品审核-拒绝
     public function showWorkReject() {
         $map = [
@@ -831,6 +836,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
+
     //作品显示
     public function showWorkShow() {
         $map[] = ['id','=',input('post.id',0)];
@@ -841,6 +847,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
+
     //作品隐藏
     public function showWorkHide() {
         $map[] = ['id','=',input('post.id',0)];
@@ -851,6 +858,7 @@ class Req extends Base {
         }
         return ajax([],1);
     }
+
     //作品删除-拒绝
     public function showWorkDel() {
         $map = [

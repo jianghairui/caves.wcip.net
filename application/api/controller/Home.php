@@ -295,14 +295,25 @@ class Home extends Common {
         try {
             //作品是否存在
             $whereWorks = [
-                ['id', '=',$val['id']],
+                ['w.id', '=',$val['id']],
             ];
-            $work_exist = Db::table('mp_show_works')
+            $work_exist = Db::table('mp_show_works')->alias('w')
+                ->join('mp_user u','w.uid=u.id','left')
                 ->where($whereWorks)
-                ->field("id,title,desc,pics,status,create_time")
+                ->field("w.id,w.uid,w.title,w.desc,w.pics,w.status,w.create_time,u.nickname,u.avatar")
                 ->find();
             if (!$work_exist) {
                 return ajax($val['id'], 89);
+            }
+            $whereFocus = [
+                ['uid','=',$this->myinfo['id']],
+                ['to_uid','=',$work_exist['uid']]
+            ];
+            $focus_exist = Db::table('mp_user_focus')->where($whereFocus)->find();
+            if($focus_exist) {
+                $work_exist['ifocus'] = true;
+            }else {
+                $work_exist['ifocus'] = false;
             }
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
