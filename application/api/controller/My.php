@@ -767,10 +767,14 @@ class My extends Common {
     public function getMyShowWorks() {
         $curr_page = input('post.page',1);
         $perpage = input('post.perpage',10);
+        $status = input('post.status','');
         try {
             $where = [
                 ['uid','=',$this->myinfo['id']]
             ];
+            if(!is_null($status) && $status !== '') {
+                $where[] = ['status','=',$status];
+            }
             $list = Db::table('mp_show_works')
                 ->where($where)
                 ->field("id,title,desc,pics,status")

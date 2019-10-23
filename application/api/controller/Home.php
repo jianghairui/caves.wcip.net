@@ -46,6 +46,7 @@ class Home extends Common {
         $user_exist['role_tel'] = '';
         return ajax($user_exist);
     }
+
     //他人主页创意
     public function ideaList() {
         $val['uid'] = input('post.uid');
@@ -98,6 +99,7 @@ class Home extends Common {
         }
         return ajax($list);
     }
+
     //参赛作品列表
     public function worksList() {
         $val['uid'] = input('post.uid');
@@ -137,6 +139,7 @@ class Home extends Common {
         return ajax($list);
 
     }
+
     //他人主页视频
     public function homeVideo() {
         $val['uid'] = input('post.uid');
@@ -165,6 +168,7 @@ class Home extends Common {
         return ajax($data);
 
     }
+
     //活动列表
     public function reqList() {
         $val['uid'] = input('post.uid');
@@ -283,6 +287,30 @@ class Home extends Common {
         }
         return ajax($list);
     }
+
+    //参赛作品详情
+    public function showWorksDetail() {
+        $val['id'] = input('post.id');
+        checkPost($val);
+        try {
+            //作品是否存在
+            $whereWorks = [
+                ['id', '=',$val['id']],
+            ];
+            $work_exist = Db::table('mp_show_works')
+                ->where($whereWorks)
+                ->field("id,title,desc,pics,status,create_time")
+                ->find();
+            if (!$work_exist) {
+                return ajax($val['id'], 89);
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $work_exist['pics'] = unserialize($work_exist['pics']);
+        return ajax($work_exist);
+    }
+
 
 
 }

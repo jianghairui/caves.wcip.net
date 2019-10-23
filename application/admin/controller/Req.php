@@ -736,5 +736,140 @@ class Req extends Base {
 
 
 
+    //作品列表
+    public function showWorkList() {
+        $param['status'] = input('param.status','');
+        $param['search'] = input('param.search');
+        $param['sort'] = input('param.sort');
+
+        $page['query'] = http_build_query(input('param.'));
+
+        $curr_page = input('param.page',1);
+        $perpage = input('param.perpage',10);
+
+        $where = [
+            ['del','=',0]
+        ];
+        $order = ['id'=>'DESC'];
+        if(!is_null($param['status']) && $param['status'] !== '') {
+            $where[] = ['status','=',$param['status']];
+        }
+        if($param['search']) {
+            $where[] = ['title','like',"%{$param['search']}%"];
+        }
+        try {
+            $count = Db::table('mp_show_works')
+                ->where($where)->count();
+            $page['count'] = $count;
+            $page['curr'] = $curr_page;
+            $page['totalPage'] = ceil($count/$perpage);
+            $list = Db::table('mp_show_works')
+                ->where($where)
+                ->order($order)->limit(($curr_page - 1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('list',$list);
+        $this->assign('page',$page);
+        $this->assign('param',$param);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        return $this->fetch();
+    }
+    //作品详情
+    public function showWorkDetail() {
+        $param['id'] = input('param.id','');
+        try {
+            $where = [
+                ['id','=',$param['id']]
+            ];
+            $info = Db::table('mp_show_works')
+                ->where($where)
+                ->find();
+            if(!$info) {
+                die('非法操作');
+            }
+        }catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        $this->assign('info',$info);
+        $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        return $this->fetch();
+    }
+    //作品审核-通过
+    public function showWorkPass() {
+        $whereWorks = [
+            ['status','=',0],
+            ['id','=',input('post.id',0)]
+        ];
+        try {
+            $exist = Db::table('mp_show_works')->where($whereWorks)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_show_works')->where($whereWorks)->update(['status'=>1]);
+            Db::table('mp_user')->where('id','=',$exist['uid'])->setInc('works_show_num',1);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+    //作品审核-拒绝
+    public function showWorkReject() {
+        $map = [
+            ['status','=',0],
+            ['id','=',input('post.id',0)]
+        ];
+        $reason = input('post.reason','');
+        try {
+            $exist = Db::table('mp_show_works')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_show_works')->where($map)->update(['status'=>2,'reason'=>$reason]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+    //作品显示
+    public function showWorkShow() {
+        $map[] = ['id','=',input('post.id',0)];
+        try {
+            Db::table('mp_show_works')->where($map)->update(['show'=>1]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+    //作品隐藏
+    public function showWorkHide() {
+        $map[] = ['id','=',input('post.id',0)];
+        try {
+            Db::table('mp_show_works')->where($map)->update(['show'=>0]);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax([],1);
+    }
+    //作品删除-拒绝
+    public function showWorkDel() {
+        $map = [
+            ['id','=',input('post.id',0)]
+        ];
+        try {
+            $exist = Db::table('mp_show_works')->where($map)->find();
+            if(!$exist) {
+                return ajax('非法操作',-1);
+            }
+            Db::table('mp_show_works')->where($map)->update(['del'=>1]);
+            Db::table('mp_user')->where('id','=',$exist['uid'])->setDec('works_show_num',1);
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
+    }
+
+
+
 
 }
