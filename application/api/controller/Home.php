@@ -273,7 +273,7 @@ class Home extends Common {
             $user_exist = Db::table('mp_user')->where($whereUser)->find();
             if(!$user_exist) {  return ajax('非法参数uid',-4);}
             $whereWorks = [
-                ['uid','=',$this->myinfo['id']],
+                ['uid','=',$val['uid']],
                 ['status','=',1],
                 ['del','=',0]
             ];
@@ -302,7 +302,7 @@ class Home extends Common {
             $work_exist = Db::table('mp_show_works')->alias('w')
                 ->join('mp_user u','w.uid=u.id','left')
                 ->where($whereWorks)
-                ->field("w.id,w.uid,w.title,w.desc,w.pics,w.status,w.create_time,u.nickname,u.avatar")
+                ->field("w.id,w.uid,w.title,w.desc,w.pics,w.reason,w.status,w.create_time,u.nickname,u.avatar")
                 ->find();
             if (!$work_exist) {
                 return ajax($val['id'], 89);
