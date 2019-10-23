@@ -770,7 +770,8 @@ class My extends Common {
         $status = input('post.status','');
         try {
             $where = [
-                ['uid','=',$this->myinfo['id']]
+                ['uid','=',$this->myinfo['id']],
+                ['del','=',0]
             ];
             if(!is_null($status) && $status !== '') {
                 $where[] = ['status','=',$status];

@@ -273,11 +273,13 @@ class Home extends Common {
             $user_exist = Db::table('mp_user')->where($whereUser)->find();
             if(!$user_exist) {  return ajax('非法参数uid',-4);}
             $whereWorks = [
-                ['uid','=',$this->myinfo['id']]
+                ['uid','=',$this->myinfo['id']],
+                ['status','=',1],
+                ['del','=',0]
             ];
             $list = Db::table('mp_show_works')
                 ->where($whereWorks)
-                ->field("id,title,desc,pics")
+                ->field("id,title,desc,pics,status")
                 ->limit(($curr_page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
