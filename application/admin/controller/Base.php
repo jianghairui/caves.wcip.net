@@ -64,17 +64,17 @@ class Base extends Controller {
             return true;
         }else {
             if(session('username') && session('mploginstatus') && session('mploginstatus') == md5(session('username') . config('login_key'))) {
-                if(session('username') !== config('superman')) {
-                    $auth = new Auth();
-                    $bool = $auth->check($this->cmd,session('admin_id'));
-                    if(!$bool) {
-                        if(request()->isPost()) {
-                            throw new HttpResponseException(ajax('没有权限',-1));
-                        }else {
-                            exit($this->fetch('public/noAuth'));
-                        }
-                    }
-                }
+//                if(session('username') !== config('superman')) {
+//                    $auth = new Auth();
+//                    $bool = $auth->check($this->cmd,session('admin_id'));
+//                    if(!$bool) {
+//                        if(request()->isPost()) {
+//                            throw new HttpResponseException(ajax('没有权限',-1));
+//                        }else {
+//                            exit($this->fetch('public/noAuth'));
+//                        }
+//                    }
+//                }
                 return true;
             }else {
                 return false;
