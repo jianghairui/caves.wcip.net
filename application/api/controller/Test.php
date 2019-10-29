@@ -20,6 +20,7 @@ class Test extends Common {
         $start = microtime(true);
         try {
             Db::startTrans();
+
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
