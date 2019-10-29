@@ -7,6 +7,7 @@
  */
 namespace app\api\controller;
 use my\Sendsms;
+use my\Kuaidiniao;
 use think\Db;
 class My extends Common {
 
@@ -1801,6 +1802,37 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         return ajax();
     }
     /*------ 申请角色 END ------*/
+
+
+    //获取快递信息
+    public function getKdTrace() {
+        $data['order_id'] = input('post.order_id');
+        checkPost($data);
+        try {
+            $whereOrder = [
+                ['status','=',2],
+                ['id','=',$data['order_id']]
+            ];
+            $order_exist = Db::table('mp_order')->where($whereOrder)->find();
+            if(!$order_exist) {
+                return ajax('订单不存在或状态已改变',4);
+            }
+            $whereTracking = [
+                ['name','=',$order_exist['tracking_name']]
+            ];
+            $tracking_exist = Db::table('mp_tracking')->where($whereTracking)->find();
+            if(!$tracking_exist) {
+                return ajax('物流不存在',-4);
+            }
+            $tracking_code = $tracking_exist['code'];
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $kuaidi = new Kuaidiniao();
+        $result = $kuaidi->getOrderTracesByJson($tracking_code,$order_exist['tracking_num']);
+        $result['tracking_name'] = $order_exist['tracking_name'];
+        return ajax($result);
+    }
 
 
 

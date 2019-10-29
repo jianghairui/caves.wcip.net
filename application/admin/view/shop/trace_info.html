@@ -1,0 +1,19 @@
+<div class="page-container">
+    <table class="table table-bordered table-bg table-hover">
+        <thead>
+            <th>物流</th>
+            <th class="text-c">{$tracking_name}</th>
+        </thead>
+        <tbody>
+            {foreach $list as $li}
+            <tr class="text-c userinfo">
+                <td width="60">
+                    <div><span style="font-size: 18px">{$li.AcceptTime|strtotime|date="m-d"}</span></div>
+                    <div><span>{$li.AcceptTime|strtotime|date="H:i"}</span></div>
+                </td>
+                <td>{$li.AcceptStation}</td>
+            </tr>
+            {/foreach}
+        </tbody>
+    </table>
+</div>

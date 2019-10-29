@@ -130,7 +130,7 @@
             </tr>
             <tr>
                 <td colspan="6">
-                    <span style="margin-left: 15px;" onclick="mod_address(this,{$li.id},'{$li.address}')">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b>)
+                    <span style="margin-left: 15px;" onclick="mod_address(this,{$li.id},'{$li.address}')">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> ) <a data-title="物流信息"  onclick="layer_show('物流信息','{:url("Shop/traceInfo",array('id'=>$li['id']))}',600,500)" href="javascript:;" class="btn btn-link">查看物流</a>
                 </td>
             </tr>
             {/foreach}

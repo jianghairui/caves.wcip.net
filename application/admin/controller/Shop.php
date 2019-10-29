@@ -7,8 +7,7 @@
  */
 namespace app\admin\controller;
 use think\Db;
-use think\facade\Request;
-
+use my\Kuaidiniao;
 class Shop extends Base {
 //商品列表
     public function goodsList() {
@@ -703,7 +702,7 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
         return $this->fetch();
     }
-//订单发货
+    //订单发货
     public function orderSend() {
         $id = input('param.id');
         try {
@@ -718,7 +717,42 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         $this->assign('id',$id);
         return $this->fetch();
     }
-//确认发货
+    //快递信息
+    public function traceInfo() {
+        $id = input('param.id');
+        try {
+            $whereOrder = [
+                ['status','=',2],
+                ['id','=',$id]
+            ];
+            $order_exist = Db::table('mp_order')->where($whereOrder)->find();
+            if(!$order_exist) {
+                return ajax('订单不存在或状态已改变',4);
+            }
+            $whereTracking = [
+                ['name','=',$order_exist['tracking_name']]
+            ];
+            $tracking_exist = Db::table('mp_tracking')->where($whereTracking)->find();
+            if(!$tracking_exist) {
+                return ajax('物流不存在',-4);
+            }
+            $tracking_code = $tracking_exist['code'];
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $kuaidi = new Kuaidiniao();
+        $result = $kuaidi->getOrderTracesByJson($tracking_code,$order_exist['tracking_num']);
+        if($result['State'] == 3) {
+            $traces = $result['Traces'];
+        }else {
+            $traces = [];
+        }
+        $this->assign('list',$traces);
+        $this->assign('tracking_name',$order_exist['tracking_name']);
+        return $this->fetch();
+    }
+
+    //确认发货
     public function deliver() {
         $val['tracking_name'] = input('post.tracking_name');
         $val['tracking_num'] = input('post.tracking_num');
@@ -745,15 +779,18 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
         }
         return ajax();
     }
-//订单详情
+
+    //订单详情
     public function orderDetail() {
         die('还没写');
     }
-//订单修改
+
+    //订单修改
     public function orderModPost() {
 
     }
-//退款
+
+    //退款
     public function orderRefund() {
         $val['id'] = input('post.id');
         checkInput($val);
@@ -807,7 +844,8 @@ LEFT JOIN `mp_goods` `g` ON `d`.`goods_id`=`g`.`id`
             return ajax($e->getMessage(), -1);
         }
     }
-//删除订单
+
+    //删除订单
     public function orderDel() {
 
     }
