@@ -98,7 +98,7 @@ class Pay extends Common {
         exit(array2xml(['return_code'=>'SUCCESS','return_msg'=>'OK']));
 
     }
-    //支付单号支付
+    //购物车支付、联合ID支付单号支付
     public function orderIdPay() {
         $order_id = input('post.order_id',[]);
         if(!is_array($order_id) || empty($order_id)) {
@@ -133,8 +133,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '山洞文创产品',
                 'out_trade_no' => $pay_order_sn,
-                'total_fee' => 1,
-//                'total_fee' => floatval($pay_price)*100,
+//                'total_fee' => 1,
+                'total_fee' => floatval($pay_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/order_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']
@@ -157,7 +157,7 @@ class Pay extends Common {
         }
         return ajax($sign);
     }
-    //订单号支付
+    //直接支付、待支付订单支付、联合订单号支付
     public function orderSnPay() {
         $pay_order_sn = input('post.pay_order_sn');
         if(!$pay_order_sn) {
@@ -188,8 +188,8 @@ class Pay extends Common {
             $result = $app->order->unify([
                 'body' => '山洞文创产品',
                 'out_trade_no' => $pay_order_sn,
-                'total_fee' => 1,
-//                'total_fee' => floatval($pay_price)*100,
+//                'total_fee' => 1,
+                'total_fee' => floatval($pay_price)*100,
                 'notify_url' => $this->weburl . 'api/pay/order_notify',
                 'trade_type' => 'JSAPI',
                 'openid' => $this->myinfo['openid']

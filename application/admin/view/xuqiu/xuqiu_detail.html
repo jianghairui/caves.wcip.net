@@ -1,0 +1,125 @@
+<style>
+    .thumbnail{ width:256px;height: 256px;background-size: cover;background-position: center;position: relative}
+    .comment-box{margin-top: 20px}
+    .comment-box .form-label{
+        text-align: right;
+    }
+</style>
+<link href="/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
+<article class="page-container">
+    <form class="form form-horizontal" id="form-article-add">
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">
+                <span id="btn-star1" class="btn btn-primary btn-uploadstar radius ml-10">笔记图片</span>
+            </label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <ul class="cl portfolio-area" id="fileList">
+                    <?php $images = unserialize($info['pics']);?>
+                    {if $images}
+                    {foreach $images as $v}
+                    <li class="item">
+                        <div class="portfoliobox">
+                            <!--<span class="image-del" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></span>-->
+                            <div class="picbox">
+                                <a href="{$qiniu_weburl}{$v}" data-lightbox="gallery" data-title=""><img src="{$qiniu_weburl}{$v}"></a>
+                            </div>
+                        </div>
+                    </li>
+                    {/foreach}
+                    {/if}
+                </ul>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>笔记标题：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="{$info.title}" name="title" placeholder="" >
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">笔记内容：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <textarea name="content" class="textarea" maxlength="1000" placeholder="" oninput="this.value.length<=1000?$('#textlen1').text(this.value.length):$('#textlen1').text(1000)" >{$info.content}</textarea>
+                <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/1000</p>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>发布人(只读)：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="{$info.nickname}" name="nickname" placeholder=""  readonly>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">发布时间(只读)：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="{$info.create_time}" placeholder=""  readonly>
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+                <button class="btn btn-primary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+                <button onClick="layer_close();" class="btn btn-default radius" type="button">&nbsp;&nbsp;取消&nbsp;&nbsp;</button>
+            </div>
+        </div>
+        <input type="hidden" name="id" value="{$info.id}">
+    </form>
+    <div class="row cl comment-box">
+        <label class="form-label col-xs-4 col-sm-2">评论内容：</label>
+        <div class="formControls col-xs-8 col-sm-9">
+            <div class="comment">评论内容</div>
+        </div>
+    </div>
+</article>
+
+
+<script type="text/javascript" src="/lib/lightbox2/2.8.1/js/lightbox.min.js"></script>
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/jquery.validate.js"></script>
+<script type="text/javascript" src="/lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript">
+
+
+    $(function () {
+
+        var isclick = true;
+        //表单验证
+        $("#form-article-add").validate({
+            rules:{},
+            focusCleanup:false,
+            success:"valid",
+            submitHandler:function(form){
+                if(isclick === true) {
+                    isclick = false;
+                    $(form).ajaxSubmit({
+                        type: 'post',
+                        url: "{:url('Xuqiu/xuqiuModPost')}" ,
+                        success: function(data){
+                            console.log(data);
+                            if(data.code == 1) {
+                                layer.msg('保存成功!',{icon:1,time:1000},function () {
+                                    window.parent.location.reload()
+                                });
+                            }else {
+                                layer.msg(data.data,{icon:2,time:1000});
+                                isclick = true
+                            }
+
+                        },
+                        error: function(XmlHttpRequest, textStatus, errorThrown){
+                            layer.msg('接口请求失败!',{icon:5,time:1000});
+                            isclick = true
+                        }
+                    });
+                }
+
+            }
+        });
+
+
+        var textlen1 = $("textarea[name='content']").val().length;
+        $("#textlen1").text(textlen1);
+
+    })
+
+
+</script>
