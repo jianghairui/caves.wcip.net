@@ -986,7 +986,32 @@ class My extends Common {
     /*------ 工厂独有接口 END ------*/
 
 
+    /*------   即时需求   ------*/
 
+    public function myXuqiuList() {
+        $page = input('page',1);
+        $perpage = input('perpage',10);
+
+        $where = [
+            ['x.del','=',0],
+            ['x.uid','=',$this->myinfo['id']]
+        ];
+        try {
+            $list = Db::table('mp_xuqiu')->alias('x')
+                ->join('mp_user u','x.uid=u.id','left')
+                ->where($where)
+                ->field('x.id,x.title,x.pics,x.create_time,x.status,u.nickname,u.avatar')
+                ->order(['x.create_time'=>'DESC'])
+                ->limit(($page-1)*$perpage,$perpage)->select();
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        return ajax($list);
+
+    }
 
 
 
