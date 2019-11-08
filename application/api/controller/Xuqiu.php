@@ -38,6 +38,30 @@ class Xuqiu extends Common {
 
     }
 
+
+    public function homeXuqiuList() {
+        $where = [
+            ['x.status','=',1],
+            ['x.del','=',0],
+            ['x.recommend','=',1]
+        ];
+        try {
+            $list = Db::table('mp_xuqiu')->alias('x')
+                ->join('mp_user u','x.uid=u.id','left')
+                ->where($where)
+                ->field('x.id,x.title,x.pics,u.nickname,u.avatar')
+                ->order(['x.create_time'=>'DESC'])
+                ->limit(0,4)->select();
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        foreach ($list as &$v) {
+            $v['pics'] = unserialize($v['pics']);
+        }
+        return ajax($list);
+    }
+
+
     public function xuqiuAdd() {
         $val['title'] = input('post.title');
         $val['content'] = input('post.content');
