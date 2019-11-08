@@ -25,7 +25,7 @@ class Xuqiu extends Common {
             $list = Db::table('mp_xuqiu')->alias('x')
                 ->join('mp_user u','x.uid=u.id','left')
                 ->where($where)
-                ->field('x.id,x.title,x.pics,u.nickname,u.avatar')
+                ->field('x.id,x.title,x.pics,x.content,x.create_time,u.nickname,u.avatar,u.role,u.role_check')
                 ->order(['x.create_time'=>'DESC'])
                 ->limit(($page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
@@ -49,7 +49,7 @@ class Xuqiu extends Common {
             $list = Db::table('mp_xuqiu')->alias('x')
                 ->join('mp_user u','x.uid=u.id','left')
                 ->where($where)
-                ->field('x.id,x.title,x.pics,u.nickname,u.avatar')
+                ->field('x.id,x.title,x.pics,x.content,x.create_time,u.nickname,u.avatar,u.role,u.role_check')
                 ->order(['x.create_time'=>'DESC'])
                 ->limit(0,4)->select();
         }catch (\Exception $e) {
@@ -123,7 +123,7 @@ class Xuqiu extends Common {
             $info = Db::table('mp_xuqiu')->alias('x')
                 ->join('mp_user u','x.uid=u.id','left')
                 ->where($whereXuqiu)
-                ->field('x.id,x.uid,x.title,x.content,x.pics,x.status,x.reason,u.nickname,u.avatar')
+                ->field('x.id,x.uid,x.title,x.content,x.pics,x.status,x.reason,x.create_time,u.nickname,u.avatar,u.role,u.role_check')
                 ->find();
             if(!$info) {
                 return ajax('invalid xuqiu_id',-4);
