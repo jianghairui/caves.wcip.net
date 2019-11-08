@@ -137,7 +137,7 @@ class Xuqiu extends Common {
             $info['comment_list'] = Db::table('mp_xuqiu_comment')->alias('c')
                 ->join('mp_user u','c.uid=u.id','left')
                 ->where($whereComment)
-                ->field('c.*,u.nickname,u.avatar')
+                ->field('c.*,u.nickname,u.avatar,u.role,u.role_check')
                 ->limit(0,2)->select();
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);

@@ -1000,7 +1000,7 @@ class My extends Common {
             $list = Db::table('mp_xuqiu')->alias('x')
                 ->join('mp_user u','x.uid=u.id','left')
                 ->where($where)
-                ->field('x.id,x.title,x.pics,x.create_time,x.status,u.nickname,u.avatar')
+                ->field('x.id,x.title,x.pics,x.content,x.create_time,x.status,u.nickname,u.avatar,u.role,u.role_check')
                 ->order(['x.create_time'=>'DESC'])
                 ->limit(($page-1)*$perpage,$perpage)->select();
         }catch (\Exception $e) {
