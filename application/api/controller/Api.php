@@ -1181,6 +1181,117 @@ class Api extends Common
         return ajax($val);
     }
 
+    //获取活动详情
+    public function getAcInfo() {
+        try {
+            $whereAc = [
+                ['id','=',1]
+            ];
+            $info = Db::table('mp_tmp_ac')->where($whereAc)->find();
+            if(!$info) {
+                return ajax('activity not exists',-4);
+            }
+            $info['pics'] = unserialize($info['pics']);
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        return ajax($info);
+    }
+
+    //参加活动发送短信
+    public function joinAcSendSms() {
+        $val['tel'] = input('post.tel');
+        checkPost($val);
+        $sms = new Sendsms();
+        $tel = $val['tel'];
+
+        if(!is_tel($tel)) {
+            return ajax('invalid tel',6);
+        }
+        try {
+            $code = mt_rand(100000,999999);
+            $insert_data = [
+                'tel' => $tel,
+                'code' => $code,
+                'create_time' => time()
+            ];
+            $sms_data['tel'] = $val['tel'];
+            $sms_data['param'] = [
+                'code' => $code
+            ];
+            $whereTel = [
+                ['tel','=',$tel]
+            ];
+
+            $exist = Db::table('mp_verify')->where($whereTel)->find();
+            if($exist) {
+
+                if((time() - $exist['create_time']) < 60) {
+                    return ajax('1分钟内不可重复发送',11);
+                }
+                $res = $sms->send($sms_data);
+
+                if($res->Code === 'OK') {
+                    Db::table('mp_verify')->where($whereTel)->update($insert_data);
+                    return ajax();
+                }else {
+                    return ajax($res->Message,12);
+                }
+            }else {
+                $res = $sms->send($sms_data);
+                if($res->Code === 'OK') {
+                    Db::table('mp_verify')->insert($insert_data);
+                    return ajax();
+                }else {
+                    return ajax($res->Message,12);
+                }
+            }
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+    }
+
+    //参加活动
+    public function joinAc() {
+        $val['name'] = input('post.name');
+        $val['sex'] = input('post.sex');
+        $val['num'] = input('post.num');
+        $val['tel'] = input('post.tel');
+        $val['code'] = input('post.code');
+        checkPost($val);
+        $val['uid'] = $this->myinfo['id'];
+        $val['a_id'] = 1;
+        $val['weixin'] = input('post.weixin','');
+        $val['create_time'] = date('Y-m-d H:i:s');
+
+        if (!is_tel($val['tel'])) {
+            return ajax('无效的手机号', 6);
+        }
+        try {
+            //验证短信验证码
+            $whereCode = [
+                ['tel','=',$val['tel']],
+                ['code','=',$val['code']]
+            ];
+            $code_exist = Db::table('mp_verify')->where($whereCode)->find();
+            if($code_exist) {
+                if((time() - $code_exist['create_time']) > 60*5) {
+                    return ajax('验证码已过期',17);
+                }
+            }else {
+                return ajax('验证码无效',16);
+            }
+
+            unset($val['code']);
+            Db::table('mp_tmp_sign')->insert($val);
+            Db::table('mp_verify')->where($whereCode)->delete();
+        }catch (\Exception $e) {//异常删图
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax();
+
+    }
+
 
 
 
