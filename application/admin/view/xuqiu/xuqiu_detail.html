@@ -11,7 +11,7 @@
 
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2">
-                <span id="btn-star1" class="btn btn-primary btn-uploadstar radius ml-10">笔记图片</span>
+                <span id="btn-star1" class="btn btn-primary btn-uploadstar radius ml-10">需求图片</span>
             </label>
             <div class="formControls col-xs-8 col-sm-9">
                 <ul class="cl portfolio-area" id="fileList">
@@ -32,13 +32,13 @@
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>笔记标题：</label>
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>需求标题：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 <input type="text" class="input-text" value="{$info.title}" name="title" placeholder="" >
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-2">笔记内容：</label>
+            <label class="form-label col-xs-4 col-sm-2">需求内容：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 <textarea name="content" class="textarea" maxlength="1000" placeholder="" oninput="this.value.length<=1000?$('#textlen1').text(this.value.length):$('#textlen1').text(1000)" >{$info.content}</textarea>
                 <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/1000</p>
