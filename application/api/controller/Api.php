@@ -1238,7 +1238,7 @@ class Api extends Common
                     return ajax($res->Message,12);
                 }
             }else {
-                $res = $sms->send($sms_data);
+                $res = $sms->send($sms_data,'SMS_178465508');
                 if($res->Code === 'OK') {
                     Db::table('mp_verify')->insert($insert_data);
                     return ajax();
