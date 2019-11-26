@@ -1195,6 +1195,7 @@ class Api extends Common
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
+        $info['share_pic'] = 'https://caves.wcip.net/static/share.jpg';
         return ajax($info);
     }
 
