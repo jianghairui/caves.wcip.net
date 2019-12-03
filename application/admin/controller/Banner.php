@@ -67,10 +67,9 @@ class Banner extends Base {
     //修改轮播图POST
     public function slideMod() {
         $val['title'] = input('post.title');
-        $val['url'] = input('post.url');
         $val['id'] = input('post.id');
         checkInput($val);
-
+        $val['url'] = input('post.url');
         $val['pic'] = input('post.pic');
         if(!$val['pic']) {
             return ajax('请传入图片',-1);
