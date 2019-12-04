@@ -10,7 +10,17 @@ namespace app\admin\controller;
 use think\Db;
 class Test extends Base {
 
+    public function cityList() {
+        try {
+            $list = Db::table('mp_city')->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $newlist = $this->recursion($list);
 
+        halt($newlist);
+        echo (json_encode($newlist));
+    }
     //删除角色测试,删除角色图片
     public function roledel() {
         die();
@@ -64,6 +74,20 @@ class Test extends Base {
 //        halt($res);
 //        halt($list);
 //    }
+
+    private function recursion($list,$pcode=0)
+    {
+        $arr = array();
+        foreach($list as $key=>$v)
+        {
+            if($v['pcode'] == $pcode)
+            {
+                $v['child'] = $this->recursion($list,$v['code']);
+                $arr[] = $v;
+            }
+        }
+        return $arr;
+    }
 
 
 }
