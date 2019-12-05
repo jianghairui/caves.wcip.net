@@ -138,6 +138,38 @@
                 </ul>
             </div>
         </div>
+        {if $info['role'] == 3}
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">选择地区：</label>
+            <div class="formControls col-xs-2 col-sm-2 col-xs-offset-2 col-sm-offset-1" > <span class="select-box">
+				<select class="select" name="provinceCode" id="provinceCode">
+                    <option value="0">省</option>
+                    {foreach $province_list as $li}
+					<option value="{$li.code}" {if $li['code'] == $info['province_code']}selected{/if}>{$li.name}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+            <div class="formControls col-xs-2 col-sm-2"> <span class="select-box">
+				<select class="select" name="cityCode" id="cityCode">
+                    <option value="0">市</option>
+                    {foreach $city_list as $li}
+					<option value="{$li.code}" {if $li['code'] == $info['city_code']}selected{/if}>{$li.name}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+            <div class="formControls col-xs-2 col-sm-2"> <span class="select-box">
+				<select class="select" name="regionCode" id="regionCode">
+                    <option value="0">区</option>
+                    {foreach $region_list as $li}
+					<option value="{$li.code}" {if $li['code'] == $info['region_code']}selected{/if}>{$li.name}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
+        {/if}
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3">备注：</label>
             <div class="formControls col-xs-8 col-sm-9">
@@ -162,44 +194,125 @@
 <!--请在下方写此页面业务相关的脚本-->
 <script type="text/javascript" src="/lib/lightbox2/2.8.1/js/lightbox.min.js"></script>
 <script type="text/javascript">
+
     $(function(){
+
+        var isclick = true;
+
         $(".portfolio-area li").Huihover();
-    });
 
-    /*需求审核*/
-    function check_pass(id){
-        layer.confirm('通过审核？', {
-                btn: ['确定','取消'],
-                shade: false,
-                closeBtn: 0
-            },
-            function(){
-                $.ajax({
-                    url:"{:url('User/rolePass')}",
-                    type:'post',
-                    dataType:'json',
-                    data:{id:id},
-                    success:function(data) {
-                        console.log(data)
-                        if(data.code == 1) {
-                            layer.msg('已审核', {icon:1,time:1000},function () {
-                                window.parent.location.reload();
-                            });
-                        }else {
-                            layer.msg(data.data,{icon:2,time:1000})
-                        }
-                    },
-                    error:function(data) {
-                        layer.msg('请求失败!',{icon:5,time:1000})
-                    }
-                })
-
+        $("#provinceCode").change(function () {
+            var provinceCode = $(this).val();
+            if(isclick) {
+                isclick = false;
+                getCityList(provinceCode);
             }
-            );
-    }
 
-    function check_reject(id) {
-        layer.confirm('拒绝通过审核？', {
+        });
+
+        $("#cityCode").change(function () {
+            var cityCode = $(this).val();
+            if(isclick) {
+                isclick = false;
+                getRegionList(cityCode);
+            }
+
+        });
+
+        function getCityList(provinceCode) {
+            $.ajax({
+                url: "{:url('User/getCityList')}" ,
+                type: 'post',
+                data:{provinceCode:provinceCode},
+                success: function(data){
+                    if(data.code == 1) {
+                        var html = '',list = data.data;
+                        if(list.length > 0) {
+                            for(var i=0; i <list.length;i++) {
+                                html += '<option value="'+list[i].code+'">'+list[i].name+'</option>';
+                            }
+                        }
+                        $("#cityCode").html(html);
+                        if(list.length > 0) {
+                            getRegionList(list[0].code);
+                        }
+                    }else {
+                        layer.msg('接口异常',{icon:5,time:1000});
+                    }
+                    isclick = true;
+                    console.log(data)
+                },
+                error: function(res){
+                    layer.msg('接口请求失败!',{icon:5,time:1000});
+                    isclick = true;
+
+                }
+            })
+        }
+
+        function getRegionList(cityCode) {
+            $.ajax({
+                url: "{:url('User/getRegionList')}" ,
+                type: 'post',
+                data:{cityCode:cityCode},
+                success: function(data){
+                    if(data.code == 1) {
+                        var html = '',list = data.data;
+                        if(list.length > 0) {
+                            for(var i=0; i <list.length;i++) {
+                                html += '<option value="'+list[i].code+'">'+list[i].name+'</option>';
+                            }
+                        }
+                        $("#regionCode").html(html);
+                    }else {
+                        layer.msg('接口异常',{icon:5,time:1000});
+                    }
+                    isclick = true;
+                    console.log(data)
+                },
+                error: function(res){
+                    layer.msg('接口请求失败!',{icon:5,time:1000});
+                    isclick = true;
+
+                }
+            })
+        }
+
+
+        /*需求审核*/
+        function check_pass(id){
+            layer.confirm('通过审核？', {
+                    btn: ['确定','取消'],
+                    shade: false,
+                    closeBtn: 0
+                },
+                function(){
+                    $.ajax({
+                        url:"{:url('User/rolePass')}",
+                        type:'post',
+                        dataType:'json',
+                        data:{id:id},
+                        success:function(data) {
+                            console.log(data)
+                            if(data.code == 1) {
+                                layer.msg('已审核', {icon:1,time:1000},function () {
+                                    window.parent.location.reload();
+                                });
+                            }else {
+                                layer.msg(data.data,{icon:2,time:1000})
+                            }
+                        },
+                        error:function(data) {
+                            layer.msg('请求失败!',{icon:5,time:1000})
+                        }
+                    })
+
+                }
+            );
+        }
+
+        function check_reject(id) {
+            layer.confirm('拒绝通过审核？', {
                 btn: ['确定','取消'],
                 shade: false,
                 closeBtn: 0
@@ -234,5 +347,14 @@
                     })
                 })
             })
-    }
+        }
+
+
+    });
+
+
+
+
+
+
 </script>

@@ -73,15 +73,50 @@ class User extends Base {
         try {
             $info = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','LEFT')
-                ->field('u.*,r.name,r.identity,r.id_front,r.id_back,r.tel as role_tel,r.weixin,r.works,r.license')
+                ->field('u.*,r.name,r.identity,r.id_front,r.id_back,r.tel as role_tel,r.weixin,r.works,r.license,r.province_code,r.city_code,r.region_code')
                 ->where($where)
                 ->find();
+            $whereProvince = [
+                ['pcode','=',0]
+            ];
+            if($info['province_code']) {
+                $province_list = Db::table('mp_city')->where($whereProvince)->select();
+                $city_list = Db::table('mp_city')->where('pcode','=',$info['province_code'])->select();
+                $region_list = Db::table('mp_city')->where('pcode','=',$info['city_code'])->select();
+            }else {
+                $province_list = Db::table('mp_city')->where($whereProvince)->select();
+                $city_list = [];
+                $region_list = [];
+            }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
         $this->assign('info',$info);
         $this->assign('qiniu_weburl',config('qiniu_weburl'));
+        $this->assign('province_list',$province_list);
+        $this->assign('city_list',$city_list);
+        $this->assign('region_list',$region_list);
         return $this->fetch();
+    }
+
+    public function userMod() {
+        $val['province_code'] = input('post.provinceCode');
+        $val['city_code'] = input('post.cityCode');
+        $val['region_code'] = input('post.regionCode');
+
+        try {
+            $province = Db::table('mp_city')->where('code','=',$val['province_code'])->find();
+            $city = Db::table('mp_city')->where('code','=',$val['city_code'])->find();
+            $region = Db::table('mp_city')->where('code','=',$val['region_code'])->find();
+            if(!$province || !$city || !$region) {
+                return ajax('无效的地区编码',-1);
+            }
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+
+
+
     }
     //申请角色-通过审核
     public function rolePass() {
@@ -526,5 +561,48 @@ class User extends Base {
             fclose($fp);
         }
     }
+
+
+
+
+
+    //获取城市列表
+    public function getCityList() {
+        $val['provinceCode'] = input('post.provinceCode');
+        try {
+            if($val['provinceCode']) {
+                $where = [
+                    ['pcode','=',$val['provinceCode']],
+                    ['level','=',2]
+                ];
+            }else {
+                return ajax([]);
+            }
+            $list = Db::table('mp_city')->where($where)->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
+    }
+    //获取区列表
+    public function getRegionList() {
+        $val['cityCode'] = input('post.cityCode');
+        try {
+            if($val['cityCode']) {
+                $where = [
+                    ['pcode','=',$val['cityCode']],
+                    ['level','=',3]
+                ];
+            }else {
+                return ajax([]);
+            }
+            $list = Db::table('mp_city')->where($where)->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
+    }
+
+
 
 }

@@ -1051,11 +1051,23 @@ class Api extends Common
     public function factoryList() {
         $curr_page = input('post.page', 1);
         $perpage = input('post.perpage', 10);
+        $province_code = input('post.province_code');
+        $city_code = input('post.city_code');
+        $region_code = input('post.region_code');
         try {
             $where = [
                 ['u.role', '=', 3],
                 ['u.role_check','=',2]
             ];
+            if ($province_code) {
+                $where[] = ['r.province_code','=',$province_code];
+            }
+            if ($city_code) {
+                $where[] = ['r.city_code','=',$city_code];
+            }
+            if ($region_code) {
+                $where[] = ['r.region_code','=',$region_code];
+            }
             $list = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','left')
                 ->where($where)
@@ -1291,6 +1303,57 @@ class Api extends Common
         }
         return ajax();
 
+    }
+
+    //获取省级列表
+    public function getProvinceList() {
+        try {
+            $where = [
+                ['pcode','=',0]
+            ];
+            $list = Db::table('mp_city')->where($where)->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
+    }
+
+    //获取城市列表
+    public function getCityList() {
+        $val['provinceCode'] = input('post.province_code');
+        try {
+            if($val['provinceCode']) {
+                $where = [
+                    ['pcode','=',$val['provinceCode']],
+                    ['level','=',2]
+                ];
+            }else {
+                return ajax([]);
+            }
+            $list = Db::table('mp_city')->where($where)->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
+    }
+
+    //获取区列表
+    public function getRegionList() {
+        $val['cityCode'] = input('post.city_code');
+        try {
+            if($val['cityCode']) {
+                $where = [
+                    ['pcode','=',$val['cityCode']],
+                    ['level','=',3]
+                ];
+            }else {
+                return ajax([]);
+            }
+            $list = Db::table('mp_city')->where($where)->select();
+        } catch(\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+        return ajax($list);
     }
 
 
