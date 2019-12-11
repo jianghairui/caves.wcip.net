@@ -79,14 +79,20 @@ class User extends Base {
             $whereProvince = [
                 ['pcode','=',0]
             ];
+            $province_list = Db::table('mp_city')->where($whereProvince)->select();
+            $city_list = [];
+            $region_list = [];
             if($info['province_code']) {
-                $province_list = Db::table('mp_city')->where($whereProvince)->select();
-                $city_list = Db::table('mp_city')->where('pcode','=',$info['province_code'])->select();
-                $region_list = Db::table('mp_city')->where('pcode','=',$info['city_code'])->select();
-            }else {
-                $province_list = Db::table('mp_city')->where($whereProvince)->select();
-                $city_list = [];
-                $region_list = [];
+                $whereCity = [
+                    ['pcode','=',$info['province_code']]
+                ];
+                $city_list = Db::table('mp_city')->where($whereCity)->select();
+            }
+            if($info['city_code']) {
+                $whereRegion = [
+                    ['pcode','=',$info['city_code']]
+                ];
+                $region_list = Db::table('mp_city')->where($whereRegion)->select();
             }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
@@ -100,22 +106,51 @@ class User extends Base {
     }
 
     public function userMod() {
-        $val['province_code'] = input('post.provinceCode');
-        $val['city_code'] = input('post.cityCode');
-        $val['region_code'] = input('post.regionCode');
+        $val['uid'] = input('post.uid');
+        checkInput($val);
 
+        $val['province_code'] = input('post.provinceCode',0);
+        $val['city_code'] = input('post.cityCode',0);
+        $val['region_code'] = input('post.regionCode',0);
         try {
-            $province = Db::table('mp_city')->where('code','=',$val['province_code'])->find();
-            $city = Db::table('mp_city')->where('code','=',$val['city_code'])->find();
-            $region = Db::table('mp_city')->where('code','=',$val['region_code'])->find();
-            if(!$province || !$city || !$region) {
-                return ajax('无效的地区编码',-1);
+            $whereUser = [
+                ['id','=',$val['uid']]
+            ];
+            $user_exist = Db::table('mp_user')->where($whereUser)->find();
+            if(!$user_exist) {
+                return ajax('非法参数',-1);
             }
+            if($val['region_code']) {
+                $region = Db::table('mp_city')->where('code','=',$val['region_code'])->find();
+                if(!$region) {
+                    return ajax('无效的地区编码',-1);
+                }
+            }
+            if ($val['city_code']){
+                $city = Db::table('mp_city')->where('code','=',$val['city_code'])->find();
+                if(!$city) {
+                    return ajax('无效的地区编码',-1);
+                }
+            }
+            if ($val['province_code']) {
+                $province = Db::table('mp_city')->where('code','=',$val['province_code'])->find();
+                if(!$province) {
+                    return ajax('无效的地区编码',-1);
+                }
+            }
+            $update_data = [
+                'province_code' => $val['province_code'],
+                'city_code' => $val['city_code'],
+                'region_code' => $val['region_code']
+            ];
+            $whereRole = [
+                ['uid','=',$val['uid']]
+            ];
+            Db::table('mp_user_role')->where($whereRole)->update($update_data);
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-
-
+        return ajax();
 
     }
     //申请角色-通过审核

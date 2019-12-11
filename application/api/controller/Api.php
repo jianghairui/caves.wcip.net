@@ -1054,6 +1054,7 @@ class Api extends Common
         $province_code = input('post.province_code');
         $city_code = input('post.city_code');
         $region_code = input('post.region_code');
+        $search = input('post.search');
         try {
             $where = [
                 ['u.role', '=', 3],
@@ -1067,6 +1068,9 @@ class Api extends Common
             }
             if ($region_code) {
                 $where[] = ['r.region_code','=',$region_code];
+            }
+            if ($search) {
+                $where[] = ['u.org','like',"%{$search}%"];
             }
             $list = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','left')
