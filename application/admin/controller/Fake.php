@@ -62,7 +62,6 @@ class Fake extends Base {
     public function roleAdd() {
         if(request()->isPost()) {
             $val['nickname'] = input('post.nickname');
-            $val['avatar'] = input('post.avatar');
             $val['org'] = input('post.org');
             $val['role'] = input('post.role');
             $val['role_check'] = 2;
@@ -71,15 +70,25 @@ class Fake extends Base {
 
             $role['org'] = input('post.org');
             $role['desc'] = input('post.desc');
-            $role['cover'] = input('post.cover');
             $role['role'] = input('post.role');
+            $role['tel'] = input('post.tel');
             $role['create_time'] = time();
-
             checkInput($val);
             checkInput($role);
-
+            $val['avatar'] = input('post.avatar');
+            $role['cover'] = input('post.cover');
+            if(!$val['avatar'] || !$role['cover']) {
+                return ajax('请上传图片',-1);
+            }
+            $role['province_code'] = input('post.provinceCode',0);
+            $role['city_code'] = input('post.cityCode',0);
+            $role['region_code'] = input('post.regionCode',0);
+            if($role['role'] == 3) {
+                if($role['province_code'] == 0 || $role['city_code'] == 0 || $role['region_code'] == 0) {
+                    return ajax('省市区必选',-1);
+                }
+            }
             try {
-
                 $qiniu_exist = $this->qiniuFileExist($val['avatar']);
                 if($qiniu_exist !== true) {
                     return ajax($qiniu_exist['msg'],5);
@@ -122,6 +131,20 @@ class Fake extends Base {
             }
             return ajax();
         }
+
+        try {
+            $whereProvince = [
+                ['pcode','=',0]
+            ];
+            $province_list = Db::table('mp_city')->where($whereProvince)->select();
+            $city_list = [];
+            $region_list = [];
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+        $this->assign('province_list',$province_list);
+        $this->assign('city_list',$city_list);
+        $this->assign('region_list',$region_list);
         return $this->fetch();
     }
 

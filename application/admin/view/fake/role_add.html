@@ -64,6 +64,12 @@
             </div>
         </div>
         <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>手机号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" value="" placeholder="手机号" id="tel" name="tel" maxlength="15">
+            </div>
+        </div>
+        <div class="row cl">
             <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>ORG(组织机构名称)：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 <input type="text" class="input-text" value="" placeholder="组织机构名称" id="org" name="org" maxlength="30">
@@ -76,7 +82,36 @@
                 <p class="textarea-numberbar"><em class="textarea-length" id="textlen1">0</em>/255</p>
             </div>
         </div>
-
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">选择地区：</label>
+            <div class="formControls col-xs-2 col-sm-2" > <span class="select-box">
+				<select class="select" name="provinceCode" id="provinceCode">
+                    <option value="0">省</option>
+                    {foreach $province_list as $li}
+					<option value="{$li.code}">{$li.name}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+            <div class="formControls col-xs-2 col-sm-2"> <span class="select-box">
+				<select class="select" name="cityCode" id="cityCode">
+                    <option value="0">市</option>
+                    {foreach $city_list as $li}
+					<option value="{$li.code}">{$li.name}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+            <div class="formControls col-xs-2 col-sm-2"> <span class="select-box">
+				<select class="select" name="regionCode" id="regionCode">
+                    <option value="0">区</option>
+                    {foreach $region_list as $li}
+					<option value="{$li.code}">{$li.name}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
         <div class="row cl">
             <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
                 <button class="btn btn-primary radius" type="submit"><i class="Hui-iconfont">&#xe632;</i> 添加</button>
@@ -112,6 +147,10 @@
                 nickname:{
                     required:true,
                     maxlength:50
+                },
+                tel:{
+                    required:true,
+                    maxlength:15
                 },
                 org: {
                     required:true,
@@ -297,7 +336,92 @@
             });
         });
 
+        $("#provinceCode").change(function () {
+            var provinceCode = $(this).val();
+            if(provinceCode == '0') {
+                $("#cityCode").html('<option value="0">市</option>');
+                $("#regionCode").html('<option value="0">区</option>');
+                return;
+            }else {
+                if(isclick) {
+                    isclick = false;
+                    getCityList(provinceCode);
+                }
+            }
 
+        });
+
+        $("#cityCode").change(function () {
+            var cityCode = $(this).val();
+            if(cityCode == '0') {
+                $("#regionCode").html('<option value="0">区</option>');
+                return;
+            }else {
+                if(isclick) {
+                    isclick = false;
+                    getRegionList(cityCode);
+                }
+            }
+        });
+
+        function getCityList(provinceCode) {
+            $.ajax({
+                url: "{:url('User/getCityList')}" ,
+                type: 'post',
+                data:{provinceCode:provinceCode},
+                success: function(data){
+                    if(data.code == 1) {
+                        var html = '<option value="0">市</option>',list = data.data;
+                        if(list.length > 0) {
+                            for(var i=0; i <list.length;i++) {
+                                html += '<option value="'+list[i].code+'">'+list[i].name+'</option>';
+                            }
+                        }
+                        $("#cityCode").html(html);
+                        if(list.length > 0) {
+                            getRegionList(list[0].code);
+                        }
+                    }else {
+                        layer.msg('接口异常',{icon:5,time:1000});
+                    }
+                    isclick = true;
+                    // console.log(data);
+                },
+                error: function(res){
+                    layer.msg('接口请求失败!',{icon:5,time:1000});
+                    isclick = true;
+
+                }
+            })
+        }
+
+        function getRegionList(cityCode) {
+            $.ajax({
+                url: "{:url('User/getRegionList')}" ,
+                type: 'post',
+                data:{cityCode:cityCode},
+                success: function(data){
+                    if(data.code == 1) {
+                        var html = '<option value="0">区</option>',list = data.data;
+                        if(list.length > 0) {
+                            for(var i=0; i <list.length;i++) {
+                                html += '<option value="'+list[i].code+'">'+list[i].name+'</option>';
+                            }
+                        }
+                        $("#regionCode").html(html);
+                    }else {
+                        layer.msg('接口异常',{icon:5,time:1000});
+                    }
+                    isclick = true;
+                    // console.log(data);
+                },
+                error: function(res){
+                    layer.msg('接口请求失败!',{icon:5,time:1000});
+                    isclick = true;
+
+                }
+            })
+        }
 
 
     });
