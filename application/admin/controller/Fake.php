@@ -89,6 +89,12 @@ class Fake extends Base {
                 }
             }
             try {
+                $whereOrg = [
+                    ['org','=',$val['org']]
+                ];
+                $org_exist = Db::table('mp_user')->where($whereOrg)->find();
+                if($org_exist) { return ajax('此公司已存在',-1); }
+
                 $qiniu_exist = $this->qiniuFileExist($val['avatar']);
                 if($qiniu_exist !== true) {
                     return ajax($qiniu_exist['msg'],5);
@@ -219,6 +225,7 @@ class Fake extends Base {
                 }
             }
             try {
+
                 $whereUser = [
                     ['id','=',$val['id']],
                     ['role','=',$val['role']]
@@ -231,6 +238,13 @@ class Fake extends Base {
                 $role_exist = Db::table('mp_user_role')->where($whereRole)->find();
                 if(!$user_exist) { return ajax('非法参数',-1); }
                 if(!$role_exist) { return ajax('非法参数',-1); }
+
+                $whereOrg = [
+                    ['org','=',$val['org']],
+                    ['id','<>',$val['id']]
+                ];
+                $org_exist = Db::table('mp_user')->where($whereOrg)->find();
+                if($org_exist) { return ajax('此公司已存在',-1); }
 
                 $qiniu_exist = $this->qiniuFileExist($avatar);
                 if($qiniu_exist !== true) {
