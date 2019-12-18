@@ -145,6 +145,7 @@ class Xuqiu extends Base {
         $val['title'] = input('post.title');
         $val['content'] = input('post.content');
         $val['id'] = input('post.id');
+        checkInput($val);
         try {
             $where = [
                 ['id','=',$val['id']]
