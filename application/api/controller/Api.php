@@ -1203,7 +1203,7 @@ class Api extends Common
             $whereAc = [
                 ['id','=',1]
             ];
-            $info = Db::table('mp_tmp_ac')->where($whereAc)->find();
+            $info = Db::table('mp_tmp_ac')->where($whereAc)->field('id,title,pics,content')->find();
             if(!$info) {
                 return ajax('activity not exists',-4);
             }
@@ -1211,7 +1211,6 @@ class Api extends Common
         } catch (\Exception $e) {
             return ajax($e->getMessage(), -1);
         }
-        $info['share_pic'] = 'https://caves.wcip.net/static/share.jpg';
         return ajax($info);
     }
 
@@ -1272,12 +1271,10 @@ class Api extends Common
     public function joinAc() {
         $val['name'] = input('post.name');
         $val['sex'] = input('post.sex');
-        $val['num'] = input('post.num');
         $val['tel'] = input('post.tel');
         $val['code'] = input('post.code');
         checkPost($val);
         $val['uid'] = $this->myinfo['id'];
-        $val['a_id'] = 1;
         $val['weixin'] = input('post.weixin','');
         $val['create_time'] = date('Y-m-d H:i:s');
 

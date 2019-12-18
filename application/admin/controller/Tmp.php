@@ -25,19 +25,11 @@ class Tmp extends Base {
     }
 
     public function acMod() {
-        $val['title'] = input('post.title');
-        $val['desc'] = input('post.desc');
-        $val['address'] = input('post.address');
-        $val['host'] = input('post.host');
-        $val['co'] = input('post.co');
-        $val['union_host'] = input('post.union_host');
         $val['id'] = input('post.id');
-        $val['start_time'] = input('post.start_time');
         checkInput($val);
         $val['content'] = input('post.content');
         $val['create_time'] = date('Y-m-d H:i:s');
         $image = input('post.pic_url',[]);
-
         try {
             $map = [
                 ['id','=',$val['id']]
