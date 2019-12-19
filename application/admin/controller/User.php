@@ -47,11 +47,15 @@ class User extends Base {
         }
         $order = ['id'=>'DESC'];
         try {
-            $count = Db::table('mp_user')->where($where)->whereNotNull('nickname')->count();
+            $count = Db::table('mp_user')
+                ->where($where)
+//                ->whereNotNull('nickname')
+                ->count();
             $page['count'] = $count;
             $page['curr'] = $curr_page;
             $page['totalPage'] = ceil($count/$perpage);
-            $list = Db::table('mp_user')->where($where)->whereNotNull('nickname')
+            $list = Db::table('mp_user')->where($where)
+//                ->whereNotNull('nickname')
                 ->order($order)
                 ->limit(($curr_page - 1)*$perpage,$perpage)->select();
         } catch (\Exception $e) {

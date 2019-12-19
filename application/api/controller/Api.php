@@ -1060,6 +1060,7 @@ class Api extends Common
                 ['u.role', '=', 3],
                 ['u.role_check','=',2]
             ];
+            $order = ['u.id'=>'DESC'];
             if ($province_code) {
                 $where[] = ['r.province_code','=',$province_code];
             }
@@ -1075,6 +1076,7 @@ class Api extends Common
             $list = Db::table('mp_user')->alias('u')
                 ->join('mp_user_role r','u.id=r.uid','left')
                 ->where($where)
+                ->order($order)
                 ->field("u.id,u.org,u.bid_num,u.focus,u.level,r.cover")
                 ->limit(($curr_page - 1) * $perpage, $perpage)->select();
         } catch (\Exception $e) {
