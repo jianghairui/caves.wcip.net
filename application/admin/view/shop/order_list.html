@@ -56,7 +56,9 @@
                 <td>{$li.pay_order_sn}</td>
                 <td>{$li.trans_id}</td>
                 <td><span class="order-font-price" onclick="mod_price(this,{$li.id},{$li.pay_price})">{$li.pay_price}</span>元</td>
-                <td><span class="order-font-price">{$li.total_price}</span>元 (运费:<span style="color: green">{$li.carriage}</span>元)</td>
+                <td><span class="order-font-price">{$li.total_price}</span>元
+                    <!--(运费:<span style="color: green">{$li.carriage}</span>元)-->
+                </td>
                 <td>{$li.create_time|date="Y-m-d H:i:s"}</td>
                 <td class="td-status">
                     <span id="pay-status">
@@ -130,7 +132,8 @@
             </tr>
             <tr>
                 <td colspan="6">
-                    <span style="margin-left: 15px;" onclick="mod_address(this,{$li.id},'{$li.address}')">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> ) <a data-title="物流信息"  onclick="layer_show('物流信息','{:url("Shop/traceInfo",array('id'=>$li['id']))}',600,500)" href="javascript:;" class="btn btn-link">查看物流</a>
+                    <span style="margin-left: 15px;" onclick="mod_address(this,{$li.id},'{$li.address}')">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> )
+                    <!--<a data-title="物流信息"  onclick="layer_show('物流信息','{:url("Shop/traceInfo",array('id'=>$li['id']))}',600,500)" href="javascript:;" class="btn btn-link">查看物流</a>-->
                 </td>
             </tr>
             {/foreach}
