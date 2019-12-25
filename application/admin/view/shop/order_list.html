@@ -59,7 +59,7 @@
                 <td><span class="order-font-price">{$li.total_price}</span>元
                     <!--(运费:<span style="color: green">{$li.carriage}</span>元)-->
                 </td>
-                <td>{$li.create_time|date="Y-m-d H:i:s"}</td>
+                <td>{$li.pay_time|date="Y-m-d H:i:s"}</td>
                 <td class="td-status">
                     <span id="pay-status">
                         {switch $li['status']}
