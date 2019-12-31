@@ -10,6 +10,7 @@ namespace app\api\controller;
 use think\Controller;
 use think\Db;
 use think\exception\HttpResponseException;
+use my\Sendsms;
 class Yu extends Controller {
 
     protected $appid = '';
@@ -24,7 +25,8 @@ class Yu extends Controller {
         $this->app_secret = config('wx_appsecret');
         $this->cmd = request()->controller() . '/' . request()->action();
         $this->allow_list = [
-            'Yu/auth'
+            'Yu/auth',
+            'Yu/sendsms'
         ];
 
         if(!in_array($this->cmd,$this->allow_list)) {
@@ -94,8 +96,73 @@ class Yu extends Controller {
         return ajax($list);
     }
 
+    //提交表单发送手机短信
+    public function sendSms() {
+        $val['tel'] = input('post.tel');
+        checkPost($val);
+        $sms = new Sendsms();
+        $tel = $val['tel'];
+
+        if(!is_tel($tel)) {
+            return ajax('invalid tel',6);
+        }
+        try {
+            $code = mt_rand(100000,999999);
+            $insert_data = [
+                'tel' => $tel,
+                'code' => $code,
+                'create_time' => time()
+            ];
+            $sms_data['tel'] = $val['tel'];
+            $sms_data['param'] = [
+                'code' => $code
+            ];
+            $exist = Db::table('mp_verify')->where('tel','=',$tel)->find();
+            if($exist) {
+                if((time() - $exist['create_time']) < 60) {
+                    return ajax('1分钟内不可重复发送',11);
+                }
+                $res = $sms->send($sms_data,'SMS_181850052');
+                if($res->Code === 'OK') {
+                    Db::table('mp_verify')->where('tel',$tel)->update($insert_data);
+                    return ajax();
+                }else {
+                    return ajax($res->Message,12);
+                }
+            }else {
+                $res = $sms->send($sms_data);
+                if($res->Code === 'OK') {
+                    Db::table('mp_verify')->insert($insert_data);
+                    return ajax();
+                }else {
+                    return ajax($res->Message,12);
+                }
+            }
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(),-1);
+        }
+    }
 
 
+    //兑换成功发送手机通知短信
+    public function orderSms() {
+        $sms = new Sendsms();
+        try {
+            $card_no = "12251646";
+            $sms_data['tel'] = '13102163019';
+            $sms_data['param'] = [
+                'name' => $card_no
+            ];
+            $res = $sms->send($sms_data);
+            if($res->Code === 'OK') {
+                return ajax();
+            }else {
+                return ajax($res->Message,12);
+            }
+        }catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
+        }
+    }
 
 
 

@@ -95,8 +95,8 @@
 <script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
 <script type="text/javascript">
 
-    var url = '{:url("Note/noteList")}' + '?<?php echo $page["query"];?>';
-    var curr = '{$page.curr}';
+    var url = '{:url("Note/noteList")}' + '?<?php echo $page["query"];?>';//本页完整url
+    var curr = '{$page.curr}';//当前页码
     laypage({
         cont: 'page', //容器。值支持id名、原生dom对象，jquery对象。
         pages: '{$page.totalPage}', //通过后台拿到的总页数
