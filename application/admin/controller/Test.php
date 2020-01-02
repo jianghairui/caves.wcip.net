@@ -21,12 +21,43 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use think\Db;
-
+use my\Sendsms;
 class Test extends Base {
 
     public function index() {
+        $ele = @$this->orderSms();
+        var_dump($ele);
+    }
 
-        exit('hello world');
+    //兑换成功发送手机通知短信
+//    public function orderSms() {
+//        $sms = new Sendsms();
+//        try {
+//            $card_no = "12251646";
+//            $sms_data['tel'] = '13102163019';
+//            $sms_data['param'] = [
+//                'work_title' => $card_no,
+//                'org' => '海雷丁商会'
+//            ];
+//            $res = $sms->send($sms_data,'SMS_174987199');
+//            if($res->Code === 'OK') {
+//                return 'OK';
+//            }else {
+//                return $res->Message;
+//            }
+//        }catch (\Exception $e) {
+//            return $e->getMessage();
+//        }
+//    }
+
+    private function genLetter() {
+        $arr = [];
+        return $arr['a'];
+    }
+
+    public function genCode1000() {
+        //exit('hello world');
+
         //生成1000张卡号密钥
 //        $arr = range(100000,999999);
 //        shuffle($arr);
@@ -44,48 +75,47 @@ class Test extends Base {
 //        }
 //        halt($res);
 
-
-
         //导出Excel
-        try {
-            $list = Db::table('mp_yu')->select();
-        } catch (\Exception $e) {
-            return ajax($e->getMessage(), -1);
-        }
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('纸巾机统计');
-
-        $sheet->getColumnDimension('A')->setWidth(12);
-        $sheet->getColumnDimension('B')->setWidth(12);
-
-        $sheet->getStyle('A:B')->applyFromArray([
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-            ],
-        ]);
-
-        $sheet->setCellValue('A1', '卡号');
-        $sheet->setCellValue('B1', '密钥');
-
-        $index = 2;
-        foreach ($list as $v) {
-            $sheet->setCellValue('A'.$index, $v['card_no']);
-            $sheet->setCellValue('B'.$index, $v['card_key']);
-            $index++;
-        }
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');//告诉浏览器输出07Excel文件
-//header(‘Content-Type:application/vnd.ms-excel‘);//告诉浏览器将要输出Excel03版本文件
-        header('Content-Disposition: attachment;filename="card'.date('Ymd').'.xlsx"');//告诉浏览器输出浏览器名称
-        header('Cache-Control: max-age=0');//禁止缓存
-
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
+//        try {
+//            $list = Db::table('mp_yu')->select();
+//        } catch (\Exception $e) {
+//            return ajax($e->getMessage(), -1);
+//        }
+//
+//        $spreadsheet = new Spreadsheet();
+//        $sheet = $spreadsheet->getActiveSheet();
+//        $sheet->setTitle('纸巾机统计');
+//
+//        $sheet->getColumnDimension('A')->setWidth(12);
+//        $sheet->getColumnDimension('B')->setWidth(12);
+//
+//        $sheet->getStyle('A:B')->applyFromArray([
+//            'alignment' => [
+//                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+//                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+//            ],
+//        ]);
+//
+//        $sheet->setCellValue('A1', '卡号');
+//        $sheet->setCellValue('B1', '密钥');
+//
+//        $index = 2;
+//        foreach ($list as $v) {
+//            $sheet->setCellValue('A'.$index, $v['card_no']);
+//            $sheet->setCellValue('B'.$index, $v['card_key']);
+//            $index++;
+//        }
+//
+//        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');//告诉浏览器输出07Excel文件
+////header(‘Content-Type:application/vnd.ms-excel‘);//告诉浏览器将要输出Excel03版本文件
+//        header('Content-Disposition: attachment;filename="card'.date('Ymd').'.xlsx"');//告诉浏览器输出浏览器名称
+//        header('Cache-Control: max-age=0');//禁止缓存
+//
+//        $writer = new Xlsx($spreadsheet);
+//        $writer->save('php://output');
 
     }
+
 
     private function randkeys($length) {
         $returnStr='';
@@ -98,6 +128,7 @@ class Test extends Base {
 
     public function readexcel( $file = '',  $sheet = 0,  $columnCnt = 0, &$options = [])
     {
+        die();
         try {
             /* 转码 */
             $file = iconv("utf-8", "gb2312", $file);

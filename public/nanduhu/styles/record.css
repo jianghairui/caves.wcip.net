@@ -1,0 +1,61 @@
+.main {
+    min-height: 100vh;
+    background: #f7f7f7;
+    overflow: hidden;
+}
+.main .tip{
+    text-align: center;
+    color: #666666;
+    font-size: 20px;
+    margin-top: 50px;
+}
+.list-box {
+    margin: 0 15px;
+}
+
+.list-box li h3 {
+    font-size: 12px;
+    color: #999999;
+    font-weight: normal;
+    text-align: center;
+    margin: 15px 0 8px;
+}
+
+.list-box li .item-box {
+    background: #ffffff;
+    display: flex;
+    border-bottom: 5px dotted #f7f7f7;
+}
+
+.list-box li .item-bottom-box {
+    border: none;
+}
+
+.list-box li .item-box .item-left {
+    flex-shrink: 0;
+    margin-right: 20px;
+    margin-left: 15px;
+}
+
+.list-box li .item-box .item-right {
+    flex-grow: 1;
+    margin-right: 15px;
+}
+
+.list-box li .item-box p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666666;
+}
+
+.list-box li .item-box .wuliu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-box li .item-box .wuliu .btn-copy {
+    display: block;
+    font-size: 14px;
+    color: #ff9227;
+}

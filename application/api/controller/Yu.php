@@ -17,6 +17,7 @@ class Yu extends Controller {
     protected $app_secret = '';
     protected $allow_list = [];
     protected $cmd = '';
+    protected $userinfo = [];
 
     public function initialize() {
 
@@ -46,54 +47,88 @@ class Yu extends Controller {
                         header("Location:" . $auth_url);exit;
                     }
                 }
+                $this->userinfo = $userinfo;
             }
         }
 
     }
 
     public function index() {
-        $userinfo = session('userinfo');
-        halt($userinfo);
+        return $this->fetch();
     }
 
-
-
-    //获取城市列表
-    public function getCityList() {
-        $val['provinceCode'] = input('post.provinceCode');
+    public function pickupGoods() {
+        $val['card_no'] = input('post.card_no');
+        $val['card_key'] = input('post.card_key');
+        $val['tel'] = input('post.tel');
+        $val['code'] = input('post.code');
+        $val['receiver'] = input('post.receiver');
+        $val['province'] = input('post.province');
+        $val['city'] = input('post.city');
+        $val['region'] = input('post.region');
+        $val['address'] = input('post.address');
+        checkInput($val);
         try {
-            if($val['provinceCode']) {
-                $where = [
-                    ['pcode','=',$val['provinceCode']],
-                    ['level','=',2]
-                ];
-            }else {
-                return ajax([]);
+            if(!is_tel($val['tel'])) {
+                return ajax('invalid tel',-1);
             }
-            $list = Db::table('mp_city')->where($where)->select();
-        } catch(\Exception $e) {
-            return ajax($e->getMessage(),-1);
+            //todo 检验短信验证码
+            $whereCode = [
+                ['tel','=',$val['tel']],
+                ['code','=',$val['code']]
+            ];
+            $code_exist = Db::table('mp_verify')->where($whereCode)->find();
+            if($code_exist) {
+                if((time() - $code_exist['create_time']) > 60*5) {
+                    return ajax('验证码已过期',-1);
+                }
+            }else {
+                return ajax('验证码无效',-1);
+            }
+
+            //todo 检验卡号密钥
+            $whereCard = [
+                ['card_no','=',$val['card_no']],
+                ['card_key','=',$val['card_key']]
+            ];
+            $card_exist = Db::table('mp_yu')->where($whereCard)->find();
+            if(!$card_exist) {
+                return ajax('序列号提货码不匹配',-1);
+            }
+            if($card_exist['status'] == 1) {
+                return ajax('此序列号已被领取',-1);
+            }
+            //todo 提交表单
+            $update_data['uid'] = $this->userinfo['uid'];
+            $update_data['receiver'] = $val['receiver'];
+            $update_data['tel'] = $val['tel'];
+            $update_data['province'] = $val['province'];
+            $update_data['city'] = $val['city'];
+            $update_data['region'] = $val['region'];
+            $update_data['address'] = $val['address'];
+            $update_data['take_time'] = date('Y-m-d H:i:s');
+            $update_data['status'] = 1;
+            Db::table('mp_yu')->where($whereCard)->update($update_data);
+//            Db::table('mp_verify')->where($whereCode)->delete();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
         }
-        return ajax($list);
+        @$this->orderSms($val['card_no'],$val['tel']);
+        return ajax();
     }
-
-    //获取区列表
-    public function getRegionList() {
-        $val['cityCode'] = input('post.cityCode');
+    //领取记录
+    public function recordList() {
+        $whereYu = [
+            ['uid','=',$this->userinfo['uid']]
+        ];
         try {
-            if($val['cityCode']) {
-                $where = [
-                    ['pcode','=',$val['cityCode']],
-                    ['level','=',3]
-                ];
-            }else {
-                return ajax([]);
-            }
-            $list = Db::table('mp_city')->where($where)->select();
-        } catch(\Exception $e) {
-            return ajax($e->getMessage(),-1);
+            $list = Db::table('mp_yu')
+                ->where($whereYu)->select();
+        } catch (\Exception $e) {
+            return ajax($e->getMessage(), -1);
         }
-        return ajax($list);
+        $this->assign('list',$list);
+        return $this->fetch();
     }
 
     //提交表单发送手机短信
@@ -104,7 +139,7 @@ class Yu extends Controller {
         $tel = $val['tel'];
 
         if(!is_tel($tel)) {
-            return ajax('invalid tel',6);
+            return ajax('无效的手机号',-1);
         }
         try {
             $code = mt_rand(100000,999999);
@@ -120,14 +155,14 @@ class Yu extends Controller {
             $exist = Db::table('mp_verify')->where('tel','=',$tel)->find();
             if($exist) {
                 if((time() - $exist['create_time']) < 60) {
-                    return ajax('1分钟内不可重复发送',11);
+                    return ajax('1分钟内不可重复发送',-1);
                 }
                 $res = $sms->send($sms_data,'SMS_181850052');
                 if($res->Code === 'OK') {
                     Db::table('mp_verify')->where('tel',$tel)->update($insert_data);
                     return ajax();
                 }else {
-                    return ajax($res->Message,12);
+                    return ajax($res->Message,-1);
                 }
             }else {
                 $res = $sms->send($sms_data);
@@ -135,25 +170,22 @@ class Yu extends Controller {
                     Db::table('mp_verify')->insert($insert_data);
                     return ajax();
                 }else {
-                    return ajax($res->Message,12);
+                    return ajax($res->Message,-1);
                 }
             }
         }catch (\Exception $e) {
             return ajax($e->getMessage(),-1);
         }
     }
-
-
     //兑换成功发送手机通知短信
-    public function orderSms() {
+    private function orderSms($card_no,$tel) {
         $sms = new Sendsms();
         try {
-            $card_no = "12251646";
-            $sms_data['tel'] = '13102163019';
+            $sms_data['tel'] = $tel;
             $sms_data['param'] = [
                 'name' => $card_no
             ];
-            $res = $sms->send($sms_data);
+            $res = $sms->send($sms_data,'SMS_181860022');
             if($res->Code === 'OK') {
                 return ajax();
             }else {

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="styles/common.css">
+  <link rel="stylesheet" href="styles/record.css">
+
+  <title>领取记录11</title>
+</head>
+<body>
+<div class="main">
+
+  <ul class="list-box">
+    <li>
+      <h3>2019-12-30 12:46</h3>
+      <div class="item-box">
+        <div class="item-left">
+          <p>序列号</p>
+          <p>收货人</p>
+          <p>手机号</p>
+          <p>收货地址</p>
+        </div>
+        <div class="item-right">
+          <p>CT79366846025296</p>
+          <p>张三</p>
+          <p>19564823516</p>
+          <p>天津市天津市西青区绿色海泰产业基地k1座6号楼201室</p>
+        </div>
+      </div>
+      <div class="item-box item-bottom-box">
+        <div class="item-left">
+          <p>配送状态</p>
+          <p>物流单号</p>
+        </div>
+        <div class="item-right">
+          <p>已发货</p>
+          <p class="wuliu">
+            <span>3668460252965682</span>
+            <span class="btn-copy" onclick="copy_data('3668460252965682')">复制</span>
+          </p>
+        </div>
+      </div>
+    </li>
+    <li>
+      <h3>2019-12-30 12:46</h3>
+      <div class="item-box">
+        <div class="item-left">
+          <p>序列号</p>
+          <p>收货人</p>
+          <p>手机号</p>
+          <p>收货地址</p>
+        </div>
+        <div class="item-right">
+          <p>CT79366846025296</p>
+          <p>张三</p>
+          <p>19564823516</p>
+          <p>天津市天津市西青区绿色海泰产业基地k1座6号楼201室</p>
+        </div>
+      </div>
+      <div class="item-box item-bottom-box">
+        <div class="item-left">
+          <p>配送状态</p>
+          <p>物流单号</p>
+        </div>
+        <div class="item-right">
+          <p>已发货</p>
+          <p class="wuliu">
+            <span>11111111111111</span>
+            <span class="btn-copy" onclick="copy_data('11111111111111')">复制</span>
+          </p>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+</body>
+<script src="javascript/jquery-3.4.1.min.js"></script>
+<script src="layer/mobile/layer.js"></script>
+<script>
+  $(function () {
+    // $('.btn-copy').click(function () {
+    //   layer.open({
+    //     content: '复制成功',
+    //     skin: 'msg',
+    //     time: 2
+    //   })
+    // });
+  });
+
+  function copy_data(msg) {
+    var input = document.createElement("input");
+    input.value = msg;
+    input.readOnly = true;
+    document.body.appendChild(input);
+    input.select();
+    input.setSelectionRange(0, input.value.length);
+    document.execCommand('Copy');
+    document.body.removeChild(input);
+    window.scrollTo(0, 0);
+    layer.open({
+      content: '复制成功',
+      skin: 'msg',
+      time: 2
+    })
+  }
+</script>
+</html>

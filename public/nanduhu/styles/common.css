@@ -1,0 +1,25 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: #333;
+}
+
+ul, li {
+    list-style: none;
+}
+
+.layui-m-layer .layui-m-layer-msg {
+    bottom: 0 !important;
+}
+
+.toolbar .title {
+    margin: 0;
+}
+
+.weui-picker-modal .picker-item {
+    text-align: center;
+}

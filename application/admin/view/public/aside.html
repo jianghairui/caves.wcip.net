@@ -106,22 +106,40 @@
                 </ul>
             </dd>
         </dl>
-
-    {else /}
-        <dl id="fake">
-            <dt><i class="Hui-iconfont">&#xe6f9;</i> 工厂数据<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+        <dl id="menu-yu">
+            <dt><i class="Hui-iconfont">&#xe6f9;</i> 南都湖鱼<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
             <dd>
                 <ul>
-                    <li><a data-href="{:url('Fake/roleList')}" data-title="工厂数据" href="javascript:void(0)">工厂数据</a></li>
-                    <li><a data-href="{:url('Fake/worksList')}" data-title="参赛作品" href="javascript:void(0)">参赛作品</a></li>
+                    <li><a data-href="{:url('Yu/recordList')}" data-title="领取记录" href="javascript:void(0)">领取记录</a></li>
                 </ul>
             </dd>
         </dl>
-        <dl id="member">
-            <dt><i class="Hui-iconfont">&#xe60d;</i> 会员管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+
+    {else /}
+        <!--<dl id="fake">-->
+            <!--<dt><i class="Hui-iconfont">&#xe6f9;</i> 工厂数据<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>-->
+            <!--<dd>-->
+                <!--<ul>-->
+                    <!--<li><a data-href="{:url('Fake/roleList')}" data-title="工厂数据" href="javascript:void(0)">工厂数据</a></li>-->
+                    <!--<li><a data-href="{:url('Fake/worksList')}" data-title="参赛作品" href="javascript:void(0)">参赛作品</a></li>-->
+                <!--</ul>-->
+            <!--</dd>-->
+        <!--</dl>-->
+        <!--<dl id="member">-->
+            <!--<dt><i class="Hui-iconfont">&#xe60d;</i> 会员管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>-->
+            <!--<dd>-->
+                <!--<ul>-->
+                    <!--<li><a data-href="{:url('User/userList')}" data-title="会员列表" href="javascript:void(0);">会员列表</a></li>-->
+                <!--</ul>-->
+            <!--</dd>-->
+        <!--</dl>-->
+
+        <dl id="yu">
+            <dt><i class="Hui-iconfont">&#xe6f9;</i> 南都湖鱼<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
             <dd>
                 <ul>
-                    <li><a data-href="{:url('User/userList')}" data-title="会员列表" href="javascript:void(0);">会员列表</a></li>
+                    <!--<li><a data-href="{:url('Yu/userList')}" data-title="用户列表" href="javascript:void(0)">用户列表</a></li>-->
+                    <li><a data-href="{:url('Yu/recordList')}" data-title="领取记录" href="javascript:void(0)">领取记录</a></li>
                 </ul>
             </dd>
         </dl>

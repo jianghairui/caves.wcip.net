@@ -1,0 +1,189 @@
+<style>
+    .avatar{ width:44px;height: 44px;border-radius: 50%;}
+</style>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 南都湖鱼 <span class="c-gray en">&gt;</span> 领取记录 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <section id="formAjax">
+        <div class="text-c">
+            <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
+            日期范围：
+            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'datemax\')||\'%y-%M-%d\' }' })" id="datemin" value="{$Think.get.datemin}" class="input-text Wdate" style="width:120px;">
+            -
+            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'datemin\') }' })" id="datemax" value="{$Think.get.datemax}" class="input-text Wdate" style="width:120px;">
+            <span class="select-box inline" style="width: 120px;">
+                <select name="status" id="status" class="select">
+                    <option value="">全部</option>
+                    <option value="0" {if $param['status'] === '0'}selected{/if}>未使用</option>
+                    <option value="1" {if $param['status'] === '1'}selected{/if}>已使用</option>
+                </select>
+            </span>
+            <span class="select-box inline" style="width: 120px;">
+                <select name="send" id="send" class="select">
+                    <option value="">全部</option>
+                    <option value="0" {if $param['send'] === '0'}selected{/if}>未发货</option>
+                    <option value="1" {if $param['send'] === '1'}selected{/if}>已发货</option>
+                </select>
+            </span>
+
+            <input type="text" name="search" value="{$param['search']}" id="search" placeholder=" 序列号或收货人姓名" style="width:200px" class="input-text">
+            <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找</button>
+            <button name="" id="toExcel" class="btn btn-primary" type="button"><i class="Hui-iconfont">&#xe665;</i> 导出Excel</button>
+        </div>
+    </section>
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="r">共有数据：<strong>{$page.count}</strong> 条</span> </div>
+    <table class="table table-border table-bordered table-bg">
+        <thead>
+        <tr class="text-c">
+            <th width="30">#</th>
+            <th width="100">序列号</th>
+            <th width="60">使用状态</th>
+            <th width="60">发货状态</th>
+            <th width="80">快递类型</th>
+            <th width="150">物流单号</th>
+            <th width="150">领取时间</th>
+            <th width="150">领取人昵称</th>
+            <th width="44">头像</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <form id="multi-check">
+            {foreach $list as $li}
+            <tr class="text-c userinfo">
+                <td rowspan="2">{$li.id}</td>
+                <td><b>{$li.card_no}</b></td>
+                <td>
+                    {switch $li['status']}
+                    {case 0}
+                    <span class="label label-warning radius">未使用</span>
+                    {/case}
+                    {case 1}
+                    <span class="label label-success radius">已使用</span>
+                    {/case}
+                    {default /}
+                    {/switch}
+                </td>
+                <td>
+                    {switch $li['send']}
+                    {case 0}
+                    <span class="label label-defaunt radius">待发货</span>
+                    {/case}
+                    {case 1}
+                    <span class="label label-success radius">已发货</span>
+                    {/case}
+                    {default /}
+                    {/switch}
+                </td>
+                <td>{$li.tracking_name}</td>
+                <td>{$li.tracking_no}</td>
+                <td>{$li.take_time}</td>
+                <td>{$li.nickname}</td>
+                <td>
+                    <img src="{$li.avatar}" class="avatar" />
+                </td>
+                <td class="td-manage" rowspan="2">
+                    <span id="send-btn">
+                        {if $li['status'] == 1 && $li['send'] == 0}
+                        <a title="发货" href="javascript:;" onclick="order_send('订单发货','{:url("Yu/orderSend",array("id"=>$li["id"]))}','600','400')"">
+                            <i class="Hui-iconfont">&#xe669;</i>
+                        </a>
+                        {/if}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="8">
+                    <span style="margin-left: 15px;">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> )
+                </td>
+            </tr>
+            {/foreach}
+        </form>
+
+        <tr>
+            <td colspan="10" id="page" class="text-r"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="/lib/My97DatePicker/4.8/WdatePicker.js"></script>
+<script type="text/javascript" src="/lib/datatables/1.10.0/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
+<script type="text/javascript">
+
+    var url = '{:url("Yu/recordList")}' + '?<?php echo $page["query"];?>';
+    var curr = '{$page.curr}',totalPage='{$page.totalPage}';
+    if(totalPage > 1) {
+        laypage({
+            cont: 'page', //容器。值支持id名、原生dom对象，jquery对象。
+            pages: totalPage, //通过后台拿到的总页数
+            skip: false, //是否开启跳页
+            skin: '#5a98de',
+            curr: curr || 1, //当前页
+            jump: function(obj, first){ //触发分页后的回调
+                // console.log(obj)
+                if(!first) {
+                    window.location.href = url+'&page=' + obj.curr;
+                }
+            }
+        });
+    }
+
+    $("#search-btn").click(function () {
+        var datemin = $("#formAjax").find("#datemin").val();
+        var datemax = $("#formAjax").find("#datemax").val();
+        var search = $("#formAjax").find("#search").val();
+        var status = $("#formAjax").find("#status").val();
+        var send = $("#formAjax").find("#send").val();
+        var str = '';
+        if(datemin.length != '') {
+            str += '&datemin=' + datemin
+        }
+        if(datemax.length != '') {
+            str += '&datemax=' + datemax
+        }
+        if(search.length != '') {
+            str += '&search=' + search
+        }
+        if(status.length != '') {
+            str += '&status=' + status
+        }
+        if(send.length != '') {
+            str += '&send=' + send
+        }
+        window.location.href = '{:url("Yu/recordList")}' + '?' + str;
+    });
+
+    $("#toExcel").click(function () {
+
+        var datemin = $("#formAjax").find("#datemin").val();
+        var datemax = $("#formAjax").find("#datemax").val();
+        var search = $("#formAjax").find("#search").val();
+        var status = $("#formAjax").find("#status").val();
+        var send = $("#formAjax").find("#send").val();
+        var str = '';
+        if(datemin.length != '') {
+            str += '&datemin=' + datemin
+        }
+        if(datemax.length != '') {
+            str += '&datemax=' + datemax
+        }
+        if(search.length != '') {
+            str += '&search=' + search
+        }
+        if(status.length != '') {
+            str += '&status=' + status
+        }
+        if(send.length != '') {
+            str += '&send=' + send
+        }
+        window.location.href = '{:url("Yu/toExcel")}' + '?' + str;
+    });
+
+    /*发货*/
+    function order_send(title,url,w,h){
+        layer_show(title,url,w,h);
+    }
+
+</script>
