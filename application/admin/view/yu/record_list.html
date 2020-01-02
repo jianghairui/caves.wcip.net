@@ -42,9 +42,9 @@
             <th width="80">快递类型</th>
             <th width="150">物流单号</th>
             <th width="150">领取时间</th>
-            <th width="150">领取人昵称</th>
+            <th>领取人昵称</th>
             <th width="44">头像</th>
-            <th>操作</th>
+            <th width="80">操作</th>
         </tr>
         </thead>
         <tbody>
@@ -94,7 +94,7 @@
             </tr>
             <tr>
                 <td colspan="8">
-                    <span style="margin-left: 15px;">收货地址: <b>{$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> )
+                    <span style="margin-left: 15px;">收货地址: <b>{$li.province} {$li.city} {$li.region} {$li.address}</b></span> &nbsp;&nbsp;&nbsp;&nbsp;(收货人: <b>{$li.receiver}</b> | 手机号: <b>{$li.tel}</b> )
                 </td>
             </tr>
             {/foreach}

@@ -12,6 +12,7 @@ class Index extends Base
         $auth = new Auth();
         $authlist = $auth->getAuthList(session('admin_id'));
         $this->assign('authlist',$authlist);
+        $this->assign('username',session('username'));
         return $this->fetch();
     }
     //查看需求详情
