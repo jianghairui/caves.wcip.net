@@ -28,7 +28,7 @@ class Yu extends Base {
 
         $where = [];
         if($param['search']) {
-            $where[] = ['y.card_no|y.tel','LIKE',"%{$param['search']}%"];
+            $where[] = ['y.card_no|y.tel|y.receiver','LIKE',"%{$param['search']}%"];
         }
         if($param['status'] !== '') {
             $where[] = ['y.status','=',$param['status']];
