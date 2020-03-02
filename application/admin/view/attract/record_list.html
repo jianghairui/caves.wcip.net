@@ -1,0 +1,95 @@
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 招商合作 <span class="c-gray en">&gt;</span> 表单记录 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <section id="formAjax">
+        <div class="text-c">
+            <button onclick="removeIframe()" class="btn btn-primary radius">关闭选项卡</button>
+            日期范围：
+            <input type="text" onfocus="WdatePicker({ maxDate:'#F{ $dp.$D(\'datemax\')||\'%y-%M-%d\' }' })" id="datemin" value="{$Think.get.datemin}" class="input-text Wdate" style="width:120px;" readonly>
+            -
+            <input type="text" onfocus="WdatePicker({ minDate:'#F{ $dp.$D(\'datemin\') }' })" id="datemax" value="{$Think.get.datemax}" class="input-text Wdate" style="width:120px;" readonly>
+            <input type="text" name="search" value="{$param['search']}" id="search" placeholder=" 公司名或姓名" style="width:200px" class="input-text">
+            <button name="" id="search-btn" class="btn btn-success" type="button"><i class="Hui-iconfont">&#xe665;</i> 查找</button>
+        </div>
+    </section>
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="r">共有数据：<strong>{$page.count}</strong> 条</span> </div>
+    <table class="table table-border table-bordered table-bg">
+        <thead>
+        <tr class="text-c">
+            <th width="30">#</th>
+            <th width="80">姓名</th>
+            <th width="60">手机号</th>
+            <th width="60">邮箱</th>
+            <th width="80">公司名</th>
+            <th width="150">地址</th>
+            <th width="200">备注</th>
+            <th width="150">时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        <form id="multi-check">
+            {foreach $list as $li}
+            <tr class="text-c userinfo">
+                <td >{$li.id}</td>
+                <td><b>{$li.name}</b></td>
+                <td>{$li.tel}</td>
+                <td>{$li.email}</td>
+                <td>{$li.company}</td>
+                <td>{$li.province}</td>
+                <td>{$li.desc}</td>
+                <td>{$li.create_time}</td>
+            </tr>
+            {/foreach}
+        </form>
+
+        <tr>
+            <td colspan="10" id="page" class="text-r"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="/lib/My97DatePicker/4.8/WdatePicker.js"></script>
+<script type="text/javascript" src="/lib/datatables/1.10.0/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/lib/laypage/1.2/laypage.js"></script>
+<script type="text/javascript">
+
+    var url = '{:url("Attract/recordList")}' + '?<?php echo $page["query"];?>';
+    var curr = '{$page.curr}',totalPage='{$page.totalPage}';
+    if(totalPage > 1) {
+        laypage({
+            cont: 'page', //容器。值支持id名、原生dom对象，jquery对象。
+            pages: totalPage, //通过后台拿到的总页数
+            skip: false, //是否开启跳页
+            skin: '#5a98de',
+            curr: curr || 1, //当前页
+            jump: function(obj, first){ //触发分页后的回调
+                // console.log(obj)
+                if(!first) {
+                    window.location.href = url+'&page=' + obj.curr;
+                }
+            }
+        });
+    }
+
+    $("#search-btn").click(function () {
+        var datemin = $("#formAjax").find("#datemin").val();
+        var datemax = $("#formAjax").find("#datemax").val();
+        var search = $("#formAjax").find("#search").val();
+        var str = '';
+        if(datemin.length != '') {
+            str += '&datemin=' + datemin
+        }
+        if(datemax.length != '') {
+            str += '&datemax=' + datemax
+        }
+        if(search.length != '') {
+            str += '&search=' + search
+        }
+        window.location.href = '{:url("Attract/recordList")}' + '?' + str;
+    });
+
+
+
+
+</script>

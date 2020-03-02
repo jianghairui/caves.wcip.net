@@ -1,5 +1,6 @@
 <aside class="Hui-aside">
     <div class="menu_dropdown bk_2">
+
     {if session('username')===config('superman')}
         <dl id="menu-banner">
             <dt><i class="Hui-iconfont">&#xe625;</i> 首页设置<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
@@ -114,25 +115,27 @@
                 </ul>
             </dd>
         </dl>
+        <dl id="menu-attract">
+            <dt><i class="Hui-iconfont">&#xe6f9;</i> 招商合作<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Attract/recordList')}" data-title="表单记录" href="javascript:void(0)">表单记录</a></li>
+                </ul>
+            </dd>
+        </dl>
+
+    {elseif  session('username')==='zhaoshang' /}
+
+        <dl id="attract">
+            <dt><i class="Hui-iconfont">&#xe6f9;</i> 招商合作<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    <li><a data-href="{:url('Attract/recordList')}" data-title="表单记录" href="javascript:void(0)">表单记录</a></li>
+                </ul>
+            </dd>
+        </dl>
 
     {else /}
-        <!--<dl id="fake">-->
-            <!--<dt><i class="Hui-iconfont">&#xe6f9;</i> 工厂数据<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>-->
-            <!--<dd>-->
-                <!--<ul>-->
-                    <!--<li><a data-href="{:url('Fake/roleList')}" data-title="工厂数据" href="javascript:void(0)">工厂数据</a></li>-->
-                    <!--<li><a data-href="{:url('Fake/worksList')}" data-title="参赛作品" href="javascript:void(0)">参赛作品</a></li>-->
-                <!--</ul>-->
-            <!--</dd>-->
-        <!--</dl>-->
-        <!--<dl id="member">-->
-            <!--<dt><i class="Hui-iconfont">&#xe60d;</i> 会员管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>-->
-            <!--<dd>-->
-                <!--<ul>-->
-                    <!--<li><a data-href="{:url('User/userList')}" data-title="会员列表" href="javascript:void(0);">会员列表</a></li>-->
-                <!--</ul>-->
-            <!--</dd>-->
-        <!--</dl>-->
 
         <dl id="yu">
             <dt><i class="Hui-iconfont">&#xe6f9;</i> 南都湖鱼<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
